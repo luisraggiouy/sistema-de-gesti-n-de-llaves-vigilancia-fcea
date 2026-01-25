@@ -2,23 +2,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TipoUsuario, tiposUsuario } from '@/data/fceaData';
-import { User, Phone, UserCog } from 'lucide-react';
+import { User, Phone, UserCog, Mail } from 'lucide-react';
 
 interface UserDataFormProps {
   nombre: string;
   celular: string;
+  email: string;
   tipoUsuario: TipoUsuario | '';
   onNombreChange: (value: string) => void;
   onCelularChange: (value: string) => void;
+  onEmailChange: (value: string) => void;
   onTipoChange: (value: TipoUsuario) => void;
 }
 
 export function UserDataForm({
   nombre,
   celular,
+  email,
   tipoUsuario,
   onNombreChange,
   onCelularChange,
+  onEmailChange,
   onTipoChange
 }: UserDataFormProps) {
   return (
@@ -56,6 +60,25 @@ export function UserDataForm({
             onChange={(e) => onCelularChange(e.target.value)}
             className="h-12 text-lg"
           />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="email" className="flex items-center gap-2">
+            <Mail className="w-4 h-4 text-muted-foreground" />
+            Correo electrónico
+            <span className="text-xs text-muted-foreground font-normal">(opcional)</span>
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="usuario@ejemplo.com"
+            value={email}
+            onChange={(e) => onEmailChange(e.target.value)}
+            className="h-12 text-lg"
+          />
+          <p className="text-xs text-muted-foreground">
+            Puede ingresar celular, email o ambos
+          </p>
         </div>
         
         <div className="space-y-2">
