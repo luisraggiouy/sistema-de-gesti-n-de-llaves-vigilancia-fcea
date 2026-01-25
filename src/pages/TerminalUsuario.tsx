@@ -17,7 +17,8 @@ export default function TerminalUsuario() {
   // Datos del usuario
   const [nombre, setNombre] = useState('');
   const [celular, setCelular] = useState('');
-  const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario | ''>('');
+  const [email, setEmail] = useState('');
+  const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario | ''>();
   
   // Llave seleccionada
   const [selectedKey, setSelectedKey] = useState<Lugar | null>(null);
@@ -26,7 +27,9 @@ export default function TerminalUsuario() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [ticketNumber, setTicketNumber] = useState('');
 
-  const isFormValid = nombre.trim() && celular.trim() && tipoUsuario && selectedKey;
+  // Validación: nombre, tipo, llave Y (celular O email)
+  const tieneContacto = celular.trim() || email.trim();
+  const isFormValid = nombre.trim() && tieneContacto && tipoUsuario && selectedKey;
 
   const handleSubmit = async () => {
     if (!isFormValid || !selectedKey) return;
@@ -52,6 +55,7 @@ export default function TerminalUsuario() {
   const handleNewRequest = () => {
     setNombre('');
     setCelular('');
+    setEmail('');
     setTipoUsuario('');
     setSelectedKey(null);
     setTicketNumber('');
@@ -88,9 +92,11 @@ export default function TerminalUsuario() {
             <UserDataForm
               nombre={nombre}
               celular={celular}
+              email={email}
               tipoUsuario={tipoUsuario}
               onNombreChange={setNombre}
               onCelularChange={setCelular}
+              onEmailChange={setEmail}
               onTipoChange={setTipoUsuario}
             />
           </Card>
