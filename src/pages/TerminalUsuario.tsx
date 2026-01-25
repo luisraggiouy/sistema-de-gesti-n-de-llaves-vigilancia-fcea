@@ -1,38 +1,38 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { TerminalHeader } from '@/components/terminal/TerminalHeader';
-import { UserDataForm } from '@/components/terminal/UserDataForm';
+import { UserSearchInput } from '@/components/terminal/UserSearchInput';
 import { KeySearch } from '@/components/terminal/KeySearch';
 import { RequestConfirmation } from '@/components/terminal/RequestConfirmation';
 import { RequestSuccess } from '@/components/terminal/RequestSuccess';
-import { Lugar, TipoUsuario } from '@/data/fceaData';
+import { RegistrationModal } from '@/components/terminal/RegistrationModal';
+import { Lugar, UsuarioRegistrado } from '@/data/fceaData';
 import { useToast } from '@/hooks/use-toast';
 
-type TerminalStep = 'form' | 'success';
+type TerminalStep = 'main' | 'success';
 
 export default function TerminalUsuario() {
   const { toast } = useToast();
-  const [step, setStep] = useState<TerminalStep>('form');
+  const [step, setStep] = useState<TerminalStep>('main');
   
-  // Datos del usuario
-  const [nombre, setNombre] = useState('');
-  const [celular, setCelular] = useState('');
-  const [email, setEmail] = useState('');
-  const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario | ''>();
+  // Usuario identificado
+  const [currentUser, setCurrentUser] = useState<UsuarioRegistrado | null>(null);
   
   // Llave seleccionada
   const [selectedKey, setSelectedKey] = useState<Lugar | null>(null);
+  
+  // Modal de registro
+  const [showRegistration, setShowRegistration] = useState(false);
   
   // Estado de envío
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [ticketNumber, setTicketNumber] = useState('');
 
-  // Validación: nombre, tipo, llave Y (celular O email)
-  const tieneContacto = celular.trim() || email.trim();
-  const isFormValid = nombre.trim() && tieneContacto && tipoUsuario && selectedKey;
+  // Validación: usuario identificado Y llave seleccionada
+  const isFormValid = currentUser && selectedKey;
 
   const handleSubmit = async () => {
-    if (!isFormValid || !selectedKey) return;
+    if (!isFormValid || !selectedKey || !currentUser) return;
     
     setIsSubmitting(true);
     
@@ -53,20 +53,25 @@ export default function TerminalUsuario() {
   };
 
   const handleNewRequest = () => {
-    setNombre('');
-    setCelular('');
-    setEmail('');
-    setTipoUsuario('');
+    setCurrentUser(null);
     setSelectedKey(null);
     setTicketNumber('');
-    setStep('form');
+    setStep('main');
   };
 
   const handleCancelConfirmation = () => {
     setSelectedKey(null);
   };
 
-  if (step === 'success' && selectedKey) {
+  const handleUserRegistered = (usuario: UsuarioRegistrado) => {
+    setCurrentUser(usuario);
+  };
+
+  const handleUserSelect = (usuario: UsuarioRegistrado | null) => {
+    setCurrentUser(usuario);
+  };
+
+  if (step === 'success' && selectedKey && currentUser) {
     return (
       <div className="min-h-screen bg-background">
         <TerminalHeader />
@@ -86,38 +91,31 @@ export default function TerminalUsuario() {
       <TerminalHeader />
       
       <main className="container max-w-4xl mx-auto py-8 px-4">
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Panel izquierdo: Datos del usuario */}
-          <Card className="p-6">
-            <UserDataForm
-              nombre={nombre}
-              celular={celular}
-              email={email}
-              tipoUsuario={tipoUsuario}
-              onNombreChange={setNombre}
-              onCelularChange={setCelular}
-              onEmailChange={setEmail}
-              onTipoChange={setTipoUsuario}
-            />
-          </Card>
-          
-          {/* Panel derecho: Búsqueda de llaves */}
-          <Card className="p-6">
-            <KeySearch
-              selectedKey={selectedKey}
-              onSelectKey={setSelectedKey}
-            />
-          </Card>
-        </div>
+        {/* Panel de identificación de usuario */}
+        <Card className="p-6 mb-6">
+          <UserSearchInput
+            selectedUser={currentUser}
+            onUserSelect={handleUserSelect}
+            onRegisterClick={() => setShowRegistration(true)}
+          />
+        </Card>
+
+        {/* Panel de búsqueda de llaves */}
+        <Card className="p-6">
+          <KeySearch
+            selectedKey={selectedKey}
+            onSelectKey={setSelectedKey}
+          />
+        </Card>
         
         {/* Confirmación de solicitud */}
-        {isFormValid && selectedKey && tipoUsuario && (
+        {isFormValid && selectedKey && currentUser && (
           <div className="mt-6">
             <RequestConfirmation
               selectedKey={selectedKey}
-              nombre={nombre}
-              celular={celular}
-              tipoUsuario={tipoUsuario}
+              nombre={currentUser.nombre}
+              celular={currentUser.celular}
+              tipoUsuario={currentUser.tipo}
               isSubmitting={isSubmitting}
               onSubmit={handleSubmit}
               onCancel={handleCancelConfirmation}
@@ -129,7 +127,10 @@ export default function TerminalUsuario() {
         {!isFormValid && (
           <Card className="mt-6 p-6 bg-muted/50 border-dashed">
             <p className="text-center text-muted-foreground">
-              Complete sus datos y seleccione una llave disponible para continuar
+              {!currentUser 
+                ? "Identifíquese con su celular o regístrese para continuar"
+                : "Seleccione una llave disponible para continuar"
+              }
             </p>
           </Card>
         )}
@@ -138,6 +139,13 @@ export default function TerminalUsuario() {
       <footer className="py-4 text-center text-sm text-muted-foreground border-t">
         <p>Terminal de Usuario • FCEA UdelaR • Sistema de Gestión de Llaves v3.6</p>
       </footer>
+
+      {/* Modal de registro */}
+      <RegistrationModal
+        open={showRegistration}
+        onOpenChange={setShowRegistration}
+        onRegistered={handleUserRegistered}
+      />
     </div>
   );
 }

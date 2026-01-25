@@ -43,6 +43,15 @@ export interface Vigilante {
   turno: Turno;
 }
 
+export interface UsuarioRegistrado {
+  id: string;
+  nombre: string;
+  celular: string;
+  email?: string;
+  tipo: TipoUsuario;
+  fechaRegistro: string;
+}
+
 export interface SolicitudLlave {
   id: string;
   lugarId: string;
@@ -433,4 +442,57 @@ export function getColorTipoLugar(tipo: TipoLugar): string {
     'Auditorio': 'bg-accent'
   };
   return colores[tipo] || 'bg-muted';
+}
+
+// ============= GESTIÓN DE USUARIOS REGISTRADOS =============
+const STORAGE_KEY = 'fcea_usuarios_registrados';
+
+export function getUsuariosRegistrados(): UsuarioRegistrado[] {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function guardarUsuario(usuario: Omit<UsuarioRegistrado, 'id' | 'fechaRegistro'>): UsuarioRegistrado {
+  const usuarios = getUsuariosRegistrados();
+  
+  // Verificar si ya existe por celular
+  const existente = usuarios.find(u => u.celular === usuario.celular);
+  if (existente) {
+    return existente;
+  }
+  
+  const nuevoUsuario: UsuarioRegistrado = {
+    ...usuario,
+    id: `u${Date.now()}`,
+    fechaRegistro: new Date().toISOString()
+  };
+  
+  usuarios.push(nuevoUsuario);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(usuarios));
+  
+  return nuevoUsuario;
+}
+
+export function buscarUsuarioPorCelular(celular: string): UsuarioRegistrado | undefined {
+  const usuarios = getUsuariosRegistrados();
+  const celularNormalizado = celular.replace(/\D/g, '');
+  return usuarios.find(u => u.celular.replace(/\D/g, '') === celularNormalizado);
+}
+
+export function buscarUsuariosPorTexto(texto: string): UsuarioRegistrado[] {
+  if (!texto.trim()) return [];
+  
+  const usuarios = getUsuariosRegistrados();
+  const textoNormalizado = normalizarTexto(texto);
+  const celularBusqueda = texto.replace(/\D/g, '');
+  
+  return usuarios.filter(u => {
+    const nombreMatch = normalizarTexto(u.nombre).includes(textoNormalizado);
+    const celularMatch = u.celular.replace(/\D/g, '').includes(celularBusqueda);
+    return nombreMatch || celularMatch;
+  });
 }
