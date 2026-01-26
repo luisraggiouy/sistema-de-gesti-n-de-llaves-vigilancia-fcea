@@ -1,4 +1,6 @@
-import { Key } from 'lucide-react';
+import { Key, Shield } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 export function TerminalHeader() {
   const ahora = new Date();
@@ -29,9 +31,21 @@ export function TerminalHeader() {
             </p>
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-lg font-semibold">{hora}</p>
-          <p className="text-primary-foreground/80 text-sm capitalize">{fecha}</p>
+        <div className="flex items-center gap-6">
+          <Button 
+            asChild 
+            variant="secondary" 
+            className="gap-2"
+          >
+            <Link to="/monitor">
+              <Shield className="w-4 h-4" />
+              Monitor Vigilancia
+            </Link>
+          </Button>
+          <div className="text-right">
+            <p className="text-lg font-semibold">{hora}</p>
+            <p className="text-primary-foreground/80 text-sm capitalize">{fecha}</p>
+          </div>
         </div>
       </div>
     </header>

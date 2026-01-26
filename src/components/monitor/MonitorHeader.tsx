@@ -1,5 +1,7 @@
-import { Shield, Clock, Users } from 'lucide-react';
+import { Shield, Clock, Users, Key } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { obtenerTurnoActual, obtenerVigilantesActuales } from '@/data/fceaData';
 
 interface MonitorHeaderProps {
@@ -53,6 +55,17 @@ export function MonitorHeader({ pendientes, enUso }: MonitorHeaderProps) {
               FCEA - Sistema de Gestión de Llaves
             </p>
           </div>
+          <Button 
+            asChild 
+            variant="outline" 
+            size="sm"
+            className="ml-4 gap-2"
+          >
+            <Link to="/">
+              <Key className="w-4 h-4" />
+              Terminal Usuario
+            </Link>
+          </Button>
         </div>
 
         {/* Info del turno */}
