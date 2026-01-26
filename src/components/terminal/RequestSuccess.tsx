@@ -1,15 +1,15 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Lugar, formatearUbicacion } from '@/data/fceaData';
-import { CheckCircle2, Key, MapPin, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Key, MapPin, ArrowRight, XCircle } from 'lucide-react';
 
 interface RequestSuccessProps {
   selectedKey: Lugar;
-  ticketNumber: string;
   onNewRequest: () => void;
+  onCancelRequest: () => void;
 }
 
-export function RequestSuccess({ selectedKey, ticketNumber, onNewRequest }: RequestSuccessProps) {
+export function RequestSuccess({ selectedKey, onNewRequest, onCancelRequest }: RequestSuccessProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
       <Card className="p-8 max-w-md w-full bg-gradient-to-br from-success/10 to-card border-success/20">
@@ -30,14 +30,9 @@ export function RequestSuccess({ selectedKey, ticketNumber, onNewRequest }: Requ
             <Key className="w-6 h-6 text-primary" />
             <p className="font-semibold text-lg">{selectedKey.nombre}</p>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground mb-4">
+          <div className="flex items-center gap-2 text-muted-foreground">
             <MapPin className="w-4 h-4" />
             <span>Ubicación: {formatearUbicacion(selectedKey.ubicacion)}</span>
-          </div>
-          
-          <div className="bg-primary/5 rounded-lg p-3">
-            <p className="text-sm text-muted-foreground mb-1">Número de ticket</p>
-            <p className="text-2xl font-mono font-bold text-primary">{ticketNumber}</p>
           </div>
         </div>
         
@@ -47,13 +42,24 @@ export function RequestSuccess({ selectedKey, ticketNumber, onNewRequest }: Requ
             <span>Diríjase al mostrador de vigilancia</span>
           </div>
           
-          <Button 
-            onClick={onNewRequest}
-            variant="outline"
-            className="w-full h-12"
-          >
-            Nueva Solicitud
-          </Button>
+          <div className="flex gap-3">
+            <Button 
+              onClick={onCancelRequest}
+              variant="destructive"
+              className="flex-1 h-12 gap-2"
+            >
+              <XCircle className="w-5 h-5" />
+              Cancelar Pedido
+            </Button>
+            
+            <Button 
+              onClick={onNewRequest}
+              variant="outline"
+              className="flex-1 h-12"
+            >
+              Nueva Solicitud
+            </Button>
+          </div>
         </div>
       </Card>
     </div>

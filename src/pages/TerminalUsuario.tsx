@@ -26,7 +26,6 @@ export default function TerminalUsuario() {
   
   // Estado de envío
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [ticketNumber, setTicketNumber] = useState('');
 
   // Validación: usuario identificado Y llave seleccionada
   const isFormValid = currentUser && selectedKey;
@@ -39,13 +38,9 @@ export default function TerminalUsuario() {
     // Simular envío (en producción sería una llamada a la API)
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Generar número de ticket
-    const ticket = `T${Date.now().toString().slice(-6)}`;
-    setTicketNumber(ticket);
-    
     toast({
       title: "Solicitud enviada",
-      description: `Ticket ${ticket} - Diríjase al mostrador de vigilancia`,
+      description: "Diríjase al mostrador de vigilancia",
     });
     
     setIsSubmitting(false);
@@ -55,7 +50,17 @@ export default function TerminalUsuario() {
   const handleNewRequest = () => {
     setCurrentUser(null);
     setSelectedKey(null);
-    setTicketNumber('');
+    setStep('main');
+  };
+
+  const handleCancelRequest = () => {
+    toast({
+      title: "Pedido cancelado",
+      description: "Su solicitud ha sido cancelada",
+      variant: "destructive",
+    });
+    setCurrentUser(null);
+    setSelectedKey(null);
     setStep('main');
   };
 
@@ -78,8 +83,8 @@ export default function TerminalUsuario() {
         <main className="container max-w-4xl mx-auto py-8 px-4">
           <RequestSuccess
             selectedKey={selectedKey}
-            ticketNumber={ticketNumber}
             onNewRequest={handleNewRequest}
+            onCancelRequest={handleCancelRequest}
           />
         </main>
       </div>
