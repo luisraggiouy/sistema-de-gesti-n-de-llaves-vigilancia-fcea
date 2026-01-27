@@ -20,8 +20,8 @@ export default function TerminalUsuario() {
   // Usuario identificado
   const [currentUser, setCurrentUser] = useState<UsuarioRegistrado | null>(null);
   
-  // Llave seleccionada
-  const [selectedKey, setSelectedKey] = useState<Lugar | null>(null);
+  // Llaves seleccionadas (múltiples)
+  const [selectedKeys, setSelectedKeys] = useState<Lugar[]>([]);
   
   // Modal de registro
   const [showRegistration, setShowRegistration] = useState(false);
@@ -32,23 +32,38 @@ export default function TerminalUsuario() {
   // Hook de historial de llaves frecuentes
   const { llavesFrecuentes, registrarUso } = useHistorialLlaves(currentUser?.id ?? null);
 
-  // Validación: usuario identificado Y llave seleccionada
-  const isFormValid = currentUser && selectedKey;
+  // Validación: usuario identificado Y al menos una llave seleccionada
+  const isFormValid = currentUser && selectedKeys.length > 0;
+
+  const handleToggleKey = (lugar: Lugar) => {
+    setSelectedKeys(prev => {
+      const isSelected = prev.some(k => k.id === lugar.id);
+      if (isSelected) {
+        return prev.filter(k => k.id !== lugar.id);
+      } else {
+        return [...prev, lugar];
+      }
+    });
+  };
+
+  const handleRemoveKey = (lugarId: string) => {
+    setSelectedKeys(prev => prev.filter(k => k.id !== lugarId));
+  };
 
   const handleSubmit = async () => {
-    if (!isFormValid || !selectedKey || !currentUser) return;
+    if (!isFormValid || selectedKeys.length === 0 || !currentUser) return;
     
     setIsSubmitting(true);
     
     // Registrar en historial de llaves frecuentes
-    registrarUso(selectedKey.id);
+    selectedKeys.forEach(key => registrarUso(key.id));
     
     // Simular envío (en producción sería una llamada a la API)
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     toast({
       title: "Solicitud enviada",
-      description: "Diríjase al mostrador de vigilancia",
+      description: `${selectedKeys.length} llave(s) solicitada(s). Diríjase al mostrador de vigilancia`,
     });
     
     setIsSubmitting(false);
@@ -57,7 +72,7 @@ export default function TerminalUsuario() {
 
   const handleNewRequest = () => {
     setCurrentUser(null);
-    setSelectedKey(null);
+    setSelectedKeys([]);
     setStep('main');
   };
 
@@ -68,12 +83,12 @@ export default function TerminalUsuario() {
       variant: "destructive",
     });
     setCurrentUser(null);
-    setSelectedKey(null);
+    setSelectedKeys([]);
     setStep('main');
   };
 
   const handleCancelConfirmation = () => {
-    setSelectedKey(null);
+    setSelectedKeys([]);
   };
 
   const handleUserRegistered = (usuario: UsuarioRegistrado) => {
@@ -84,13 +99,13 @@ export default function TerminalUsuario() {
     setCurrentUser(usuario);
   };
 
-  if (step === 'success' && selectedKey && currentUser) {
+  if (step === 'success' && selectedKeys.length > 0 && currentUser) {
     return (
       <div className="min-h-screen bg-background">
         <TerminalHeader />
         <main className="container max-w-4xl mx-auto py-8 px-4">
           <RequestSuccess
-            selectedKey={selectedKey}
+            selectedKeys={selectedKeys}
             onNewRequest={handleNewRequest}
             onCancelRequest={handleCancelRequest}
           />
@@ -114,12 +129,12 @@ export default function TerminalUsuario() {
         </Card>
 
         {/* Sugerencias de llaves frecuentes */}
-        {currentUser && llavesFrecuentes.length > 0 && !selectedKey && (
+        {currentUser && llavesFrecuentes.length > 0 && (
           <div className="mb-6">
             <FrequentKeys
               llavesFrecuentes={llavesFrecuentes}
-              selectedKey={selectedKey}
-              onSelectKey={setSelectedKey}
+              selectedKeys={selectedKeys}
+              onToggleKey={handleToggleKey}
             />
           </div>
         )}
@@ -127,22 +142,23 @@ export default function TerminalUsuario() {
         {/* Panel de búsqueda de llaves */}
         <Card className="p-6">
           <KeySearch
-            selectedKey={selectedKey}
-            onSelectKey={setSelectedKey}
+            selectedKeys={selectedKeys}
+            onToggleKey={handleToggleKey}
           />
         </Card>
         
         {/* Confirmación de solicitud */}
-        {isFormValid && selectedKey && currentUser && (
+        {isFormValid && selectedKeys.length > 0 && currentUser && (
           <div className="mt-6">
             <RequestConfirmation
-              selectedKey={selectedKey}
+              selectedKeys={selectedKeys}
               nombre={currentUser.nombre}
               celular={currentUser.celular}
               tipoUsuario={currentUser.tipo}
               isSubmitting={isSubmitting}
               onSubmit={handleSubmit}
               onCancel={handleCancelConfirmation}
+              onRemoveKey={handleRemoveKey}
             />
           </div>
         )}
@@ -153,7 +169,7 @@ export default function TerminalUsuario() {
             <p className="text-center text-muted-foreground">
               {!currentUser 
                 ? "Identifíquese con su celular o regístrese para continuar"
-                : "Seleccione una llave disponible para continuar"
+                : "Seleccione una o más llaves disponibles para continuar"
               }
             </p>
           </Card>

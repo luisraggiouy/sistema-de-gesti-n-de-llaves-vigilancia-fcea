@@ -11,15 +11,15 @@ import {
   TipoLugar,
   normalizarTexto
 } from '@/data/fceaData';
-import { Search, Building2, Check, AlertTriangle, Lock } from 'lucide-react';
+import { Search, Building2, Check, AlertTriangle, Lock, Square, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface KeySearchProps {
-  selectedKey: Lugar | null;
-  onSelectKey: (lugar: Lugar | null) => void;
+  selectedKeys: Lugar[];
+  onToggleKey: (lugar: Lugar) => void;
 }
 
-export function KeySearch({ selectedKey, onSelectKey }: KeySearchProps) {
+export function KeySearch({ selectedKeys, onToggleKey }: KeySearchProps) {
   const [busqueda, setBusqueda] = useState('');
   const [filtroTipo, setFiltroTipo] = useState<TipoLugar | 'todos'>('todos');
   const [filtroEdificio, setFiltroEdificio] = useState<string>('todos');
@@ -45,6 +45,8 @@ export function KeySearch({ selectedKey, onSelectKey }: KeySearchProps) {
     });
   }, [busqueda, filtroTipo, filtroEdificio]);
 
+  const isSelected = (lugarId: string) => selectedKeys.some(k => k.id === lugarId);
+
   const getTipoColor = (tipo: TipoLugar): string => {
     const colores: Record<TipoLugar, string> = {
       'Salón': 'bg-blue-100 text-blue-800 border-blue-200',
@@ -62,10 +64,18 @@ export function KeySearch({ selectedKey, onSelectKey }: KeySearchProps) {
 
   return (
     <div className="space-y-5">
-      <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-        <Search className="w-5 h-5 text-primary" />
-        Buscar Llave
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+          <Search className="w-5 h-5 text-primary" />
+          Buscar Llaves
+        </h2>
+        {selectedKeys.length > 0 && (
+          <Badge variant="default" className="gap-1">
+            <CheckSquare className="w-3.5 h-3.5" />
+            {selectedKeys.length} seleccionada(s)
+          </Badge>
+        )}
+      </div>
 
       {/* Filtros */}
       <div className="space-y-3">
@@ -113,64 +123,76 @@ export function KeySearch({ selectedKey, onSelectKey }: KeySearchProps) {
             No se encontraron llaves con esos criterios
           </p>
         ) : (
-          lugaresFiltrados.map((lugar) => (
-            <Card
-              key={lugar.id}
-              onClick={() => lugar.disponible && onSelectKey(selectedKey?.id === lugar.id ? null : lugar)}
-              className={cn(
-                "p-4 cursor-pointer transition-all duration-200",
-                !lugar.disponible && "opacity-60 cursor-not-allowed",
-                selectedKey?.id === lugar.id 
-                  ? "ring-2 ring-primary bg-primary/5 border-primary" 
-                  : "hover:bg-muted/50 hover:border-primary/50"
-              )}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-foreground truncate">
-                      {lugar.nombre}
-                    </span>
-                    {lugar.esHibrido && (
-                      <Lock className="w-4 h-4 text-salon-hibrido flex-shrink-0" />
-                    )}
-                    {selectedKey?.id === lugar.id && (
-                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                    )}
+          lugaresFiltrados.map((lugar) => {
+            const selected = isSelected(lugar.id);
+            return (
+              <Card
+                key={lugar.id}
+                onClick={() => lugar.disponible && onToggleKey(lugar)}
+                className={cn(
+                  "p-4 cursor-pointer transition-all duration-200",
+                  !lugar.disponible && "opacity-60 cursor-not-allowed",
+                  selected 
+                    ? "ring-2 ring-primary bg-primary/5 border-primary" 
+                    : "hover:bg-muted/50 hover:border-primary/50"
+                )}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    {/* Checkbox visual */}
+                    <div className={cn(
+                      "flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors",
+                      selected 
+                        ? "bg-primary border-primary text-primary-foreground" 
+                        : "border-muted-foreground/30"
+                    )}>
+                      {selected && <Check className="w-3.5 h-3.5" />}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-foreground truncate">
+                          {lugar.nombre}
+                        </span>
+                        {lugar.esHibrido && (
+                          <Lock className="w-4 h-4 text-salon-hibrido flex-shrink-0" />
+                        )}
+                      </div>
+                      
+                      <div className="flex flex-wrap items-center gap-2 text-sm">
+                        <Badge variant="outline" className={getTipoColor(lugar.tipo)}>
+                          {lugar.tipo}
+                        </Badge>
+                        <span className="flex items-center gap-1 text-muted-foreground">
+                          <Building2 className="w-3.5 h-3.5" />
+                          {lugar.edificio}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                   
-                  <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <Badge variant="outline" className={getTipoColor(lugar.tipo)}>
-                      {lugar.tipo}
-                    </Badge>
-                    <span className="flex items-center gap-1 text-muted-foreground">
-                      <Building2 className="w-3.5 h-3.5" />
-                      {lugar.edificio}
-                    </span>
+                  <div className="flex-shrink-0">
+                    {lugar.disponible ? (
+                      <Badge className="bg-success text-success-foreground">
+                        Disponible
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="bg-muted">
+                        En uso
+                      </Badge>
+                    )}
                   </div>
                 </div>
                 
-                <div className="flex-shrink-0">
-                  {lugar.disponible ? (
-                    <Badge className="bg-success text-success-foreground">
-                      Disponible
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary" className="bg-muted">
-                      En uso
-                    </Badge>
-                  )}
-                </div>
-              </div>
-              
-              {lugar.esHibrido && (
-                <div className="mt-2 flex items-center gap-2 text-xs text-warning bg-warning/10 rounded-md px-2 py-1">
-                  <AlertTriangle className="w-3.5 h-3.5" />
-                  Salón Híbrido - Solo para clases programadas
-                </div>
-              )}
-            </Card>
-          ))
+                {lugar.esHibrido && (
+                  <div className="mt-2 ml-8 flex items-center gap-2 text-xs text-warning bg-warning/10 rounded-md px-2 py-1">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    Salón Híbrido - Solo para clases programadas
+                  </div>
+                )}
+              </Card>
+            );
+          })
         )}
       </div>
       
