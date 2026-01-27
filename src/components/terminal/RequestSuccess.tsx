@@ -1,15 +1,16 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Lugar } from '@/data/fceaData';
-import { CheckCircle2, Key, ArrowRight, XCircle } from 'lucide-react';
+import { CheckCircle2, Key, ArrowRight, XCircle, Building2 } from 'lucide-react';
 
 interface RequestSuccessProps {
-  selectedKey: Lugar;
+  selectedKeys: Lugar[];
   onNewRequest: () => void;
   onCancelRequest: () => void;
 }
 
-export function RequestSuccess({ selectedKey, onNewRequest, onCancelRequest }: RequestSuccessProps) {
+export function RequestSuccess({ selectedKeys, onNewRequest, onCancelRequest }: RequestSuccessProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
       <Card className="p-8 max-w-md w-full bg-gradient-to-br from-success/10 to-card border-success/20">
@@ -26,11 +27,22 @@ export function RequestSuccess({ selectedKey, onNewRequest, onCancelRequest }: R
         </div>
         
         <div className="bg-card rounded-xl p-4 border mb-6">
-          <div className="flex items-center gap-3 mb-3">
-            <Key className="w-6 h-6 text-primary" />
-            <p className="font-semibold text-lg">{selectedKey.nombre}</p>
+          <p className="text-sm font-medium text-muted-foreground mb-3">
+            Llaves solicitadas ({selectedKeys.length}):
+          </p>
+          <div className="space-y-2">
+            {selectedKeys.map((key) => (
+              <div key={key.id} className="flex items-center gap-2 text-left">
+                <Key className="w-4 h-4 text-primary flex-shrink-0" />
+                <span className="font-medium truncate">{key.nombre}</span>
+                <Badge variant="outline" className="text-xs">{key.tipo}</Badge>
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Building2 className="w-3 h-3" />
+                  {key.edificio}
+                </span>
+              </div>
+            ))}
           </div>
-          <p className="text-sm text-muted-foreground">{selectedKey.edificio}</p>
         </div>
         
         <div className="space-y-3">
