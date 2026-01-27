@@ -3,10 +3,12 @@ import { Card } from '@/components/ui/card';
 import { TerminalHeader } from '@/components/terminal/TerminalHeader';
 import { UserSearchInput } from '@/components/terminal/UserSearchInput';
 import { KeySearch } from '@/components/terminal/KeySearch';
+import { FrequentKeys } from '@/components/terminal/FrequentKeys';
 import { RequestConfirmation } from '@/components/terminal/RequestConfirmation';
 import { RequestSuccess } from '@/components/terminal/RequestSuccess';
 import { RegistrationModal } from '@/components/terminal/RegistrationModal';
 import { Lugar, UsuarioRegistrado } from '@/data/fceaData';
+import { useHistorialLlaves } from '@/hooks/useHistorialLlaves';
 import { useToast } from '@/hooks/use-toast';
 
 type TerminalStep = 'main' | 'success';
@@ -27,6 +29,9 @@ export default function TerminalUsuario() {
   // Estado de envío
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Hook de historial de llaves frecuentes
+  const { llavesFrecuentes, registrarUso } = useHistorialLlaves(currentUser?.id ?? null);
+
   // Validación: usuario identificado Y llave seleccionada
   const isFormValid = currentUser && selectedKey;
 
@@ -34,6 +39,9 @@ export default function TerminalUsuario() {
     if (!isFormValid || !selectedKey || !currentUser) return;
     
     setIsSubmitting(true);
+    
+    // Registrar en historial de llaves frecuentes
+    registrarUso(selectedKey.id);
     
     // Simular envío (en producción sería una llamada a la API)
     await new Promise(resolve => setTimeout(resolve, 1500));
@@ -104,6 +112,17 @@ export default function TerminalUsuario() {
             onRegisterClick={() => setShowRegistration(true)}
           />
         </Card>
+
+        {/* Sugerencias de llaves frecuentes */}
+        {currentUser && llavesFrecuentes.length > 0 && !selectedKey && (
+          <div className="mb-6">
+            <FrequentKeys
+              llavesFrecuentes={llavesFrecuentes}
+              selectedKey={selectedKey}
+              onSelectKey={setSelectedKey}
+            />
+          </div>
+        )}
 
         {/* Panel de búsqueda de llaves */}
         <Card className="p-6">
