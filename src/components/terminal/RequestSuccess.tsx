@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Lugar, formatearUbicacion } from '@/data/fceaData';
-import { CheckCircle2, Key, MapPin, ArrowRight, XCircle } from 'lucide-react';
+import { Lugar } from '@/data/fceaData';
+import { CheckCircle2, Key, ArrowRight, XCircle } from 'lucide-react';
 
 interface RequestSuccessProps {
   selectedKey: Lugar;
@@ -30,10 +30,7 @@ export function RequestSuccess({ selectedKey, onNewRequest, onCancelRequest }: R
             <Key className="w-6 h-6 text-primary" />
             <p className="font-semibold text-lg">{selectedKey.nombre}</p>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <MapPin className="w-4 h-4" />
-            <span>Ubicación: {formatearUbicacion(selectedKey.ubicacion)}</span>
-          </div>
+          <p className="text-sm text-muted-foreground">{selectedKey.edificio}</p>
         </div>
         
         <div className="space-y-3">
