@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Lugar, TipoUsuario, formatearUbicacion } from '@/data/fceaData';
-import { Key, User, Phone, Building2, MapPin, AlertTriangle, Send, Loader2 } from 'lucide-react';
+import { Lugar, TipoUsuario } from '@/data/fceaData';
+import { Key, User, Phone, Building2, AlertTriangle, Send, Loader2 } from 'lucide-react';
 
 interface RequestConfirmationProps {
   selectedKey: Lugar;
@@ -65,10 +65,6 @@ export function RequestConfirmation({
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Building2 className="w-4 h-4" />
                 {selectedKey.edificio}
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground col-span-2">
-                <MapPin className="w-4 h-4" />
-                {formatearUbicacion(selectedKey.ubicacion)}
               </div>
             </div>
           </div>
