@@ -9,10 +9,9 @@ import {
   edificios, 
   Lugar, 
   TipoLugar,
-  normalizarTexto,
-  formatearUbicacion 
+  normalizarTexto
 } from '@/data/fceaData';
-import { Search, MapPin, Building2, Check, AlertTriangle, Lock } from 'lucide-react';
+import { Search, Building2, Check, AlertTriangle, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface KeySearchProps {
@@ -147,10 +146,6 @@ export function KeySearch({ selectedKey, onSelectKey }: KeySearchProps) {
                     <span className="flex items-center gap-1 text-muted-foreground">
                       <Building2 className="w-3.5 h-3.5" />
                       {lugar.edificio}
-                    </span>
-                    <span className="flex items-center gap-1 text-muted-foreground">
-                      <MapPin className="w-3.5 h-3.5" />
-                      {formatearUbicacion(lugar.ubicacion)}
                     </span>
                   </div>
                 </div>
