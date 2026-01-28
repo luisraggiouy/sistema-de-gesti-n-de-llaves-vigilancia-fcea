@@ -1,20 +1,34 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { SolicitudLlave, AccionUndo } from '@/types/solicitud';
-import { lugares, Lugar } from '@/data/fceaData';
+import { lugares as lugaresIniciales, Lugar } from '@/data/fceaData';
 
 const UNDO_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutos
+const LUGARES_STORAGE_KEY = 'fcea_lugares';
+
+// Cargar lugares desde localStorage o usar los iniciales
+const cargarLugares = (): Lugar[] => {
+  try {
+    const stored = localStorage.getItem(LUGARES_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : lugaresIniciales;
+  } catch {
+    return lugaresIniciales;
+  }
+};
 
 interface SolicitudesContextType {
   solicitudes: SolicitudLlave[];
   solicitudesPendientes: SolicitudLlave[];
   solicitudesEntregadas: SolicitudLlave[];
   accionesUndo: AccionUndo[];
+  lugaresDisponibles: Lugar[];
   entregarLlave: (solicitudId: string, vigilante: string) => AccionUndo;
   devolverLlave: (solicitudId: string, vigilante: string) => AccionUndo;
   deshacerAccion: (undoId: string) => boolean;
   getUndoParaSolicitud: (solicitudId: string) => AccionUndo | undefined;
   agregarSolicitud: (lugar: Lugar, usuario: { nombre: string; celular: string; tipo: string }) => void;
   agregarSolicitudes: (llaves: Lugar[], usuario: { nombre: string; celular: string; tipo: string }) => void;
+  agregarLlave: (lugar: Omit<Lugar, 'id'>) => void;
+  quitarLlave: (lugarId: string) => void;
 }
 
 const SolicitudesContext = createContext<SolicitudesContextType | null>(null);
@@ -28,15 +42,17 @@ export function useSolicitudesContext() {
 }
 
 // Datos de demostración inicial
-const generarSolicitudesDemo = (): SolicitudLlave[] => {
-  const lugaresDisponibles = lugares.filter(l => l.disponible);
+const generarSolicitudesDemo = (lugares: Lugar[]): SolicitudLlave[] => {
+  const lugaresDisponiblesDemo = lugares.filter(l => l.disponible);
   const tiposUsuario = ['Docente', 'Estudiante', 'Administrativo'] as const;
   const nombres = ['Prof. García', 'Est. Martínez', 'Lic. Rodríguez'];
+  
+  if (lugaresDisponiblesDemo.length < 6) return [];
   
   return [
     {
       id: 's1',
-      lugar: lugaresDisponibles[0],
+      lugar: lugaresDisponiblesDemo[0],
       usuario: {
         nombre: nombres[0],
         celular: '099123456',
@@ -48,7 +64,7 @@ const generarSolicitudesDemo = (): SolicitudLlave[] => {
     },
     {
       id: 's2',
-      lugar: lugaresDisponibles[5],
+      lugar: lugaresDisponiblesDemo[5],
       usuario: {
         nombre: nombres[1],
         celular: '098765432',
@@ -62,11 +78,39 @@ const generarSolicitudesDemo = (): SolicitudLlave[] => {
 };
 
 export function SolicitudesProvider({ children }: { children: ReactNode }) {
-  const [solicitudes, setSolicitudes] = useState<SolicitudLlave[]>(generarSolicitudesDemo);
+  const [lugaresDisponibles, setLugaresDisponibles] = useState<Lugar[]>(cargarLugares);
+  const [solicitudes, setSolicitudes] = useState<SolicitudLlave[]>(() => generarSolicitudesDemo(cargarLugares()));
   const [accionesUndo, setAccionesUndo] = useState<AccionUndo[]>([]);
 
   const solicitudesPendientes = solicitudes.filter(s => s.estado === 'pendiente');
   const solicitudesEntregadas = solicitudes.filter(s => s.estado === 'entregada');
+
+  // Guardar lugares en localStorage cuando cambian
+  const guardarLugares = useCallback((lugares: Lugar[]) => {
+    localStorage.setItem(LUGARES_STORAGE_KEY, JSON.stringify(lugares));
+  }, []);
+
+  const agregarLlave = useCallback((lugar: Omit<Lugar, 'id'>) => {
+    const nuevaLlave: Lugar = {
+      ...lugar,
+      id: `l${Date.now()}`,
+    };
+    setLugaresDisponibles(prev => {
+      const updated = [...prev, nuevaLlave];
+      guardarLugares(updated);
+      return updated;
+    });
+  }, [guardarLugares]);
+
+  const quitarLlave = useCallback((lugarId: string) => {
+    setLugaresDisponibles(prev => {
+      const updated = prev.filter(l => l.id !== lugarId);
+      guardarLugares(updated);
+      return updated;
+    });
+    // También quitar solicitudes pendientes de esa llave
+    setSolicitudes(prev => prev.filter(s => s.lugar.id !== lugarId));
+  }, [guardarLugares]);
 
   const entregarLlave = useCallback((solicitudId: string, vigilante: string) => {
     const now = new Date();
@@ -189,12 +233,15 @@ export function SolicitudesProvider({ children }: { children: ReactNode }) {
       solicitudesPendientes,
       solicitudesEntregadas,
       accionesUndo,
+      lugaresDisponibles,
       entregarLlave,
       devolverLlave,
       deshacerAccion,
       getUndoParaSolicitud,
       agregarSolicitud,
-      agregarSolicitudes
+      agregarSolicitudes,
+      agregarLlave,
+      quitarLlave
     }}>
       {children}
     </SolicitudesContext.Provider>
