@@ -9,12 +9,14 @@ import { RequestSuccess } from '@/components/terminal/RequestSuccess';
 import { RegistrationModal } from '@/components/terminal/RegistrationModal';
 import { Lugar, UsuarioRegistrado } from '@/data/fceaData';
 import { useHistorialLlaves } from '@/hooks/useHistorialLlaves';
+import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
 import { useToast } from '@/hooks/use-toast';
 
 type TerminalStep = 'main' | 'success';
 
 export default function TerminalUsuario() {
   const { toast } = useToast();
+  const { agregarSolicitudes } = useSolicitudesContext();
   const [step, setStep] = useState<TerminalStep>('main');
   
   // Usuario identificado
@@ -58,8 +60,15 @@ export default function TerminalUsuario() {
     // Registrar en historial de llaves frecuentes
     selectedKeys.forEach(key => registrarUso(key.id));
     
-    // Simular envío (en producción sería una llamada a la API)
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Agregar solicitudes al contexto compartido (aparecerán en el monitor)
+    agregarSolicitudes(selectedKeys, {
+      nombre: currentUser.nombre,
+      celular: currentUser.celular,
+      tipo: currentUser.tipo
+    });
+    
+    // Pequeño delay para feedback visual
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     toast({
       title: "Solicitud enviada",

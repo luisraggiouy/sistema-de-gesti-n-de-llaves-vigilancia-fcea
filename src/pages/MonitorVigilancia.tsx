@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { MonitorHeader } from '@/components/monitor/MonitorHeader';
 import { SolicitudCard } from '@/components/monitor/SolicitudCard';
-import { useSolicitudes } from '@/hooks/useSolicitudes';
+import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { ClipboardList, Key, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ClipboardList, Key, CheckCircle2 } from 'lucide-react';
 
 export default function MonitorVigilancia() {
   const { toast } = useToast();
@@ -18,8 +16,7 @@ export default function MonitorVigilancia() {
     devolverLlave,
     deshacerAccion,
     getUndoParaSolicitud,
-    accionesUndo
-  } = useSolicitudes();
+  } = useSolicitudesContext();
 
   // Auto-refresh de hora cada segundo
   const [, setTick] = useState(0);
@@ -73,10 +70,6 @@ export default function MonitorVigilancia() {
     }
   };
 
-  // Combinar todas las solicitudes activas para mostrar (con sus undos)
-  const todasActivas = [...solicitudesPendientes, ...solicitudesEntregadas]
-    .sort((a, b) => b.horaSolicitud.getTime() - a.horaSolicitud.getTime());
-
   return (
     <div className="min-h-screen bg-background">
       <MonitorHeader 
@@ -84,109 +77,90 @@ export default function MonitorVigilancia() {
         enUso={solicitudesEntregadas.length} 
       />
 
-      <main className="max-w-7xl mx-auto py-6 px-4">
-        <Tabs defaultValue="cola" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="cola" className="gap-2">
-              <ClipboardList className="w-4 h-4" />
-              Cola de Solicitudes
-              {solicitudesPendientes.length > 0 && (
-                <Badge variant="secondary" className="ml-1">
-                  {solicitudesPendientes.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="enuso" className="gap-2">
-              <Key className="w-4 h-4" />
-              Llaves en Uso
-              {solicitudesEntregadas.length > 0 && (
-                <Badge variant="secondary" className="ml-1 bg-success/20 text-success">
-                  {solicitudesEntregadas.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Cola de pendientes */}
-          <TabsContent value="cola" className="space-y-4">
-            {solicitudesPendientes.length === 0 ? (
-              <Card className="p-12 text-center">
-                <CheckCircle2 className="w-16 h-16 mx-auto text-success/50 mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No hay solicitudes pendientes</h3>
-                <p className="text-muted-foreground">
-                  Las nuevas solicitudes aparecerán aquí automáticamente
-                </p>
-              </Card>
-            ) : (
-              <ScrollArea className="h-[calc(100vh-280px)]">
-                <div className="space-y-4 pr-4">
-                  {solicitudesPendientes.map(solicitud => {
-                    const undoAction = getUndoParaSolicitud(solicitud.id);
-                    return (
-                      <SolicitudCard
-                        key={solicitud.id}
-                        solicitud={solicitud}
-                        undoAction={undoAction}
-                        onEntregar={(v) => handleEntregar(solicitud.id, v)}
-                        onDevolver={(v) => handleDevolver(solicitud.id, v)}
-                        onUndo={() => handleUndo(solicitud.id)}
-                      />
-                    );
-                  })}
-                </div>
-              </ScrollArea>
+      <main className="max-w-7xl mx-auto py-6 px-4 space-y-8">
+        {/* Sección: Cola de Solicitudes */}
+        <section>
+          <div className="flex items-center gap-3 mb-4">
+            <ClipboardList className="w-6 h-6 text-primary" />
+            <h2 className="text-xl font-semibold">Cola de Solicitudes</h2>
+            {solicitudesPendientes.length > 0 && (
+              <Badge variant="destructive">
+                {solicitudesPendientes.length} pendiente{solicitudesPendientes.length !== 1 ? 's' : ''}
+              </Badge>
             )}
+          </div>
 
-            {/* Acciones de undo activas */}
-            {accionesUndo.length > 0 && (
-              <Card className="p-4 bg-warning/5 border-warning/20">
-                <div className="flex items-center gap-2 text-warning mb-2">
-                  <AlertCircle className="w-5 h-5" />
-                  <span className="font-medium">
-                    {accionesUndo.length} acción(es) pendiente(s) de deshacer
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Revise las tarjetas amarillas arriba para deshacer si cometió un error
-                </p>
-              </Card>
-            )}
-          </TabsContent>
+          {solicitudesPendientes.length === 0 ? (
+            <Card className="p-8 text-center">
+              <CheckCircle2 className="w-12 h-12 mx-auto text-success/50 mb-3" />
+              <h3 className="text-lg font-semibold mb-1">No hay solicitudes pendientes</h3>
+              <p className="text-muted-foreground text-sm">
+                Las nuevas solicitudes aparecerán aquí automáticamente
+              </p>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {solicitudesPendientes.map(solicitud => {
+                const undoAction = getUndoParaSolicitud(solicitud.id);
+                return (
+                  <SolicitudCard
+                    key={solicitud.id}
+                    solicitud={solicitud}
+                    undoAction={undoAction}
+                    onEntregar={(v) => handleEntregar(solicitud.id, v)}
+                    onDevolver={(v) => handleDevolver(solicitud.id, v)}
+                    onUndo={() => handleUndo(solicitud.id)}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </section>
 
-          {/* Llaves en uso */}
-          <TabsContent value="enuso" className="space-y-4">
-            {solicitudesEntregadas.length === 0 ? (
-              <Card className="p-12 text-center">
-                <Key className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No hay llaves en uso</h3>
-                <p className="text-muted-foreground">
-                  Las llaves entregadas aparecerán aquí
-                </p>
-              </Card>
-            ) : (
-              <ScrollArea className="h-[calc(100vh-280px)]">
-                <div className="space-y-4 pr-4">
-                  {solicitudesEntregadas.map(solicitud => {
-                    const undoAction = getUndoParaSolicitud(solicitud.id);
-                    return (
-                      <SolicitudCard
-                        key={solicitud.id}
-                        solicitud={solicitud}
-                        undoAction={undoAction}
-                        onEntregar={(v) => handleEntregar(solicitud.id, v)}
-                        onDevolver={(v) => handleDevolver(solicitud.id, v)}
-                        onUndo={() => handleUndo(solicitud.id)}
-                      />
-                    );
-                  })}
-                </div>
-              </ScrollArea>
+        {/* Separador visual */}
+        <div className="border-t border-border" />
+
+        {/* Sección: Llaves en Uso */}
+        <section>
+          <div className="flex items-center gap-3 mb-4">
+            <Key className="w-6 h-6 text-success" />
+            <h2 className="text-xl font-semibold">Llaves en Uso</h2>
+            {solicitudesEntregadas.length > 0 && (
+              <Badge className="bg-success/20 text-success border-success/30">
+                {solicitudesEntregadas.length} en uso
+              </Badge>
             )}
-          </TabsContent>
-        </Tabs>
+          </div>
+
+          {solicitudesEntregadas.length === 0 ? (
+            <Card className="p-8 text-center">
+              <Key className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
+              <h3 className="text-lg font-semibold mb-1">No hay llaves en uso</h3>
+              <p className="text-muted-foreground text-sm">
+                Las llaves entregadas aparecerán aquí
+              </p>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {solicitudesEntregadas.map(solicitud => {
+                const undoAction = getUndoParaSolicitud(solicitud.id);
+                return (
+                  <SolicitudCard
+                    key={solicitud.id}
+                    solicitud={solicitud}
+                    undoAction={undoAction}
+                    onEntregar={(v) => handleEntregar(solicitud.id, v)}
+                    onDevolver={(v) => handleDevolver(solicitud.id, v)}
+                    onUndo={() => handleUndo(solicitud.id)}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </section>
       </main>
 
-      <footer className="py-4 text-center text-sm text-muted-foreground border-t">
+      <footer className="py-4 text-center text-sm text-muted-foreground border-t mt-8">
         <p>Monitor de Vigilancia • FCEA UdelaR • Sistema de Gestión de Llaves v3.6</p>
       </footer>
     </div>
