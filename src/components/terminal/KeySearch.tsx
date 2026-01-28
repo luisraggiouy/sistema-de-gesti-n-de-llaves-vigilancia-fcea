@@ -4,14 +4,14 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
-  lugares, 
   tiposLugar, 
   edificios, 
   Lugar, 
   TipoLugar,
   normalizarTexto
 } from '@/data/fceaData';
-import { Search, Building2, Check, AlertTriangle, Lock, Square, CheckSquare } from 'lucide-react';
+import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
+import { Search, Building2, Check, AlertTriangle, Lock, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface KeySearchProps {
@@ -20,6 +20,7 @@ interface KeySearchProps {
 }
 
 export function KeySearch({ selectedKeys, onToggleKey }: KeySearchProps) {
+  const { lugaresDisponibles } = useSolicitudesContext();
   const [busqueda, setBusqueda] = useState('');
   const [filtroTipo, setFiltroTipo] = useState<TipoLugar | 'todos'>('todos');
   const [filtroEdificio, setFiltroEdificio] = useState<string>('todos');
@@ -27,7 +28,7 @@ export function KeySearch({ selectedKeys, onToggleKey }: KeySearchProps) {
   const lugaresFiltrados = useMemo(() => {
     const busquedaNormalizada = normalizarTexto(busqueda);
     
-    return lugares.filter((lugar) => {
+    return lugaresDisponibles.filter((lugar) => {
       // Filtro de búsqueda (insensible a acentos)
       const nombreNormalizado = normalizarTexto(lugar.nombre);
       const tipoNormalizado = normalizarTexto(lugar.tipo);
@@ -43,7 +44,7 @@ export function KeySearch({ selectedKeys, onToggleKey }: KeySearchProps) {
       
       return coincideBusqueda && coincideTipo && coincideEdificio;
     });
-  }, [busqueda, filtroTipo, filtroEdificio]);
+  }, [busqueda, filtroTipo, filtroEdificio, lugaresDisponibles]);
 
   const isSelected = (lugarId: string) => selectedKeys.some(k => k.id === lugarId);
 
@@ -197,7 +198,7 @@ export function KeySearch({ selectedKeys, onToggleKey }: KeySearchProps) {
       </div>
       
       <p className="text-sm text-muted-foreground text-center">
-        Mostrando {lugaresFiltrados.length} de {lugares.length} llaves
+        Mostrando {lugaresFiltrados.length} de {lugaresDisponibles.length} llaves
       </p>
     </div>
   );

@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { Shield, Clock, Users, Key } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
@@ -7,9 +8,10 @@ import { obtenerTurnoActual, obtenerVigilantesActuales } from '@/data/fceaData';
 interface MonitorHeaderProps {
   pendientes: number;
   enUso: number;
+  children?: ReactNode;
 }
 
-export function MonitorHeader({ pendientes, enUso }: MonitorHeaderProps) {
+export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProps) {
   const turnoActual = obtenerTurnoActual();
   const vigilantes = obtenerVigilantesActuales();
   const jefe = vigilantes.find(v => v.esJefe);
@@ -66,6 +68,7 @@ export function MonitorHeader({ pendientes, enUso }: MonitorHeaderProps) {
               Terminal Usuario
             </Link>
           </Button>
+          {children}
         </div>
 
         {/* Info del turno */}

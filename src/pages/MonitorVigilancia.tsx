@@ -1,22 +1,29 @@
 import { useState, useEffect } from 'react';
 import { MonitorHeader } from '@/components/monitor/MonitorHeader';
 import { SolicitudCard } from '@/components/monitor/SolicitudCard';
+import { KeyManagementModal } from '@/components/monitor/KeyManagementModal';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ClipboardList, Key, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ClipboardList, Key, CheckCircle2, Settings2 } from 'lucide-react';
 
 export default function MonitorVigilancia() {
   const { toast } = useToast();
   const {
     solicitudesPendientes,
     solicitudesEntregadas,
+    lugaresDisponibles,
     entregarLlave,
     devolverLlave,
     deshacerAccion,
     getUndoParaSolicitud,
+    agregarLlave,
+    quitarLlave,
   } = useSolicitudesContext();
+
+  const [keyModalOpen, setKeyModalOpen] = useState(false);
 
   // Auto-refresh de hora cada segundo
   const [, setTick] = useState(0);
@@ -74,7 +81,24 @@ export default function MonitorVigilancia() {
     <div className="min-h-screen bg-background">
       <MonitorHeader 
         pendientes={solicitudesPendientes.length} 
-        enUso={solicitudesEntregadas.length} 
+        enUso={solicitudesEntregadas.length}
+      >
+        <Button 
+          variant="outline" 
+          onClick={() => setKeyModalOpen(true)}
+          className="gap-2"
+        >
+          <Settings2 className="w-4 h-4" />
+          Gestionar Llaves
+        </Button>
+      </MonitorHeader>
+
+      <KeyManagementModal
+        open={keyModalOpen}
+        onOpenChange={setKeyModalOpen}
+        lugares={lugaresDisponibles}
+        onAgregarLlave={agregarLlave}
+        onQuitarLlave={quitarLlave}
       />
 
       <main className="max-w-7xl mx-auto py-6 px-4 space-y-8">
