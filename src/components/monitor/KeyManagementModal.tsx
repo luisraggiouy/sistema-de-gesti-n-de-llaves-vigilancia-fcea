@@ -138,7 +138,7 @@ export function KeyManagementModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Key className="w-5 h-5" />
@@ -178,7 +178,7 @@ export function KeyManagementModal({
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar edificio" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-60 overflow-y-auto">
                     {edificios.map((ed) => (
                       <SelectItem key={ed} value={ed}>{ed}</SelectItem>
                     ))}
@@ -192,7 +192,7 @@ export function KeyManagementModal({
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar tipo" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-60 overflow-y-auto">
                     {tiposLugar.map((t) => (
                       <SelectItem key={t} value={t}>{t}</SelectItem>
                     ))}
@@ -214,7 +214,7 @@ export function KeyManagementModal({
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar zona" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-60 overflow-y-auto">
                     {zonasTablero.map((z) => (
                       <SelectItem key={z} value={z}>{z}</SelectItem>
                     ))}
