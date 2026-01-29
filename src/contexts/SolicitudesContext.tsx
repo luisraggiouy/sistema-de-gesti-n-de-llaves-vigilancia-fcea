@@ -1,9 +1,11 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { SolicitudLlave, AccionUndo } from '@/types/solicitud';
-import { lugares as lugaresIniciales, Lugar } from '@/data/fceaData';
+import { lugares as lugaresIniciales, Lugar, obtenerTurnoActual } from '@/data/fceaData';
+import { RegistroActividad } from '@/types/estadisticas';
 
 const UNDO_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutos
 const LUGARES_STORAGE_KEY = 'fcea_lugares';
+const REGISTROS_STORAGE_KEY = 'fcea_registros_actividad';
 
 // Cargar lugares desde localStorage o usar los iniciales
 const cargarLugares = (): Lugar[] => {
@@ -15,12 +17,27 @@ const cargarLugares = (): Lugar[] => {
   }
 };
 
+// Cargar registros desde localStorage
+const cargarRegistros = (): RegistroActividad[] => {
+  try {
+    const stored = localStorage.getItem(REGISTROS_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed.map((r: any) => ({ ...r, timestamp: new Date(r.timestamp) }));
+    }
+    return [];
+  } catch {
+    return [];
+  }
+};
+
 interface SolicitudesContextType {
   solicitudes: SolicitudLlave[];
   solicitudesPendientes: SolicitudLlave[];
   solicitudesEntregadas: SolicitudLlave[];
   accionesUndo: AccionUndo[];
   lugaresDisponibles: Lugar[];
+  registrosActividad: RegistroActividad[];
   entregarLlave: (solicitudId: string, vigilante: string) => AccionUndo;
   devolverLlave: (solicitudId: string, vigilante: string) => AccionUndo;
   deshacerAccion: (undoId: string) => boolean;
@@ -81,6 +98,7 @@ export function SolicitudesProvider({ children }: { children: ReactNode }) {
   const [lugaresDisponibles, setLugaresDisponibles] = useState<Lugar[]>(cargarLugares);
   const [solicitudes, setSolicitudes] = useState<SolicitudLlave[]>(() => generarSolicitudesDemo(cargarLugares()));
   const [accionesUndo, setAccionesUndo] = useState<AccionUndo[]>([]);
+  const [registrosActividad, setRegistrosActividad] = useState<RegistroActividad[]>(cargarRegistros);
 
   const solicitudesPendientes = solicitudes.filter(s => s.estado === 'pendiente');
   const solicitudesEntregadas = solicitudes.filter(s => s.estado === 'entregada');
@@ -88,6 +106,11 @@ export function SolicitudesProvider({ children }: { children: ReactNode }) {
   // Guardar lugares en localStorage cuando cambian
   const guardarLugares = useCallback((lugares: Lugar[]) => {
     localStorage.setItem(LUGARES_STORAGE_KEY, JSON.stringify(lugares));
+  }, []);
+
+  // Guardar registros en localStorage
+  const guardarRegistros = useCallback((registros: RegistroActividad[]) => {
+    localStorage.setItem(REGISTROS_STORAGE_KEY, JSON.stringify(registros));
   }, []);
 
   const agregarLlave = useCallback((lugar: Omit<Lugar, 'id'>) => {
@@ -114,12 +137,32 @@ export function SolicitudesProvider({ children }: { children: ReactNode }) {
 
   const entregarLlave = useCallback((solicitudId: string, vigilante: string) => {
     const now = new Date();
+    const solicitud = solicitudes.find(s => s.id === solicitudId);
     
     setSolicitudes(prev => prev.map(s => 
       s.id === solicitudId 
         ? { ...s, estado: 'entregada' as const, horaEntrega: now, entregadoPor: vigilante }
         : s
     ));
+
+    // Registrar actividad
+    if (solicitud) {
+      const registro: RegistroActividad = {
+        id: `reg-${Date.now()}`,
+        solicitudId,
+        tipo: 'entrega',
+        vigilante,
+        turno: obtenerTurnoActual(),
+        timestamp: now,
+        lugarNombre: solicitud.lugar.nombre,
+        usuarioNombre: solicitud.usuario.nombre
+      };
+      setRegistrosActividad(prev => {
+        const updated = [...prev, registro];
+        guardarRegistros(updated);
+        return updated;
+      });
+    }
 
     const undoAction: AccionUndo = {
       id: `undo-${Date.now()}`,
@@ -137,16 +180,36 @@ export function SolicitudesProvider({ children }: { children: ReactNode }) {
     }, UNDO_TIMEOUT_MS);
 
     return undoAction;
-  }, []);
+  }, [solicitudes, guardarRegistros]);
 
   const devolverLlave = useCallback((solicitudId: string, vigilante: string) => {
     const now = new Date();
+    const solicitud = solicitudes.find(s => s.id === solicitudId);
     
     setSolicitudes(prev => prev.map(s => 
       s.id === solicitudId 
         ? { ...s, estado: 'devuelta' as const, horaDevolucion: now, recibidoPor: vigilante }
         : s
     ));
+
+    // Registrar actividad
+    if (solicitud) {
+      const registro: RegistroActividad = {
+        id: `reg-${Date.now()}-dev`,
+        solicitudId,
+        tipo: 'devolucion',
+        vigilante,
+        turno: obtenerTurnoActual(),
+        timestamp: now,
+        lugarNombre: solicitud.lugar.nombre,
+        usuarioNombre: solicitud.usuario.nombre
+      };
+      setRegistrosActividad(prev => {
+        const updated = [...prev, registro];
+        guardarRegistros(updated);
+        return updated;
+      });
+    }
 
     const undoAction: AccionUndo = {
       id: `undo-${Date.now()}`,
@@ -164,7 +227,7 @@ export function SolicitudesProvider({ children }: { children: ReactNode }) {
     }, UNDO_TIMEOUT_MS);
 
     return undoAction;
-  }, []);
+  }, [solicitudes, guardarRegistros]);
 
   const deshacerAccion = useCallback((undoId: string) => {
     const accion = accionesUndo.find(a => a.id === undoId);
@@ -234,6 +297,7 @@ export function SolicitudesProvider({ children }: { children: ReactNode }) {
       solicitudesEntregadas,
       accionesUndo,
       lugaresDisponibles,
+      registrosActividad,
       entregarLlave,
       devolverLlave,
       deshacerAccion,
