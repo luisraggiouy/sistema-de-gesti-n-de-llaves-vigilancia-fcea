@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Shield, Clock, Users, Key } from 'lucide-react';
+import { Shield, Clock, Users, Key, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -66,6 +66,17 @@ export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProp
             <Link to="/">
               <Key className="w-4 h-4" />
               Terminal Usuario
+            </Link>
+          </Button>
+          <Button 
+            asChild 
+            variant="outline" 
+            size="sm"
+            className="gap-2"
+          >
+            <Link to="/dashboard">
+              <BarChart3 className="w-4 h-4" />
+              Dashboard
             </Link>
           </Button>
           {children}
