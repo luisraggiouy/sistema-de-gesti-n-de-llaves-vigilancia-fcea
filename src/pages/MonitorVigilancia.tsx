@@ -1,13 +1,18 @@
 import { useState, useEffect } from 'react';
 import { MonitorHeader } from '@/components/monitor/MonitorHeader';
-import { SolicitudCard } from '@/components/monitor/SolicitudCard';
+import { PendingRequestCard } from '@/components/monitor/PendingRequestCard';
+import { KeyInUseCard } from '@/components/monitor/KeyInUseCard';
 import { KeyManagementModal } from '@/components/monitor/KeyManagementModal';
+import { GuardManagementModal } from '@/components/monitor/GuardManagementModal';
+import { ConfigurationModal } from '@/components/monitor/ConfigurationModal';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
+import { useVigilantes } from '@/hooks/useVigilantes';
+import { useConfiguracion } from '@/hooks/useConfiguracion';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, Key, CheckCircle2, Settings2 } from 'lucide-react';
+import { ClipboardList, Key, CheckCircle2, Settings2, Users, Settings } from 'lucide-react';
 
 export default function MonitorVigilancia() {
   const { toast } = useToast();
@@ -23,7 +28,19 @@ export default function MonitorVigilancia() {
     quitarLlave,
   } = useSolicitudesContext();
 
+  const {
+    vigilantes,
+    agregarVigilante,
+    eliminarVigilante,
+    actualizarVigilante,
+    obtenerVigilantesConTransicion
+  } = useVigilantes();
+
+  const { configuracion, actualizarConfiguracion, resetearConfiguracion } = useConfiguracion();
+
   const [keyModalOpen, setKeyModalOpen] = useState(false);
+  const [guardModalOpen, setGuardModalOpen] = useState(false);
+  const [configModalOpen, setConfigModalOpen] = useState(false);
 
   // Auto-refresh de hora cada segundo
   const [, setTick] = useState(0);
@@ -31,6 +48,10 @@ export default function MonitorVigilancia() {
     const interval = setInterval(() => setTick(t => t + 1), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Obtener vigilantes con transición
+  const { actuales: vigilantesActuales, anteriores: vigilantesAnteriores } = 
+    obtenerVigilantesConTransicion(configuracion.transicionTurnoMinutos);
 
   const handleEntregar = (solicitudId: string, vigilante: string) => {
     const solicitud = solicitudesPendientes.find(s => s.id === solicitudId);
@@ -83,14 +104,35 @@ export default function MonitorVigilancia() {
         pendientes={solicitudesPendientes.length} 
         enUso={solicitudesEntregadas.length}
       >
-        <Button 
-          variant="outline" 
-          onClick={() => setKeyModalOpen(true)}
-          className="gap-2"
-        >
-          <Settings2 className="w-4 h-4" />
-          Gestionar Llaves
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setConfigModalOpen(true)}
+            className="gap-2"
+            size="sm"
+          >
+            <Settings className="w-4 h-4" />
+            <span className="hidden md:inline">Configuración</span>
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setGuardModalOpen(true)}
+            className="gap-2"
+            size="sm"
+          >
+            <Users className="w-4 h-4" />
+            <span className="hidden md:inline">Vigilantes</span>
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => setKeyModalOpen(true)}
+            className="gap-2"
+            size="sm"
+          >
+            <Settings2 className="w-4 h-4" />
+            <span className="hidden md:inline">Llaves</span>
+          </Button>
+        </div>
       </MonitorHeader>
 
       <KeyManagementModal
@@ -99,6 +141,23 @@ export default function MonitorVigilancia() {
         lugares={lugaresDisponibles}
         onAgregarLlave={agregarLlave}
         onQuitarLlave={quitarLlave}
+      />
+
+      <GuardManagementModal
+        open={guardModalOpen}
+        onOpenChange={setGuardModalOpen}
+        vigilantes={vigilantes}
+        onAgregar={agregarVigilante}
+        onEliminar={eliminarVigilante}
+        onActualizar={actualizarVigilante}
+      />
+
+      <ConfigurationModal
+        open={configModalOpen}
+        onOpenChange={setConfigModalOpen}
+        configuracion={configuracion}
+        onGuardar={actualizarConfiguracion}
+        onResetear={resetearConfiguracion}
       />
 
       <main className="max-w-7xl mx-auto py-6 px-4 space-y-8">
@@ -124,19 +183,15 @@ export default function MonitorVigilancia() {
             </Card>
           ) : (
             <div className="space-y-4">
-              {solicitudesPendientes.map(solicitud => {
-                const undoAction = getUndoParaSolicitud(solicitud.id);
-                return (
-                  <SolicitudCard
-                    key={solicitud.id}
-                    solicitud={solicitud}
-                    undoAction={undoAction}
-                    onEntregar={(v) => handleEntregar(solicitud.id, v)}
-                    onDevolver={(v) => handleDevolver(solicitud.id, v)}
-                    onUndo={() => handleUndo(solicitud.id)}
-                  />
-                );
-              })}
+              {solicitudesPendientes.map(solicitud => (
+                <PendingRequestCard
+                  key={solicitud.id}
+                  solicitud={solicitud}
+                  vigilantes={vigilantesActuales}
+                  vigilantesAnteriores={vigilantesAnteriores}
+                  onEntregar={(v) => handleEntregar(solicitud.id, v)}
+                />
+              ))}
             </div>
           )}
         </section>
@@ -169,11 +224,14 @@ export default function MonitorVigilancia() {
               {solicitudesEntregadas.map(solicitud => {
                 const undoAction = getUndoParaSolicitud(solicitud.id);
                 return (
-                  <SolicitudCard
+                  <KeyInUseCard
                     key={solicitud.id}
                     solicitud={solicitud}
                     undoAction={undoAction}
-                    onEntregar={(v) => handleEntregar(solicitud.id, v)}
+                    vigilantes={vigilantesActuales}
+                    vigilantesAnteriores={vigilantesAnteriores}
+                    tiempoAlertaMinutos={configuracion.tiempoAlertaMinutos}
+                    mensajeWhatsApp={configuracion.mensajeWhatsApp}
                     onDevolver={(v) => handleDevolver(solicitud.id, v)}
                     onUndo={() => handleUndo(solicitud.id)}
                   />
