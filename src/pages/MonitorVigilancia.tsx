@@ -5,6 +5,7 @@ import { KeyInUseCard } from '@/components/monitor/KeyInUseCard';
 import { KeyManagementModal } from '@/components/monitor/KeyManagementModal';
 import { GuardManagementModal } from '@/components/monitor/GuardManagementModal';
 import { ConfigurationModal } from '@/components/monitor/ConfigurationModal';
+import { KeyHistorySearch } from '@/components/monitor/KeyHistorySearch';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
 import { useVigilantes } from '@/hooks/useVigilantes';
 import { useConfiguracion } from '@/hooks/useConfiguracion';
@@ -12,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, Key, CheckCircle2, Settings2, Users, Settings } from 'lucide-react';
+import { ClipboardList, Key, CheckCircle2, Settings2, Users, Settings, History } from 'lucide-react';
 
 export default function MonitorVigilancia() {
   const { toast } = useToast();
@@ -41,6 +42,7 @@ export default function MonitorVigilancia() {
   const [keyModalOpen, setKeyModalOpen] = useState(false);
   const [guardModalOpen, setGuardModalOpen] = useState(false);
   const [configModalOpen, setConfigModalOpen] = useState(false);
+  const [historySearchOpen, setHistorySearchOpen] = useState(false);
 
   // Auto-refresh de hora cada segundo
   const [, setTick] = useState(0);
@@ -107,6 +109,15 @@ export default function MonitorVigilancia() {
         <div className="flex gap-2">
           <Button 
             variant="outline" 
+            onClick={() => setHistorySearchOpen(true)}
+            className="gap-2"
+            size="sm"
+          >
+            <History className="w-4 h-4" />
+            <span className="hidden md:inline">Historial</span>
+          </Button>
+          <Button 
+            variant="outline" 
             onClick={() => setConfigModalOpen(true)}
             className="gap-2"
             size="sm"
@@ -158,6 +169,11 @@ export default function MonitorVigilancia() {
         configuracion={configuracion}
         onGuardar={actualizarConfiguracion}
         onResetear={resetearConfiguracion}
+      />
+
+      <KeyHistorySearch
+        open={historySearchOpen}
+        onOpenChange={setHistorySearchOpen}
       />
 
       <main className="max-w-7xl mx-auto py-6 px-4 space-y-8">
