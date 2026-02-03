@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart3, ArrowLeft, Clock, Users, Key, ArrowUpRight, ArrowDownLeft, Sun, Sunset, Moon } from 'lucide-react';
+import { BarChart3, ArrowLeft, Clock, Users, Key, ArrowUpRight, ArrowDownLeft, Sun, Sunset, Moon, FileSpreadsheet } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
 import { Turno, vigilantes } from '@/data/fceaData';
 import { EstadisticasTurno, EstadisticasVigilante } from '@/types/estadisticas';
+import { ExportReportModal } from '@/components/dashboard/ExportReportModal';
 
 const turnosConfig: Record<Turno, { label: string; horario: string; color: string; icon: typeof Sun }> = {
   'Matutino': { label: 'Turno Matutino', horario: '06:00 - 14:00', color: 'bg-amber-500', icon: Sun },
@@ -18,6 +19,7 @@ const turnosConfig: Record<Turno, { label: string; horario: string; color: strin
 export default function Dashboard() {
   const { registrosActividad } = useSolicitudesContext();
   const [, setTick] = useState(0);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
 
   // Auto-refresh cada minuto
   useEffect(() => {
@@ -85,12 +87,23 @@ export default function Dashboard() {
                 FCEA - Estadísticas del Sistema de Llaves
               </p>
             </div>
-            <Button asChild variant="outline" size="sm" className="ml-4 gap-2">
-              <Link to="/monitor">
-                <ArrowLeft className="w-4 h-4" />
-                Volver al Monitor
-              </Link>
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={() => setExportModalOpen(true)}
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                <span className="hidden md:inline">Exportar</span>
+              </Button>
+              <Button asChild variant="outline" size="sm" className="gap-2">
+                <Link to="/monitor">
+                  <ArrowLeft className="w-4 h-4" />
+                  Volver al Monitor
+                </Link>
+              </Button>
+            </div>
           </div>
 
           <div className="flex items-center gap-6">
@@ -250,6 +263,11 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </main>
+
+      <ExportReportModal 
+        open={exportModalOpen} 
+        onOpenChange={setExportModalOpen} 
+      />
 
       <footer className="py-4 text-center text-sm text-muted-foreground border-t mt-8">
         <p>Dashboard de Actividad • FCEA UdelaR • Sistema de Gestión de Llaves v3.6</p>
