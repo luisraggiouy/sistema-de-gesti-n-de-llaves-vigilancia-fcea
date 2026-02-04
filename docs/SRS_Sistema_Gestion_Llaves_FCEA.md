@@ -41,9 +41,14 @@
    - 7.1 [Terminal de Usuario](#71-terminal-de-usuario)
    - 7.2 [Monitor de Vigilancia](#72-monitor-de-vigilancia)
    - 7.3 [Dashboard de Estadisticas](#73-dashboard-de-estadisticas)
-8. [Seguridad y Control de Acceso](#8-seguridad-y-control-de-acceso)
-9. [Glosario](#9-glosario)
-10. [Apendices](#10-apendices)
+8. [Capturas de Pantalla del Sistema](#8-capturas-de-pantalla-del-sistema)
+   - 8.1 [Terminal de Usuario](#81-terminal-de-usuario)
+   - 8.2 [Monitor de Vigilancia](#82-monitor-de-vigilancia)
+   - 8.3 [Dashboard Estadistico](#83-dashboard-estadistico)
+   - 8.4 [Modales de Configuracion](#84-modales-de-configuracion)
+9. [Seguridad y Control de Acceso](#9-seguridad-y-control-de-acceso)
+10. [Glosario](#10-glosario)
+11. [Apendices](#11-apendices)
 
 ---
 
@@ -1158,9 +1163,81 @@ El Dashboard proporciona vision general de las operaciones.
 
 ---
 
-## 8. Seguridad y Control de Acceso
+## 8. Capturas de Pantalla del Sistema
 
-### 8.1 Modelo de Seguridad Actual
+Esta seccion presenta capturas de pantalla reales de cada modulo del sistema, proporcionando una vision concreta de la interfaz de usuario implementada.
+
+### 8.1 Terminal de Usuario
+
+El Terminal de Usuario es la interfaz publica accesible para docentes, estudiantes y personal administrativo. Permite la identificacion del usuario mediante numero de celular y la seleccion de una o multiples llaves.
+
+![Terminal de Usuario](screenshots/terminal-usuario.png)
+
+**Figura 8.1:** Interfaz del Terminal de Usuario mostrando:
+- Campo de busqueda para identificacion por numero de celular
+- Selector de edificio y busqueda de llaves
+- Panel de llaves seleccionadas con opcion de agregar multiples
+
+### 8.2 Monitor de Vigilancia
+
+El Monitor de Vigilancia es la interfaz central para el personal de seguridad. Presenta una vista unificada con la cola de solicitudes pendientes en la parte superior y las llaves actualmente en uso en la parte inferior.
+
+![Monitor de Vigilancia](screenshots/monitor-vigilancia.png)
+
+**Figura 8.2:** Interfaz del Monitor de Vigilancia mostrando:
+- Barra de herramientas con acceso a Historial, Configuracion, Vigilantes y Llaves
+- Cola de solicitudes pendientes con datos del solicitante
+- Seccion de llaves en uso con contadores de tiempo activos
+- Indicadores visuales de alerta para llaves con tiempo excedido
+
+### 8.3 Dashboard Estadistico
+
+El Dashboard proporciona una vision ejecutiva de las operaciones del sistema, con metricas agregadas y desglose por turno y vigilante.
+
+![Dashboard Estadistico](screenshots/dashboard-estadistico.png)
+
+**Figura 8.3:** Interfaz del Dashboard mostrando:
+- Tarjetas de KPIs principales (entregas, devoluciones, llaves en uso)
+- Estadisticas desglosadas por turno (Matutino, Vespertino, Nocturno)
+- Rendimiento individual de cada vigilante
+- Boton de exportacion de reportes mensuales
+
+### 8.4 Modales de Configuracion
+
+El sistema incluye varios modales de administracion accesibles desde el Monitor de Vigilancia.
+
+#### 8.4.1 Gestion de Vigilantes
+
+![Modal de Gestion de Vigilantes](screenshots/modal-vigilantes.png)
+
+**Figura 8.4:** Modal de Gestion de Vigilantes mostrando:
+- Pestanas para cada turno (Matutino, Vespertino, Nocturno)
+- Lista de vigilantes con toggle para designar jefe de turno
+- Formulario para agregar nuevos vigilantes
+
+#### 8.4.2 Configuracion del Sistema
+
+![Modal de Configuracion](screenshots/modal-configuracion.png)
+
+**Figura 8.5:** Modal de Configuracion mostrando:
+- Tiempo limite para alertas de uso prolongado (horas y minutos)
+- Duracion del periodo de transicion entre turnos
+- Plantilla editable del mensaje de WhatsApp
+
+#### 8.4.3 Busqueda en Historial
+
+![Modal de Busqueda en Historial](screenshots/modal-historial.png)
+
+**Figura 8.6:** Modal de Busqueda en Historial mostrando:
+- Filtros por nombre de llave, usuario y rango de fechas
+- Tabla de resultados con detalles completos de cada operacion
+- Columnas: llave, usuario, vigilante que entrego, hora de entrega, hora de devolucion, tiempo total de uso
+
+---
+
+## 9. Seguridad y Control de Acceso
+
+### 9.1 Modelo de Seguridad Actual
 
 El sistema actualmente opera en un modelo de confianza basado en la red local de la facultad:
 
@@ -1196,7 +1273,7 @@ El sistema actualmente opera en un modelo de confianza basado en la red local de
 
 ---
 
-## 9. Glosario
+## 10. Glosario
 
 | Termino | Definicion |
 |---------|------------|
@@ -1218,7 +1295,7 @@ El sistema actualmente opera en un modelo de confianza basado en la red local de
 
 ---
 
-## 10. Apendices
+## 11. Apendices
 
 ### Apendice A: Formato de Reporte CSV
 
