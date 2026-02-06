@@ -23,6 +23,7 @@ export default function MonitorVigilancia() {
     lugaresDisponibles,
     entregarLlave,
     devolverLlave,
+    intercambiarLlave,
     deshacerAccion,
     getUndoParaSolicitud,
     agregarLlave,
@@ -76,6 +77,18 @@ export default function MonitorVigilancia() {
     toast({
       title: "Llave devuelta",
       description: `${solicitud.lugar.nombre} recibida por ${vigilante}`,
+    });
+  };
+
+  const handleIntercambiar = (solicitudId: string, vigilante: string, nuevoUsuario: { nombre: string; celular: string; tipo: string }) => {
+    const solicitud = solicitudesEntregadas.find(s => s.id === solicitudId);
+    if (!solicitud) return;
+
+    intercambiarLlave(solicitudId, vigilante, nuevoUsuario);
+    
+    toast({
+      title: "Llave intercambiada",
+      description: `${solicitud.lugar.nombre}: ${solicitud.usuario.nombre} → ${nuevoUsuario.nombre}`,
     });
   };
 
@@ -250,6 +263,7 @@ export default function MonitorVigilancia() {
                     mensajeWhatsApp={configuracion.mensajeWhatsApp}
                     onDevolver={(v) => handleDevolver(solicitud.id, v)}
                     onUndo={() => handleUndo(solicitud.id)}
+                    onIntercambiar={(v, u) => handleIntercambiar(solicitud.id, v, u)}
                   />
                 );
               })}

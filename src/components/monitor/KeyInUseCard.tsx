@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { SolicitudLlave, AccionUndo } from '@/types/solicitud';
 import { Vigilante } from '@/data/fceaData';
 import { formatearUbicacion, getColorTipoLugar } from '@/data/fceaData';
-import { Key, MapPin, Clock, Undo2, MessageCircle, AlertCircle } from 'lucide-react';
+import { Key, MapPin, Clock, Undo2, MessageCircle, AlertCircle, ArrowRightLeft } from 'lucide-react';
+import { KeyExchangeModal } from './KeyExchangeModal';
 
 interface KeyInUseCardProps {
   solicitud: SolicitudLlave;
@@ -16,6 +17,7 @@ interface KeyInUseCardProps {
   mensajeWhatsApp: string;
   onDevolver: (vigilante: string) => void;
   onUndo: () => void;
+  onIntercambiar: (vigilante: string, nuevoUsuario: { nombre: string; celular: string; tipo: string }) => void;
 }
 
 export function KeyInUseCard({
@@ -26,10 +28,12 @@ export function KeyInUseCard({
   tiempoAlertaMinutos,
   mensajeWhatsApp,
   onDevolver,
-  onUndo
+  onUndo,
+  onIntercambiar
 }: KeyInUseCardProps) {
   const [tiempoRestanteUndo, setTiempoRestanteUndo] = useState<number>(0);
   const [tiempoEnUso, setTiempoEnUso] = useState<number>(0);
+  const [exchangeModalOpen, setExchangeModalOpen] = useState(false);
 
   // Timer para el countdown del undo
   useEffect(() => {
@@ -79,7 +83,10 @@ export function KeyInUseCard({
   };
 
   const tiempoEnUsoMinutos = tiempoEnUso / 60;
-  const estaEnAlerta = tiempoEnUsoMinutos >= tiempoAlertaMinutos;
+  // Solo alertar por tiempo excedido en salones (las oficinas se quedan con las llaves más tiempo)
+  const tiposConAlerta: string[] = ['Salón', 'Salón Híbrido'];
+  const aplicaAlerta = tiposConAlerta.includes(solicitud.lugar.tipo);
+  const estaEnAlerta = aplicaAlerta && tiempoEnUsoMinutos >= tiempoAlertaMinutos;
 
   const colorTipo = getColorTipoLugar(solicitud.lugar.tipo);
 
@@ -147,6 +154,12 @@ export function KeyInUseCard({
               <Badge className="bg-success text-success-foreground text-xs">
                 En uso
               </Badge>
+              {solicitud.esIntercambio && (
+                <Badge variant="outline" className="text-xs border-primary/30 text-primary">
+                  <ArrowRightLeft className="w-3 h-3 mr-1" />
+                  Intercambio
+                </Badge>
+              )}
               {estaEnAlerta && (
                 <span className="relative flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
@@ -161,6 +174,9 @@ export function KeyInUseCard({
             <p className="text-sm mt-1">
               Entregada por <span className="font-medium">{solicitud.entregadoPor}</span> a{' '}
               <span className="font-medium">{solicitud.usuario.nombre}</span>
+              {solicitud.usuarioAnterior && (
+                <span className="text-muted-foreground"> (antes: {solicitud.usuarioAnterior.nombre})</span>
+              )}
             </p>
           </div>
         </div>
@@ -195,9 +211,20 @@ export function KeyInUseCard({
         )}
       </div>
       
-      {/* Botones para devolución */}
+      {/* Botones para devolución e intercambio */}
       <div className="mt-4 pt-4 border-t border-success/20">
-        <p className="text-sm font-medium text-muted-foreground mb-2">Registrar devolución:</p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm font-medium text-muted-foreground">Registrar devolución:</p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 border-primary/30 text-primary hover:bg-primary/10"
+            onClick={() => setExchangeModalOpen(true)}
+          >
+            <ArrowRightLeft className="w-4 h-4" />
+            Intercambiar
+          </Button>
+        </div>
         <div className="flex flex-wrap gap-2">
           {/* Vigilantes del turno actual */}
           {vigilantes.map(v => (
@@ -233,6 +260,15 @@ export function KeyInUseCard({
           )}
         </div>
       </div>
+
+      <KeyExchangeModal
+        open={exchangeModalOpen}
+        onOpenChange={setExchangeModalOpen}
+        solicitud={solicitud}
+        vigilantes={vigilantes}
+        vigilantesAnteriores={vigilantesAnteriores}
+        onConfirmar={onIntercambiar}
+      />
     </Card>
   );
 }
