@@ -41,6 +41,7 @@ interface SolicitudesContextType {
   entregarLlave: (solicitudId: string, vigilante: string) => AccionUndo;
   devolverLlave: (solicitudId: string, vigilante: string) => AccionUndo;
   intercambiarLlave: (solicitudId: string, vigilante: string, nuevoUsuario: { nombre: string; celular: string; tipo: string }) => void;
+  intercambiarPorLugar: (lugarId: string, nuevoUsuario: { nombre: string; celular: string; tipo: string }) => boolean;
   deshacerAccion: (undoId: string) => boolean;
   getUndoParaSolicitud: (solicitudId: string) => AccionUndo | undefined;
   agregarSolicitud: (lugar: Lugar, usuario: { nombre: string; celular: string; tipo: string }) => void;
@@ -282,6 +283,58 @@ export function SolicitudesProvider({ children }: { children: ReactNode }) {
     });
   }, [solicitudes, guardarRegistros]);
 
+  const intercambiarPorLugar = useCallback((lugarId: string, nuevoUsuario: { nombre: string; celular: string; tipo: string }) => {
+    const solicitud = solicitudes.find(s => s.estado === 'entregada' && s.lugar.id === lugarId);
+    if (!solicitud) return false;
+
+    const now = new Date();
+
+    setSolicitudes(prev => {
+      const updated = prev.map(s => 
+        s.id === solicitud.id 
+          ? { ...s, estado: 'devuelta' as const, horaDevolucion: now, recibidoPor: 'Intercambio directo' }
+          : s
+      );
+
+      const nuevaSolicitud: SolicitudLlave = {
+        id: `s${Date.now()}-int`,
+        lugar: solicitud.lugar,
+        usuario: {
+          nombre: nuevoUsuario.nombre,
+          celular: nuevoUsuario.celular,
+          tipo: nuevoUsuario.tipo as any
+        },
+        terminal: 'Terminal 1',
+        horaSolicitud: now,
+        horaEntrega: now,
+        entregadoPor: 'Intercambio directo',
+        estado: 'entregada',
+        esIntercambio: true,
+        usuarioAnterior: { ...solicitud.usuario }
+      };
+
+      return [...updated, nuevaSolicitud];
+    });
+
+    const registro: RegistroActividad = {
+      id: `reg-${Date.now()}-int-t`,
+      solicitudId: solicitud.id,
+      tipo: 'devolucion',
+      vigilante: 'Intercambio directo',
+      turno: obtenerTurnoActual(),
+      timestamp: now,
+      lugarNombre: solicitud.lugar.nombre,
+      usuarioNombre: `${solicitud.usuario.nombre} → ${nuevoUsuario.nombre} (intercambio terminal)`
+    };
+    setRegistrosActividad(prev => {
+      const updated = [...prev, registro];
+      guardarRegistros(updated);
+      return updated;
+    });
+
+    return true;
+  }, [solicitudes, guardarRegistros]);
+
   const deshacerAccion = useCallback((undoId: string) => {
     const accion = accionesUndo.find(a => a.id === undoId);
     if (!accion) return false;
@@ -354,6 +407,7 @@ export function SolicitudesProvider({ children }: { children: ReactNode }) {
       entregarLlave,
       devolverLlave,
       intercambiarLlave,
+      intercambiarPorLugar,
       deshacerAccion,
       getUndoParaSolicitud,
       agregarSolicitud,

@@ -7,6 +7,7 @@ import { FrequentKeys } from '@/components/terminal/FrequentKeys';
 import { RequestConfirmation } from '@/components/terminal/RequestConfirmation';
 import { RequestSuccess } from '@/components/terminal/RequestSuccess';
 import { RegistrationModal } from '@/components/terminal/RegistrationModal';
+import { ExchangeConfirmation } from '@/components/terminal/ExchangeConfirmation';
 import { Lugar, UsuarioRegistrado } from '@/data/fceaData';
 import { useHistorialLlaves } from '@/hooks/useHistorialLlaves';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
@@ -16,7 +17,7 @@ type TerminalStep = 'main' | 'success';
 
 export default function TerminalUsuario() {
   const { toast } = useToast();
-  const { agregarSolicitudes } = useSolicitudesContext();
+  const { agregarSolicitudes, intercambiarPorLugar } = useSolicitudesContext();
   const [step, setStep] = useState<TerminalStep>('main');
   
   // Usuario identificado
@@ -27,6 +28,9 @@ export default function TerminalUsuario() {
   
   // Modal de registro
   const [showRegistration, setShowRegistration] = useState(false);
+  
+  // Exchange state
+  const [exchangeTarget, setExchangeTarget] = useState<{ lugar: Lugar; usuario: { nombre: string; celular: string; tipo: string } } | null>(null);
   
   // Estado de envío
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -100,6 +104,42 @@ export default function TerminalUsuario() {
     setSelectedKeys([]);
   };
 
+  const handleExchangeRequest = (lugar: Lugar, usuarioConLlave: { nombre: string; celular: string; tipo: string }) => {
+    if (!currentUser) {
+      toast({
+        title: "Identifíquese primero",
+        description: "Debe identificarse antes de solicitar un intercambio",
+        variant: "destructive",
+      });
+      return;
+    }
+    setExchangeTarget({ lugar, usuario: usuarioConLlave });
+  };
+
+  const handleExchangeConfirm = () => {
+    if (!currentUser || !exchangeTarget) return;
+    
+    const success = intercambiarPorLugar(exchangeTarget.lugar.id, {
+      nombre: currentUser.nombre,
+      celular: currentUser.celular,
+      tipo: currentUser.tipo
+    });
+
+    if (success) {
+      toast({
+        title: "Intercambio confirmado",
+        description: `${exchangeTarget.lugar.nombre}: ${exchangeTarget.usuario.nombre} → ${currentUser.nombre}. Diríjase a solicitar la llave al docente saliente.`,
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "No se pudo realizar el intercambio",
+        variant: "destructive",
+      });
+    }
+    setExchangeTarget(null);
+  };
+
   const handleUserRegistered = (usuario: UsuarioRegistrado) => {
     setCurrentUser(usuario);
   };
@@ -153,6 +193,7 @@ export default function TerminalUsuario() {
           <KeySearch
             selectedKeys={selectedKeys}
             onToggleKey={handleToggleKey}
+            onExchangeRequest={currentUser ? handleExchangeRequest : undefined}
           />
         </Card>
         
@@ -195,6 +236,18 @@ export default function TerminalUsuario() {
         onOpenChange={setShowRegistration}
         onRegistered={handleUserRegistered}
       />
+
+      {/* Modal de intercambio */}
+      {exchangeTarget && currentUser && (
+        <ExchangeConfirmation
+          open={!!exchangeTarget}
+          onOpenChange={(open) => !open && setExchangeTarget(null)}
+          lugar={exchangeTarget.lugar}
+          usuarioActual={{ nombre: currentUser.nombre, celular: currentUser.celular, tipo: currentUser.tipo }}
+          usuarioConLlave={{ nombre: exchangeTarget.usuario.nombre }}
+          onConfirmar={handleExchangeConfirm}
+        />
+      )}
     </div>
   );
 }
