@@ -40,6 +40,7 @@ interface SolicitudesContextType {
   registrosActividad: RegistroActividad[];
   entregarLlave: (solicitudId: string, vigilante: string) => AccionUndo;
   devolverLlave: (solicitudId: string, vigilante: string) => AccionUndo;
+  intercambiarLlave: (solicitudId: string, vigilante: string, nuevoUsuario: { nombre: string; celular: string; tipo: string }) => void;
   deshacerAccion: (undoId: string) => boolean;
   getUndoParaSolicitud: (solicitudId: string) => AccionUndo | undefined;
   agregarSolicitud: (lugar: Lugar, usuario: { nombre: string; celular: string; tipo: string }) => void;
@@ -229,6 +230,58 @@ export function SolicitudesProvider({ children }: { children: ReactNode }) {
     return undoAction;
   }, [solicitudes, guardarRegistros]);
 
+  const intercambiarLlave = useCallback((solicitudId: string, vigilante: string, nuevoUsuario: { nombre: string; celular: string; tipo: string }) => {
+    const now = new Date();
+    const solicitud = solicitudes.find(s => s.id === solicitudId);
+    if (!solicitud) return;
+
+    // Marcar la solicitud actual como devuelta (intercambio)
+    setSolicitudes(prev => {
+      const updated = prev.map(s => 
+        s.id === solicitudId 
+          ? { ...s, estado: 'devuelta' as const, horaDevolucion: now, recibidoPor: vigilante }
+          : s
+      );
+
+      // Crear nueva solicitud ya entregada para el nuevo usuario
+      const nuevaSolicitud: SolicitudLlave = {
+        id: `s${Date.now()}-int`,
+        lugar: solicitud.lugar,
+        usuario: {
+          nombre: nuevoUsuario.nombre,
+          celular: nuevoUsuario.celular,
+          tipo: nuevoUsuario.tipo as any
+        },
+        terminal: solicitud.terminal,
+        horaSolicitud: now,
+        horaEntrega: now,
+        entregadoPor: vigilante,
+        estado: 'entregada',
+        esIntercambio: true,
+        usuarioAnterior: { ...solicitud.usuario }
+      };
+
+      return [...updated, nuevaSolicitud];
+    });
+
+    // Registrar actividad de intercambio
+    const registro: RegistroActividad = {
+      id: `reg-${Date.now()}-int`,
+      solicitudId,
+      tipo: 'devolucion',
+      vigilante,
+      turno: obtenerTurnoActual(),
+      timestamp: now,
+      lugarNombre: solicitud.lugar.nombre,
+      usuarioNombre: `${solicitud.usuario.nombre} → ${nuevoUsuario.nombre} (intercambio)`
+    };
+    setRegistrosActividad(prev => {
+      const updated = [...prev, registro];
+      guardarRegistros(updated);
+      return updated;
+    });
+  }, [solicitudes, guardarRegistros]);
+
   const deshacerAccion = useCallback((undoId: string) => {
     const accion = accionesUndo.find(a => a.id === undoId);
     if (!accion) return false;
@@ -300,6 +353,7 @@ export function SolicitudesProvider({ children }: { children: ReactNode }) {
       registrosActividad,
       entregarLlave,
       devolverLlave,
+      intercambiarLlave,
       deshacerAccion,
       getUndoParaSolicitud,
       agregarSolicitud,

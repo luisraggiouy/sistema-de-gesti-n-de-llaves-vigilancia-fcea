@@ -17,6 +17,13 @@ export interface SolicitudLlave {
   entregadoPor?: string;
   recibidoPor?: string;
   estado: EstadoSolicitud;
+  // Intercambio entre usuarios
+  esIntercambio?: boolean;
+  usuarioAnterior?: {
+    nombre: string;
+    celular: string;
+    tipo: TipoUsuario;
+  };
 }
 
 export interface AccionUndo {
