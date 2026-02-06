@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
@@ -11,16 +12,17 @@ import {
   normalizarTexto
 } from '@/data/fceaData';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
-import { Search, Building2, Check, AlertTriangle, Lock, CheckSquare } from 'lucide-react';
+import { Search, Building2, Check, AlertTriangle, Lock, CheckSquare, ArrowRightLeft, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface KeySearchProps {
   selectedKeys: Lugar[];
   onToggleKey: (lugar: Lugar) => void;
+  onExchangeRequest?: (lugar: Lugar, usuarioConLlave: { nombre: string; celular: string; tipo: string }) => void;
 }
 
-export function KeySearch({ selectedKeys, onToggleKey }: KeySearchProps) {
-  const { lugaresDisponibles } = useSolicitudesContext();
+export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest }: KeySearchProps) {
+  const { lugaresDisponibles, solicitudesEntregadas } = useSolicitudesContext();
   const [busqueda, setBusqueda] = useState('');
   const [filtroTipo, setFiltroTipo] = useState<TipoLugar | 'todos'>('todos');
   const [filtroEdificio, setFiltroEdificio] = useState<string>('todos');
@@ -126,16 +128,23 @@ export function KeySearch({ selectedKeys, onToggleKey }: KeySearchProps) {
         ) : (
           lugaresFiltrados.map((lugar) => {
             const selected = isSelected(lugar.id);
+            // Find who has this key if it's in use
+            const solicitudEnUso = !lugar.disponible 
+              ? solicitudesEntregadas.find(s => s.lugar.id === lugar.id) 
+              : null;
+
             return (
               <Card
                 key={lugar.id}
                 onClick={() => lugar.disponible && onToggleKey(lugar)}
                 className={cn(
-                  "p-4 cursor-pointer transition-all duration-200",
-                  !lugar.disponible && "opacity-60 cursor-not-allowed",
+                  "p-4 transition-all duration-200",
+                  lugar.disponible && "cursor-pointer",
+                  !lugar.disponible && !onExchangeRequest && "opacity-60 cursor-not-allowed",
+                  !lugar.disponible && onExchangeRequest && "cursor-default",
                   selected 
                     ? "ring-2 ring-primary bg-primary/5 border-primary" 
-                    : "hover:bg-muted/50 hover:border-primary/50"
+                    : lugar.disponible ? "hover:bg-muted/50 hover:border-primary/50" : ""
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -145,7 +154,8 @@ export function KeySearch({ selectedKeys, onToggleKey }: KeySearchProps) {
                       "flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors",
                       selected 
                         ? "bg-primary border-primary text-primary-foreground" 
-                        : "border-muted-foreground/30"
+                        : "border-muted-foreground/30",
+                      !lugar.disponible && "opacity-30"
                     )}>
                       {selected && <Check className="w-3.5 h-3.5" />}
                     </div>
@@ -185,6 +195,29 @@ export function KeySearch({ selectedKeys, onToggleKey }: KeySearchProps) {
                   </div>
                 </div>
                 
+                {/* Show who has the key and exchange button when in use */}
+                {!lugar.disponible && solicitudEnUso && onExchangeRequest && (
+                  <div className="mt-3 ml-8 flex items-center justify-between gap-3 p-3 bg-muted/50 rounded-lg border border-border">
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">En poder de:</span>
+                      <span className="font-medium">{solicitudEnUso.usuario.nombre}</span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 border-primary/30 text-primary hover:bg-primary/10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onExchangeRequest(lugar, solicitudEnUso.usuario);
+                      }}
+                    >
+                      <ArrowRightLeft className="w-4 h-4" />
+                      Intercambiar llave
+                    </Button>
+                  </div>
+                )}
+
                 {lugar.esHibrido && (
                   <div className="mt-2 ml-8 flex items-center gap-2 text-xs text-warning bg-warning/10 rounded-md px-2 py-1">
                     <AlertTriangle className="w-3.5 h-3.5" />
