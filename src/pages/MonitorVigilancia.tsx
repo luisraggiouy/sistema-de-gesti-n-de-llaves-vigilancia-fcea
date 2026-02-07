@@ -20,6 +20,7 @@ export default function MonitorVigilancia() {
   const {
     solicitudesPendientes,
     solicitudesEntregadas,
+    solicitudesDevueltas,
     lugaresDisponibles,
     entregarLlave,
     devolverLlave,
@@ -270,6 +271,49 @@ export default function MonitorVigilancia() {
             </div>
           )}
         </section>
+
+        {/* Separador visual */}
+        {solicitudesDevueltas.length > 0 && <div className="border-t border-border" />}
+
+        {/* Sección: Llaves Devueltas */}
+        {solicitudesDevueltas.length > 0 && (
+          <section>
+            <div className="flex items-center gap-3 mb-4">
+              <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+              <h2 className="text-xl font-semibold">Llaves Devueltas</h2>
+              <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">
+                {solicitudesDevueltas.length} devuelta{solicitudesDevueltas.length !== 1 ? 's' : ''}
+              </Badge>
+            </div>
+            <div className="space-y-2">
+              {solicitudesDevueltas.slice(-10).reverse().map(solicitud => (
+                <Card key={solicitud.id} className="p-4 bg-emerald-50 border-emerald-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Key className="w-5 h-5 text-emerald-600" />
+                      <div>
+                        <span className="font-semibold">{solicitud.lugar.nombre}</span>
+                        <span className="text-sm text-muted-foreground ml-2">
+                          Devuelta por {solicitud.usuario.nombre}
+                        </span>
+                        {solicitud.recibidoPor && (
+                          <span className="text-sm text-muted-foreground">
+                            {' '}• Recibida por {solicitud.recibidoPor}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {solicitud.horaDevolucion && (
+                      <span className="text-sm text-emerald-700">
+                        {solicitud.horaDevolucion.toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
 
       <footer className="py-4 text-center text-sm text-muted-foreground border-t mt-8">

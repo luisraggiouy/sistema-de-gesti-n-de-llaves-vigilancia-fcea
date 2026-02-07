@@ -5,7 +5,8 @@ import {
   guardarUsuario, 
   buscarUsuarioPorCelular,
   buscarUsuariosPorTexto,
-  TipoUsuario
+  TipoUsuario,
+  DepartamentoTAS
 } from '@/data/fceaData';
 
 export function useUsuariosRegistrados() {
@@ -21,6 +22,7 @@ export function useUsuariosRegistrados() {
     celular: string;
     email?: string;
     tipo: TipoUsuario;
+    departamento?: DepartamentoTAS;
   }) => {
     const nuevoUsuario = guardarUsuario(datos);
     setUsuarios(getUsuariosRegistrados());

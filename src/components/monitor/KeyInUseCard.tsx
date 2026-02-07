@@ -142,7 +142,7 @@ export function KeyInUseCard({
 
   // Estado normal - llave en uso
   return (
-    <Card className={`p-4 border-success/20 ${estaEnAlerta ? 'bg-destructive/5 border-destructive/30' : 'bg-success/5'}`}>
+    <Card className={`p-4 ${estaEnAlerta ? 'bg-destructive/5 border-destructive/30' : 'bg-rose-50 border-rose-200'}`}>
       <div className="flex flex-col lg:flex-row lg:items-center gap-4">
         <div className="flex items-start gap-3 flex-1">
           <div className={`p-3 rounded-xl ${colorTipo}`}>

@@ -142,7 +142,7 @@ const SRSDocument = () => {
           <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">1.2 Alcance</h3>
           <p className="text-gray-700 leading-relaxed mb-4">El Sistema de Gestion de Llaves abarca:</p>
           <ul className="list-disc list-inside text-gray-700 mb-4 space-y-1 pl-4">
-            <li>Solicitud de llaves por parte de docentes, estudiantes y personal administrativo</li>
+            <li>Solicitud de llaves por parte de docentes, alumnos, personal TAS y empresas</li>
             <li>Gestion de entregas y devoluciones por parte del personal de vigilancia</li>
             <li>Control de tiempos de uso con alertas automatizadas</li>
             <li>Registro historico de todas las operaciones</li>
@@ -247,19 +247,29 @@ const SRSDocument = () => {
             </thead>
             <tbody>
               <tr>
-                <td><strong>Usuario Solicitante</strong></td>
-                <td>Docentes, estudiantes, personal administrativo</td>
+                <td><strong>Docente</strong></td>
+                <td>Personal docente de la facultad</td>
+                <td>Diaria</td>
+              </tr>
+              <tr>
+                <td><strong>Alumno</strong></td>
+                <td>Estudiantes de la facultad</td>
                 <td>Variable (diaria a esporadica)</td>
+              </tr>
+              <tr>
+                <td><strong>Personal TAS</strong></td>
+                <td>Personal no docente: Electrotecnia, Servicios Generales, Compras, Gastos, UPC, Decanato, Suministros, Apoyo Docente, Bedelia, Contaduria, Sueldos, CAVIDA, Convenios, Concursos, Sistemas, Mantenimiento</td>
+                <td>Diaria</td>
+              </tr>
+              <tr>
+                <td><strong>Empresa</strong></td>
+                <td>Personal externo o empresas tercerizadas</td>
+                <td>Esporadica</td>
               </tr>
               <tr>
                 <td><strong>Vigilante</strong></td>
                 <td>Personal de seguridad de la facultad</td>
                 <td>Continua durante su turno</td>
-              </tr>
-              <tr>
-                <td><strong>Administrador</strong></td>
-                <td>Personal administrativo / Intendencia</td>
-                <td>Periodica (semanal/mensual)</td>
               </tr>
             </tbody>
           </table>
@@ -361,6 +371,34 @@ const SRSDocument = () => {
                 <p><strong>Descripcion:</strong> Generar reportes en formato CSV con estadisticas mensuales.</p>
                 <p><strong>Prioridad:</strong> Alta</p>
                 <p><strong>Contenido:</strong> Resumen general, estadisticas por turno, detalle por vigilante, log de operaciones</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-011: Intercambio de Llaves entre Usuarios</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> Permitir la transferencia directa de llaves entre usuarios sin devolucion al mostrador de vigilancia.</p>
+                <p><strong>Prioridad:</strong> Alta</p>
+                <p><strong>Flujo:</strong> El nuevo usuario busca la llave en uso, visualiza quien la posee, confirma la responsabilidad mediante checkbox obligatorio, y el sistema cierra la sesion anterior y abre una nueva.</p>
+                <p><strong>Restriccion:</strong> El nuevo usuario debe aceptar explicitamente la responsabilidad sobre la llave.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-012: Restriccion de Alertas por Tipo de Espacio</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> Las alertas por tiempo excedido y mensajes WhatsApp solo aplican a llaves de tipo Salon y Salon Hibrido.</p>
+                <p><strong>Prioridad:</strong> Alta</p>
+                <p><strong>Justificacion:</strong> Las oficinas y otros espacios requieren posesion prolongada de llaves por naturaleza del trabajo.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-013: Identificacion por Email</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> Permitir que los usuarios se identifiquen con email como alternativa al celular.</p>
+                <p><strong>Prioridad:</strong> Media</p>
+                <p><strong>Justificacion:</strong> Usuarios que prefieran no registrar su numero de celular pueden usar su correo electronico.</p>
               </div>
             </div>
           </div>
@@ -467,7 +505,7 @@ const SRSDocument = () => {
             </div>
             <div className="bg-gray-50 p-4 rounded-lg border">
               <h4 className="font-semibold text-blue-900 mb-2">Tipos de Usuario</h4>
-              <code className="text-sm">Docente | Estudiante | Administrativo | Externo</code>
+              <code className="text-sm">Docente | Alumno | Personal TAS (con departamento) | Empresa</code>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg border">
               <h4 className="font-semibold text-blue-900 mb-2">Estados de Solicitud</h4>
@@ -688,6 +726,57 @@ const SRSDocument = () => {
                         |     FIN     |
                         +-------------+
           `}</div>
+
+          <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">6.3 Flujo de Intercambio de Llaves</h3>
+          <div className="diagram mb-6">{`
+                          +-------------+
+                          |   INICIO    |
+                          +------+------+
+                                 |
+                                 v
+                    +------------------------+
+                    | Usuario B busca llave  |
+                    | en Terminal            |
+                    +------------------------+
+                                 |
+                                 v
+               +----------------------------------+
+               | Llave esta en uso por Usuario A? |
+               +----------------------------------+
+                      |                |
+                     NO               SI
+                      |                |
+                      v                v
+          +-----------------+  +-----------------+
+          | Solicitar       |  | Mostrar nombre  |
+          | normalmente     |  | de Usuario A +  |
+          |                 |  | boton Intercambio|
+          +-----------------+  +-----------------+
+                                       |
+                                       v
+                          +------------------------+
+                          | Usuario B acepta       |
+                          | responsabilidad        |
+                          | (checkbox obligatorio) |
+                          +------------------------+
+                                       |
+                                       v
+                          +------------------------+
+                          | Sistema cierra sesion  |
+                          | de Usuario A           |
+                          +------------------------+
+                                       |
+                                       v
+                          +------------------------+
+                          | Sistema abre sesion    |
+                          | para Usuario B         |
+                          +------------------------+
+                                       |
+                                       v
+                            +-------------+
+                            |     FIN     |
+                            +-------------+
+          `}</div>
         </div>
 
         {/* Seccion 7: Interfaces de Usuario */}
@@ -698,7 +787,7 @@ const SRSDocument = () => {
 
           <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">7.1 Terminal de Usuario</h3>
           <p className="text-gray-700 mb-4">
-            El Terminal de Usuario es la interfaz publica donde los docentes, estudiantes y personal administrativo solicitan las llaves.
+            El Terminal de Usuario es la interfaz publica donde los docentes, alumnos, personal TAS y empresas solicitan las llaves. Los usuarios pueden identificarse con celular o email.
           </p>
           <div className="diagram mb-6">{`
 +------------------------------------------------------------------+
@@ -709,8 +798,8 @@ const SRSDocument = () => {
 |  |                    REGISTRO DE USUARIO                      |  |
 |  +------------------------------------------------------------+  |
 |  |  Nombre completo: [________________________]                |  |
-|  |  Celular:         [________________________]                |  |
-|  |  Tipo: ( ) Docente  ( ) Estudiante  ( ) Administrativo      |  |
+|  |  Celular/Email:   [________________________]                |  |
+|  |  Tipo: ( ) Docente  ( ) Alumno  ( ) Personal TAS  ( ) Empresa|  |
 |  +------------------------------------------------------------+  |
 |                                                                   |
 |  +------------------------------------------------------------+  |
@@ -741,8 +830,10 @@ const SRSDocument = () => {
             </thead>
             <tbody>
               <tr><td>Solicitud pendiente</td><td>Borde amarillo/naranja</td></tr>
-              <tr><td>Llave en uso (normal)</td><td>Borde verde</td></tr>
-              <tr><td>Llave en uso (tiempo excedido)</td><td>Punto rojo pulsante + boton WhatsApp</td></tr>
+              <tr><td>Llave en uso (normal)</td><td>Fondo rosa, borde rosa</td></tr>
+              <tr><td>Llave en uso (tiempo excedido)</td><td>Punto rojo pulsante + boton WhatsApp (solo Salones)</td></tr>
+              <tr><td>Llave devuelta</td><td>Fondo verde, borde verde</td></tr>
+              <tr><td>Intercambio de llave</td><td>Badge "Intercambio" + nombre del usuario anterior</td></tr>
               <tr><td>Opcion deshacer disponible</td><td>Boton con cuenta regresiva</td></tr>
               <tr><td>Vigilante jefe de turno</td><td>Nombre con indicador especial</td></tr>
             </tbody>

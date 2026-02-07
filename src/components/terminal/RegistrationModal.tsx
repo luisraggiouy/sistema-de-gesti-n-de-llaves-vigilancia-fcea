@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TipoUsuario, tiposUsuario, UsuarioRegistrado } from '@/data/fceaData';
+import { TipoUsuario, tiposUsuario, DepartamentoTAS, departamentosTAS, UsuarioRegistrado } from '@/data/fceaData';
 import { useUsuariosRegistrados } from '@/hooks/useUsuariosRegistrados';
-import { User, Phone, Mail, UserCog, UserPlus, CheckCircle } from 'lucide-react';
+import { User, Phone, Mail, UserCog, UserPlus, CheckCircle, Building2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface RegistrationModalProps {
@@ -23,16 +23,15 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
   const [celular, setCelular] = useState('');
   const [email, setEmail] = useState('');
   const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario | ''>('');
+  const [departamento, setDepartamento] = useState<DepartamentoTAS | ''>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Validación: nombre, tipo, Y (celular O email)
   const tieneContacto = celular.trim() || email.trim();
   const isFormValid = nombre.trim() && tieneContacto && tipoUsuario;
 
   const handleSubmit = async () => {
     if (!isFormValid || !tipoUsuario) return;
     
-    // Verificar si el celular ya está registrado
     if (celular.trim()) {
       const existente = buscarPorCelular(celular);
       if (existente) {
@@ -46,20 +45,19 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
     }
     
     setIsSubmitting(true);
-    
-    // Simular delay de registro
     await new Promise(resolve => setTimeout(resolve, 800));
     
     const nuevoUsuario = registrarUsuario({
       nombre: nombre.trim(),
       celular: celular.trim(),
       email: email.trim() || undefined,
-      tipo: tipoUsuario
+      tipo: tipoUsuario,
+      departamento: tipoUsuario === 'Personal TAS' && departamento ? departamento : undefined,
     });
     
     toast({
       title: "¡Registro exitoso!",
-      description: "Ahora puede solicitar llaves usando su celular",
+      description: "Ahora puede solicitar llaves usando su celular o email",
     });
     
     setIsSubmitting(false);
@@ -73,18 +71,19 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
     setCelular('');
     setEmail('');
     setTipoUsuario('');
+    setDepartamento('');
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="w-5 h-5 text-primary" />
             Registro de Usuario
           </DialogTitle>
           <DialogDescription>
-            Complete sus datos una única vez. Luego podrá identificarse solo con su celular.
+            Complete sus datos una única vez. Luego podrá identificarse con su celular o email.
           </DialogDescription>
         </DialogHeader>
         
@@ -122,7 +121,6 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
             <Label htmlFor="reg-email" className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-muted-foreground" />
               Correo electrónico
-              <span className="text-xs text-muted-foreground font-normal">(opcional)</span>
             </Label>
             <Input
               id="reg-email"
@@ -133,7 +131,7 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
               className="h-11"
             />
             <p className="text-xs text-muted-foreground">
-              Puede ingresar celular, email o ambos
+              Puede ingresar celular, email o ambos para identificarse
             </p>
           </div>
           
@@ -142,7 +140,10 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
               <UserCog className="w-4 h-4 text-muted-foreground" />
               Tipo de usuario *
             </Label>
-            <Select value={tipoUsuario} onValueChange={(val) => setTipoUsuario(val as TipoUsuario)}>
+            <Select value={tipoUsuario} onValueChange={(val) => {
+              setTipoUsuario(val as TipoUsuario);
+              if (val !== 'Personal TAS') setDepartamento('');
+            }}>
               <SelectTrigger className="h-11">
                 <SelectValue placeholder="Seleccione tipo" />
               </SelectTrigger>
@@ -155,6 +156,27 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
               </SelectContent>
             </Select>
           </div>
+
+          {tipoUsuario === 'Personal TAS' && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-muted-foreground" />
+                Departamento
+              </Label>
+              <Select value={departamento} onValueChange={(val) => setDepartamento(val as DepartamentoTAS)}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Seleccione departamento" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {departamentosTAS.map((dep) => (
+                    <SelectItem key={dep} value={dep} className="py-2">
+                      {dep}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         
         <div className="flex gap-3 justify-end">
