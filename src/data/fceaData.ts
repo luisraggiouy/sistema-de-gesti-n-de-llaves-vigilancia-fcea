@@ -11,7 +11,31 @@ export type TipoLugar =
   | 'Biblioteca' 
   | 'Auditorio';
 
-export type TipoUsuario = 'Docente' | 'Estudiante' | 'Administrativo' | 'Tercerizado';
+export type TipoUsuario = 'Docente' | 'Alumno' | 'Personal TAS' | 'Empresa';
+
+export type DepartamentoTAS = 
+  | 'Electrotecnia'
+  | 'Servicios Generales'
+  | 'Compras'
+  | 'Gastos'
+  | 'UPC'
+  | 'Decanato'
+  | 'Suministros'
+  | 'Apoyo Docente'
+  | 'Bedelía'
+  | 'Contaduría'
+  | 'Sueldos'
+  | 'CAVIDA'
+  | 'Convenios'
+  | 'Concursos'
+  | 'Sistemas'
+  | 'Mantenimiento';
+
+export const departamentosTAS: DepartamentoTAS[] = [
+  'Electrotecnia', 'Servicios Generales', 'Compras', 'Gastos', 'UPC',
+  'Decanato', 'Suministros', 'Apoyo Docente', 'Bedelía', 'Contaduría',
+  'Sueldos', 'CAVIDA', 'Convenios', 'Concursos', 'Sistemas', 'Mantenimiento'
+];
 
 export type ZonaTablero = 
   | 'Puerta derecha' 
@@ -49,6 +73,7 @@ export interface UsuarioRegistrado {
   celular: string;
   email?: string;
   tipo: TipoUsuario;
+  departamento?: DepartamentoTAS;
   fechaRegistro: string;
 }
 
@@ -378,9 +403,9 @@ export const tiposLugar: TipoLugar[] = [
 // Tipos de usuario
 export const tiposUsuario: TipoUsuario[] = [
   'Docente',
-  'Estudiante',
-  'Administrativo',
-  'Tercerizado'
+  'Alumno',
+  'Personal TAS',
+  'Empresa'
 ];
 
 // Zonas del tablero
@@ -460,9 +485,22 @@ export function guardarUsuario(usuario: Omit<UsuarioRegistrado, 'id' | 'fechaReg
   const usuarios = getUsuariosRegistrados();
   
   // Verificar si ya existe por celular
-  const existente = usuarios.find(u => u.celular === usuario.celular);
-  if (existente) {
-    return existente;
+  if (usuario.celular) {
+    const celularNorm = usuario.celular.replace(/\D/g, '');
+    if (celularNorm) {
+      const existente = usuarios.find(u => u.celular && u.celular.replace(/\D/g, '') === celularNorm);
+      if (existente) {
+        return existente;
+      }
+    }
+  }
+  
+  // Verificar si ya existe por email
+  if (usuario.email) {
+    const existente = usuarios.find(u => u.email && u.email.toLowerCase() === usuario.email!.toLowerCase());
+    if (existente) {
+      return existente;
+    }
   }
   
   const nuevoUsuario: UsuarioRegistrado = {
@@ -492,7 +530,8 @@ export function buscarUsuariosPorTexto(texto: string): UsuarioRegistrado[] {
   
   return usuarios.filter(u => {
     const nombreMatch = normalizarTexto(u.nombre).includes(textoNormalizado);
-    const celularMatch = u.celular.replace(/\D/g, '').includes(celularBusqueda);
-    return nombreMatch || celularMatch;
+    const celularMatch = u.celular && u.celular.replace(/\D/g, '').includes(celularBusqueda);
+    const emailMatch = u.email && normalizarTexto(u.email).includes(textoNormalizado);
+    return nombreMatch || celularMatch || emailMatch;
   });
 }

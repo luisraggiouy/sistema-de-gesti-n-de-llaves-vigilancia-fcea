@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UsuarioRegistrado, buscarUsuariosPorTexto } from '@/data/fceaData';
-import { Phone, User, UserPlus, Check } from 'lucide-react';
+import { Phone, User, UserPlus, Check, Mail, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface UserSearchInputProps {
@@ -23,7 +23,6 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser }:
     return buscarUsuariosPorTexto(busqueda).slice(0, 5);
   }, [busqueda]);
 
-  // Cerrar sugerencias al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -43,6 +42,13 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser }:
   const handleInputChange = (value: string) => {
     setBusqueda(value);
     setShowSuggestions(value.length >= 2);
+  };
+
+  const getContactInfo = (usuario: UsuarioRegistrado) => {
+    const parts: string[] = [];
+    if (usuario.celular) parts.push(usuario.celular);
+    if (usuario.email) parts.push(usuario.email);
+    return parts.join(' • ');
   };
 
   return (
@@ -72,9 +78,22 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser }:
               </div>
               <div>
                 <p className="font-semibold text-foreground">{selectedUser.nombre}</p>
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Phone className="w-3 h-3" />
-                  {selectedUser.celular} • {selectedUser.tipo}
+                <p className="text-sm text-muted-foreground flex items-center gap-1 flex-wrap">
+                  {selectedUser.celular && (
+                    <>
+                      <Phone className="w-3 h-3" />
+                      {selectedUser.celular}
+                    </>
+                  )}
+                  {selectedUser.celular && selectedUser.email && <span>•</span>}
+                  {selectedUser.email && (
+                    <>
+                      <Mail className="w-3 h-3" />
+                      {selectedUser.email}
+                    </>
+                  )}
+                  <span>•</span> {selectedUser.tipo}
+                  {selectedUser.departamento && <span>({selectedUser.departamento})</span>}
                 </p>
               </div>
             </div>
@@ -95,10 +114,10 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser }:
         </Card>
       ) : (
         <div className="relative">
-          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             ref={inputRef}
-            placeholder="Ingrese su celular o nombre..."
+            placeholder="Ingrese su celular, email o nombre..."
             value={busqueda}
             onChange={(e) => handleInputChange(e.target.value)}
             onFocus={() => busqueda.length >= 2 && setShowSuggestions(true)}
@@ -122,7 +141,7 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser }:
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-foreground truncate">{usuario.nombre}</p>
                     <p className="text-sm text-muted-foreground">
-                      {usuario.celular} • {usuario.tipo}
+                      {getContactInfo(usuario)} • {usuario.tipo}
                     </p>
                   </div>
                 </button>
@@ -149,7 +168,7 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser }:
       )}
       
       <p className="text-xs text-muted-foreground text-center">
-        Ingrese al menos 2 caracteres para buscar
+        Ingrese al menos 2 caracteres (celular, email o nombre) para buscar
       </p>
     </div>
   );

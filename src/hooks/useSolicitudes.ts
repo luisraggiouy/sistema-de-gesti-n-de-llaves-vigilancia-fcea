@@ -5,7 +5,7 @@ import { lugares, Lugar } from '@/data/fceaData';
 // Datos de demostración
 const generarSolicitudesDemo = (): SolicitudLlave[] => {
   const lugaresDisponibles = lugares.filter(l => l.disponible);
-  const tiposUsuario = ['Docente', 'Estudiante', 'Administrativo'] as const;
+  const tiposUsuario = ['Docente', 'Alumno', 'Personal TAS'] as const;
   const nombres = ['Prof. García', 'Est. Martínez', 'Lic. Rodríguez', 'Dr. Pérez', 'Est. Fernández'];
   
   return [

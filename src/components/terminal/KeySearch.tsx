@@ -128,23 +128,22 @@ export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest }: KeyS
         ) : (
           lugaresFiltrados.map((lugar) => {
             const selected = isSelected(lugar.id);
-            // Find who has this key if it's in use
-            const solicitudEnUso = !lugar.disponible 
-              ? solicitudesEntregadas.find(s => s.lugar.id === lugar.id) 
-              : null;
+            // Check if key is dynamically in use via active solicitudes
+            const solicitudEnUso = solicitudesEntregadas.find(s => s.lugar.id === lugar.id) || null;
+            const estaEnUso = !!solicitudEnUso;
 
             return (
               <Card
                 key={lugar.id}
-                onClick={() => lugar.disponible && onToggleKey(lugar)}
+                onClick={() => !estaEnUso && onToggleKey(lugar)}
                 className={cn(
                   "p-4 transition-all duration-200",
-                  lugar.disponible && "cursor-pointer",
-                  !lugar.disponible && !onExchangeRequest && "opacity-60 cursor-not-allowed",
-                  !lugar.disponible && onExchangeRequest && "cursor-default",
+                  !estaEnUso && "cursor-pointer",
+                  estaEnUso && !onExchangeRequest && "opacity-60 cursor-not-allowed",
+                  estaEnUso && onExchangeRequest && "cursor-default",
                   selected 
                     ? "ring-2 ring-primary bg-primary/5 border-primary" 
-                    : lugar.disponible ? "hover:bg-muted/50 hover:border-primary/50" : ""
+                    : !estaEnUso ? "hover:bg-muted/50 hover:border-primary/50" : ""
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -155,7 +154,7 @@ export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest }: KeyS
                       selected 
                         ? "bg-primary border-primary text-primary-foreground" 
                         : "border-muted-foreground/30",
-                      !lugar.disponible && "opacity-30"
+                      estaEnUso && "opacity-30"
                     )}>
                       {selected && <Check className="w-3.5 h-3.5" />}
                     </div>
@@ -183,12 +182,12 @@ export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest }: KeyS
                   </div>
                   
                   <div className="flex-shrink-0">
-                    {lugar.disponible ? (
+                    {!estaEnUso ? (
                       <Badge className="bg-success text-success-foreground">
                         Disponible
                       </Badge>
                     ) : (
-                      <Badge variant="secondary" className="bg-muted">
+                      <Badge variant="secondary" className="bg-rose-100 text-rose-800 border-rose-200">
                         En uso
                       </Badge>
                     )}
@@ -196,12 +195,12 @@ export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest }: KeyS
                 </div>
                 
                 {/* Show who has the key and exchange button when in use */}
-                {!lugar.disponible && solicitudEnUso && onExchangeRequest && (
-                  <div className="mt-3 ml-8 flex items-center justify-between gap-3 p-3 bg-muted/50 rounded-lg border border-border">
+                {estaEnUso && solicitudEnUso && onExchangeRequest && (
+                  <div className="mt-3 ml-8 flex items-center justify-between gap-3 p-3 bg-rose-50 rounded-lg border border-rose-200">
                     <div className="flex items-center gap-2 text-sm">
-                      <User className="w-4 h-4 text-muted-foreground" />
+                      <User className="w-4 h-4 text-rose-600" />
                       <span className="text-muted-foreground">En poder de:</span>
-                      <span className="font-medium">{solicitudEnUso.usuario.nombre}</span>
+                      <span className="font-medium text-rose-800">{solicitudEnUso.usuario.nombre}</span>
                     </div>
                     <Button
                       variant="outline"

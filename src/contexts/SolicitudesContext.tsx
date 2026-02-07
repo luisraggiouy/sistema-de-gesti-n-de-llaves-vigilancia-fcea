@@ -35,6 +35,7 @@ interface SolicitudesContextType {
   solicitudes: SolicitudLlave[];
   solicitudesPendientes: SolicitudLlave[];
   solicitudesEntregadas: SolicitudLlave[];
+  solicitudesDevueltas: SolicitudLlave[];
   accionesUndo: AccionUndo[];
   lugaresDisponibles: Lugar[];
   registrosActividad: RegistroActividad[];
@@ -63,7 +64,7 @@ export function useSolicitudesContext() {
 // Datos de demostración inicial
 const generarSolicitudesDemo = (lugares: Lugar[]): SolicitudLlave[] => {
   const lugaresDisponiblesDemo = lugares.filter(l => l.disponible);
-  const tiposUsuario = ['Docente', 'Estudiante', 'Administrativo'] as const;
+  const tiposUsuario = ['Docente', 'Alumno', 'Personal TAS'] as const;
   const nombres = ['Prof. García', 'Est. Martínez', 'Lic. Rodríguez'];
   
   if (lugaresDisponiblesDemo.length < 6) return [];
@@ -104,6 +105,7 @@ export function SolicitudesProvider({ children }: { children: ReactNode }) {
 
   const solicitudesPendientes = solicitudes.filter(s => s.estado === 'pendiente');
   const solicitudesEntregadas = solicitudes.filter(s => s.estado === 'entregada');
+  const solicitudesDevueltas = solicitudes.filter(s => s.estado === 'devuelta');
 
   // Guardar lugares en localStorage cuando cambian
   const guardarLugares = useCallback((lugares: Lugar[]) => {
@@ -401,6 +403,7 @@ export function SolicitudesProvider({ children }: { children: ReactNode }) {
       solicitudes,
       solicitudesPendientes,
       solicitudesEntregadas,
+      solicitudesDevueltas,
       accionesUndo,
       lugaresDisponibles,
       registrosActividad,
