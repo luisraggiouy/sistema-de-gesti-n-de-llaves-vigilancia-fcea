@@ -6,6 +6,7 @@ import { KeyManagementModal } from '@/components/monitor/KeyManagementModal';
 import { GuardManagementModal } from '@/components/monitor/GuardManagementModal';
 import { ConfigurationModal } from '@/components/monitor/ConfigurationModal';
 import { KeyHistorySearch } from '@/components/monitor/KeyHistorySearch';
+import { AgendaModal } from '@/components/monitor/AgendaModal';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
 import { useVigilantes } from '@/hooks/useVigilantes';
 import { useConfiguracion } from '@/hooks/useConfiguracion';
@@ -13,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, Key, CheckCircle2, Settings2, Users, Settings, History } from 'lucide-react';
+import { ClipboardList, Key, CheckCircle2, Settings2, Users, Settings, History, BookUser } from 'lucide-react';
 
 export default function MonitorVigilancia() {
   const { toast } = useToast();
@@ -29,6 +30,7 @@ export default function MonitorVigilancia() {
     getUndoParaSolicitud,
     agregarLlave,
     quitarLlave,
+    actualizarNotas,
   } = useSolicitudesContext();
 
   const {
@@ -45,6 +47,7 @@ export default function MonitorVigilancia() {
   const [guardModalOpen, setGuardModalOpen] = useState(false);
   const [configModalOpen, setConfigModalOpen] = useState(false);
   const [historySearchOpen, setHistorySearchOpen] = useState(false);
+  const [agendaOpen, setAgendaOpen] = useState(false);
 
   // Auto-refresh de hora cada segundo
   const [, setTick] = useState(0);
@@ -121,6 +124,15 @@ export default function MonitorVigilancia() {
         enUso={solicitudesEntregadas.length}
       >
         <div className="flex gap-2">
+           <Button 
+            variant="outline" 
+            onClick={() => setAgendaOpen(true)}
+            className="gap-2"
+            size="sm"
+          >
+            <BookUser className="w-4 h-4" />
+            <span className="hidden md:inline">Agenda</span>
+          </Button>
           <Button 
             variant="outline" 
             onClick={() => setHistorySearchOpen(true)}
@@ -188,6 +200,11 @@ export default function MonitorVigilancia() {
       <KeyHistorySearch
         open={historySearchOpen}
         onOpenChange={setHistorySearchOpen}
+      />
+
+      <AgendaModal
+        open={agendaOpen}
+        onOpenChange={setAgendaOpen}
       />
 
       <main className="max-w-7xl mx-auto py-6 px-4 space-y-8">
@@ -265,6 +282,7 @@ export default function MonitorVigilancia() {
                     onDevolver={(v) => handleDevolver(solicitud.id, v)}
                     onUndo={() => handleUndo(solicitud.id)}
                     onIntercambiar={(v, u) => handleIntercambiar(solicitud.id, v, u)}
+                    onNotasChange={(notas) => actualizarNotas(solicitud.id, notas)}
                   />
                 );
               })}

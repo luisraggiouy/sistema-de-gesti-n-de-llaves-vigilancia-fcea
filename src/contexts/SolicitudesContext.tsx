@@ -49,6 +49,7 @@ interface SolicitudesContextType {
   agregarSolicitudes: (llaves: Lugar[], usuario: { nombre: string; celular: string; tipo: string }) => void;
   agregarLlave: (lugar: Omit<Lugar, 'id'>) => void;
   quitarLlave: (lugarId: string) => void;
+  actualizarNotas: (solicitudId: string, notas: string) => void;
 }
 
 const SolicitudesContext = createContext<SolicitudesContextType | null>(null);
@@ -398,6 +399,12 @@ export function SolicitudesProvider({ children }: { children: ReactNode }) {
     setSolicitudes(prev => [...prev, ...nuevasSolicitudes]);
   }, []);
 
+  const actualizarNotas = useCallback((solicitudId: string, notas: string) => {
+    setSolicitudes(prev => prev.map(s =>
+      s.id === solicitudId ? { ...s, notas } : s
+    ));
+  }, []);
+
   return (
     <SolicitudesContext.Provider value={{
       solicitudes,
@@ -416,7 +423,8 @@ export function SolicitudesProvider({ children }: { children: ReactNode }) {
       agregarSolicitud,
       agregarSolicitudes,
       agregarLlave,
-      quitarLlave
+      quitarLlave,
+      actualizarNotas
     }}>
       {children}
     </SolicitudesContext.Provider>
