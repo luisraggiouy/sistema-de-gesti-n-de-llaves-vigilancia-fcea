@@ -62,6 +62,22 @@ const SRSDocument = () => {
       {/* Boton de impresion */}
       <div className="no-print fixed top-4 right-4 z-50 flex gap-2">
         <button
+          onClick={() => {
+            const content = document.querySelector('.max-w-4xl')?.innerHTML || '';
+            const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>SRS - Sistema de Gestion de Llaves FCEA</title><style>body{font-family:Georgia,serif;max-width:800px;margin:0 auto;padding:40px;color:#1a1a1a}h2{color:#1e3a5f;border-bottom:2px solid #1e3a5f;padding-bottom:8px}h3{color:#333}table{border-collapse:collapse;width:100%}th,td{border:1px solid #d1d5db;padding:8px 12px;text-align:left}th{background:#1e3a5f;color:white}.diagram{font-family:monospace;font-size:11px;background:#f8f9fa;padding:16px;border-radius:8px;white-space:pre;overflow-x:auto}img{max-width:100%;height:auto}</style></head><body>${content}</body></html>`;
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'SRS_Sistema_Gestion_Llaves_FCEA_v3.7.html';
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+          className="bg-green-700 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-green-600 transition-colors font-semibold"
+        >
+          Descargar HTML
+        </button>
+        <button
           onClick={() => window.print()}
           className="bg-blue-900 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-blue-800 transition-colors font-semibold"
         >
@@ -90,7 +106,7 @@ const SRSDocument = () => {
             </h2>
             
             <div className="border-t-2 border-gray-300 pt-8 mt-8 text-left max-w-sm mx-auto">
-              <p className="mb-2"><strong>Version:</strong> 3.6</p>
+              <p className="mb-2"><strong>Version:</strong> 3.7</p>
               <p className="mb-2"><strong>Fecha:</strong> Febrero 2026</p>
               <p className="mb-2"><strong>Elaborado por:</strong> Equipo de Desarrollo</p>
               <p><strong>Institucion:</strong> Facultad de Ciencias Economicas y de Administracion</p>
@@ -399,6 +415,33 @@ const SRSDocument = () => {
                 <p><strong>Descripcion:</strong> Permitir que los usuarios se identifiquen con email como alternativa al celular.</p>
                 <p><strong>Prioridad:</strong> Media</p>
                 <p><strong>Justificacion:</strong> Usuarios que prefieran no registrar su numero de celular pueden usar su correo electronico.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-014: Agenda de Contactos</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> Modulo de busqueda de contactos registrados accesible desde el Monitor de Vigilancia.</p>
+                <p><strong>Prioridad:</strong> Media</p>
+                <p><strong>Funcionalidad:</strong> Permite buscar por nombre, telefono, email, tipo de usuario o departamento. Muestra informacion de contacto y funcion del usuario.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-015: Notas en Llaves Entregadas</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> Campo de notas editable en cada llave en uso para registrar observaciones.</p>
+                <p><strong>Prioridad:</strong> Baja</p>
+                <p><strong>Justificacion:</strong> Los vigilantes pueden anotar particularidades relevantes sobre cada entrega de llave.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-016: Gestion de Vigilantes con Confirmacion</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> El modulo de gestion de vigilantes incluye confirmacion visual de cambios, opcion de maximizar pantalla completa, y boton "Listo" para finalizar el proceso.</p>
+                <p><strong>Prioridad:</strong> Media</p>
+                <p><strong>Mejoras UX:</strong> Toast de confirmacion al agregar/eliminar vigilantes, contador de cambios realizados, scroll completo del listado.</p>
               </div>
             </div>
           </div>
@@ -958,6 +1001,8 @@ const SRSDocument = () => {
               <tr><td>Tiempo Excedido</td><td>Condicion cuando una llave supera el tiempo limite de uso configurado</td></tr>
               <tr><td>Transicion</td><td>Periodo de superposicion entre turnos saliente y entrante</td></tr>
               <tr><td>Turno</td><td>Periodo de trabajo: Matutino (06:00-14:00), Vespertino (14:00-22:00), Nocturno (22:00-06:00)</td></tr>
+              <tr><td>Agenda</td><td>Modulo de busqueda de contactos registrados para consulta rapida por vigilantes</td></tr>
+              <tr><td>Notas</td><td>Campo de texto libre en cada llave entregada para registrar observaciones del vigilante</td></tr>
             </tbody>
           </table>
         </div>
@@ -965,7 +1010,7 @@ const SRSDocument = () => {
         {/* Pie de pagina del documento */}
         <div className="border-t-2 border-gray-300 pt-8 mt-12 text-center text-gray-600">
           <p className="font-semibold">Sistema de Gestion de Llaves - FCEA UdelaR</p>
-          <p className="text-sm">Documento de Especificacion de Requisitos de Software - Version 3.6</p>
+          <p className="text-sm">Documento de Especificacion de Requisitos de Software - Version 3.7</p>
           <p className="text-sm">Febrero 2026</p>
         </div>
       </div>
