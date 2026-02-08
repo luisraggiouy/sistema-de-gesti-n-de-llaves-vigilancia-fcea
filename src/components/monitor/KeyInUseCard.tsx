@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { SolicitudLlave, AccionUndo } from '@/types/solicitud';
 import { Vigilante } from '@/data/fceaData';
 import { formatearUbicacion, getColorTipoLugar } from '@/data/fceaData';
-import { Key, MapPin, Clock, Undo2, MessageCircle, AlertCircle, ArrowRightLeft } from 'lucide-react';
+import { Key, MapPin, Clock, Undo2, MessageCircle, AlertCircle, ArrowRightLeft, StickyNote } from 'lucide-react';
 import { KeyExchangeModal } from './KeyExchangeModal';
 
 interface KeyInUseCardProps {
@@ -18,6 +19,7 @@ interface KeyInUseCardProps {
   onDevolver: (vigilante: string) => void;
   onUndo: () => void;
   onIntercambiar: (vigilante: string, nuevoUsuario: { nombre: string; celular: string; tipo: string }) => void;
+  onNotasChange: (notas: string) => void;
 }
 
 export function KeyInUseCard({
@@ -29,7 +31,8 @@ export function KeyInUseCard({
   mensajeWhatsApp,
   onDevolver,
   onUndo,
-  onIntercambiar
+  onIntercambiar,
+  onNotasChange
 }: KeyInUseCardProps) {
   const [tiempoRestanteUndo, setTiempoRestanteUndo] = useState<number>(0);
   const [tiempoEnUso, setTiempoEnUso] = useState<number>(0);
@@ -259,6 +262,21 @@ export function KeyInUseCard({
             </>
           )}
         </div>
+      </div>
+
+      {/* Notas */}
+      <div className="mt-3 pt-3 border-t border-rose-200">
+        <div className="flex items-center gap-2 mb-1">
+          <StickyNote className="w-3.5 h-3.5 text-muted-foreground" />
+          <span className="text-xs font-medium text-muted-foreground">Notas</span>
+        </div>
+        <Textarea
+          placeholder="Anotar particularidades..."
+          value={solicitud.notas || ''}
+          onChange={(e) => onNotasChange(e.target.value)}
+          className="min-h-[40px] h-10 text-sm resize-none bg-white/50"
+          rows={1}
+        />
       </div>
 
       <KeyExchangeModal

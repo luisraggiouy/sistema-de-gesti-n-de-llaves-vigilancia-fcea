@@ -24,6 +24,7 @@ export interface SolicitudLlave {
     celular: string;
     tipo: TipoUsuario;
   };
+  notas?: string;
 }
 
 export interface AccionUndo {
