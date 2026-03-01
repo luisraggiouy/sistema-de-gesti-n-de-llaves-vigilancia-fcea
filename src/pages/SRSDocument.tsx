@@ -69,7 +69,7 @@ const SRSDocument = () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'SRS_Sistema_Gestion_Llaves_FCEA_v3.7.html';
+            a.download = 'SRS_Sistema_Gestion_Llaves_FCEA_v3.8.html';
             a.click();
             URL.revokeObjectURL(url);
           }}
@@ -106,8 +106,8 @@ const SRSDocument = () => {
             </h2>
             
             <div className="border-t-2 border-gray-300 pt-8 mt-8 text-left max-w-sm mx-auto">
-              <p className="mb-2"><strong>Version:</strong> 3.7</p>
-              <p className="mb-2"><strong>Fecha:</strong> Febrero 2026</p>
+              <p className="mb-2"><strong>Version:</strong> 3.8</p>
+              <p className="mb-2"><strong>Fecha:</strong> Marzo 2026</p>
               <p className="mb-2"><strong>Elaborado por:</strong> Equipo de Desarrollo</p>
               <p><strong>Institucion:</strong> Facultad de Ciencias Economicas y de Administracion</p>
             </div>
@@ -444,6 +444,43 @@ const SRSDocument = () => {
                 <p><strong>Mejoras UX:</strong> Toast de confirmacion al agregar/eliminar vigilantes, contador de cambios realizados, scroll completo del listado.</p>
               </div>
             </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-017: Restriccion Horaria de Solicitudes</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> El sistema restringe la solicitud de llaves fuera del horario permitido (antes de las 7:00 AM y despues de las 23:00 PM).</p>
+                <p><strong>Prioridad:</strong> Alta</p>
+                <p><strong>Usuarios afectados:</strong> Docentes, Alumnos, Personal TAS (excepto Servicios Generales), Empresas</p>
+                <p><strong>Usuarios exentos:</strong> Personal de Vigilancia y Servicios Generales</p>
+                <p><strong>Justificacion:</strong> Por orden del Decano, se restringe la entrega de llaves en horarios no laborales para garantizar la seguridad del edificio.</p>
+                <p><strong>Implementacion:</strong> Banner visual de alerta cuando un usuario no autorizado intenta solicitar llaves fuera del horario, bloqueando el envio de la solicitud.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-018: Clasificacion de Tableros</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> Las llaves se organizan en tres tableros fisicos diferenciados.</p>
+                <p><strong>Prioridad:</strong> Media</p>
+                <p><strong>Tableros:</strong></p>
+                <ul className="list-disc pl-6 mt-1 space-y-1">
+                  <li><strong>Tablero Principal:</strong> Llaves de uso general (salones, oficinas, salas)</li>
+                  <li><strong>Tablero Copias:</strong> Copias de seguridad de las llaves principales</li>
+                  <li><strong>Tablero Jefes:</strong> Llaves de acceso restringido para jefes de turno</li>
+                </ul>
+                <p className="mt-2"><strong>Implementacion:</strong> Menu desplegable en la gestion de llaves para seleccionar el tablero antes de definir la ubicacion.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-019: Gestion de Licencias de Vigilantes</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> Registrar y visualizar el estado de licencia del personal de vigilancia.</p>
+                <p><strong>Prioridad:</strong> Media</p>
+                <p><strong>Estados:</strong> Activo, Licencia (vacaciones/personal), Licencia Medica</p>
+                <p><strong>Impacto:</strong> Los vigilantes en licencia no aparecen en los botones de entrega/devolucion del monitor. El dashboard refleja las ausencias por turno.</p>
+              </div>
+            </div>
           </div>
 
           <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">3.2 Requisitos No Funcionales</h3>
@@ -530,14 +567,20 @@ const SRSDocument = () => {
 | id: string       |       | id: string       |       | id: string       |
 | nombre: string   |<------| lugar: Lugar     |       | nombre: string   |
 | tipo: TipoLugar  |       | usuario: Usuario |       | turno: Turno     |
-| disponible: bool |       | terminal: string |       | esJefe: boolean  |
-| ubicacion:       |       | horaSolicitud    |       +------------------+
-|   fila: string   |       | horaEntrega?     |
-|   columna: number|       | horaDevolucion?  |
-+------------------+       | entregadoPor?    |
-                           | recibidoPor?     |
-                           | estado: Estado   |
-                           +------------------+
+| tablero: Tablero |       | terminal: string |       | esJefe: boolean  |
+| disponible: bool |       | horaSolicitud    |       | estadoLicencia?: |
+| ubicacion:       |       | horaEntrega?     |       |   EstadoLicencia |
+|   zona: string   |       | horaDevolucion?  |       +------------------+
+|   fila: number   |       | entregadoPor?    |
+|   columna: string|       | recibidoPor?     |       Tableros:
++------------------+       | estado: Estado   |       - Tablero Principal
+                           | notas?: string   |       - Tablero Copias
+                           +------------------+       - Tablero Jefes
+
+                           EstadoLicencia:
+                           - activo
+                           - licencia
+                           - licencia_medica
           `}</div>
 
           <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">4.3 Enumeraciones</h3>
@@ -820,6 +863,46 @@ const SRSDocument = () => {
                             |     FIN     |
                             +-------------+
           `}</div>
+
+          <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">6.4 Flujo de Restriccion Horaria</h3>
+          <div className="diagram mb-6">{`
+                          +-------------+
+                          |   INICIO    |
+                          +------+------+
+                                 |
+                                 v
+                    +------------------------+
+                    | Usuario solicita llave |
+                    +------------------------+
+                                 |
+                                 v
+               +----------------------------------+
+               | Hora actual entre 7:00 y 23:00?  |
+               +----------------------------------+
+                      |                |
+                     SI               NO
+                      |                |
+                      v                v
+          +-----------------+  +-----------------+
+          | Procesar        |  | Verificar tipo  |
+          | solicitud       |  | de usuario      |
+          | normalmente     |  +-----------------+
+          +-----------------+          |
+                                       v
+                          +------------------------+
+                          | Es Vigilancia o        |
+                          | Servicios Generales?   |
+                          +------------------------+
+                                 |          |
+                                SI         NO
+                                 |          |
+                                 v          v
+                    +-------------+  +-----------------+
+                    | Permitir    |  | Mostrar banner  |
+                    | solicitud   |  | "No permitido"  |
+                    +-------------+  | Bloquear envio  |
+                                     +-----------------+
+          `}</div>
         </div>
 
         {/* Seccion 7: Interfaces de Usuario */}
@@ -996,13 +1079,15 @@ const SRSDocument = () => {
               <tr><td>localStorage</td><td>Mecanismo de almacenamiento del navegador para persistencia de datos</td></tr>
               <tr><td>Monitor</td><td>Interfaz de vigilancia para gestion de entregas y devoluciones</td></tr>
               <tr><td>Responsivo</td><td>Diseño que se adapta a diferentes tamaños de pantalla</td></tr>
-              <tr><td>Tablero</td><td>Panel fisico donde se almacenan las llaves organizadas por filas y columnas</td></tr>
+              <tr><td>Tablero</td><td>Panel fisico donde se almacenan las llaves organizadas por filas y columnas. Existen tres tipos: Principal, Copias y Jefes</td></tr>
               <tr><td>Terminal</td><td>Punto de acceso para que usuarios soliciten llaves</td></tr>
               <tr><td>Tiempo Excedido</td><td>Condicion cuando una llave supera el tiempo limite de uso configurado</td></tr>
               <tr><td>Transicion</td><td>Periodo de superposicion entre turnos saliente y entrante</td></tr>
               <tr><td>Turno</td><td>Periodo de trabajo: Matutino (06:00-14:00), Vespertino (14:00-22:00), Nocturno (22:00-06:00)</td></tr>
               <tr><td>Agenda</td><td>Modulo de busqueda de contactos registrados para consulta rapida por vigilantes</td></tr>
               <tr><td>Notas</td><td>Campo de texto libre en cada llave entregada para registrar observaciones del vigilante</td></tr>
+              <tr><td>Restriccion Horaria</td><td>Politica que impide solicitar llaves antes de las 7:00 AM y despues de las 23:00 PM, excepto para vigilancia y servicios generales</td></tr>
+              <tr><td>Licencia</td><td>Estado de ausencia temporal de un vigilante por vacaciones, razones personales o medicas</td></tr>
             </tbody>
           </table>
         </div>
@@ -1010,8 +1095,8 @@ const SRSDocument = () => {
         {/* Pie de pagina del documento */}
         <div className="border-t-2 border-gray-300 pt-8 mt-12 text-center text-gray-600">
           <p className="font-semibold">Sistema de Gestion de Llaves - FCEA UdelaR</p>
-          <p className="text-sm">Documento de Especificacion de Requisitos de Software - Version 3.7</p>
-          <p className="text-sm">Febrero 2026</p>
+          <p className="text-sm">Documento de Especificacion de Requisitos de Software - Version 3.8</p>
+          <p className="text-sm">Marzo 2026</p>
         </div>
       </div>
     </div>

@@ -14,8 +14,9 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Vigilante, Turno } from '@/data/fceaData';
-import { UserPlus, Trash2, Crown, Sun, Sunset, Moon, Maximize2, Minimize2, CheckCircle2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Vigilante, Turno, EstadoLicencia, estadosLicencia } from '@/data/fceaData';
+import { UserPlus, Trash2, Crown, Sun, Sunset, Moon, Maximize2, Minimize2, CheckCircle2, Palmtree, Stethoscope } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface GuardManagementModalProps {
@@ -103,7 +104,7 @@ export function GuardManagementModal({
         ) : (
           <div className="space-y-2">
             {lista.map(v => (
-              <Card key={v.id} className="p-3">
+              <Card key={v.id} className={`p-3 ${v.estadoLicencia && v.estadoLicencia !== 'activo' ? 'opacity-60 bg-muted/50' : ''}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {v.esJefe && <Crown className="w-4 h-4 text-warning" />}
@@ -113,8 +114,37 @@ export function GuardManagementModal({
                         Jefe de turno
                       </Badge>
                     )}
+                    {v.estadoLicencia === 'licencia' && (
+                      <Badge variant="outline" className="text-xs border-amber-300 text-amber-700 gap-1">
+                        <Palmtree className="w-3 h-3" />
+                        Licencia
+                      </Badge>
+                    )}
+                    {v.estadoLicencia === 'licencia_medica' && (
+                      <Badge variant="outline" className="text-xs border-red-300 text-red-700 gap-1">
+                        <Stethoscope className="w-3 h-3" />
+                        Lic. Médica
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
+                    {/* Selector de licencia */}
+                    <Select
+                      value={v.estadoLicencia || 'activo'}
+                      onValueChange={(val) => {
+                        onActualizar(v.id, { estadoLicencia: val as EstadoLicencia });
+                        setCambiosRealizados(prev => prev + 1);
+                      }}
+                    >
+                      <SelectTrigger className="h-8 w-[120px] text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {estadosLicencia.map(e => (
+                          <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <div className="flex items-center gap-2">
                       <Label htmlFor={`jefe-${v.id}`} className="text-xs text-muted-foreground">
                         Jefe

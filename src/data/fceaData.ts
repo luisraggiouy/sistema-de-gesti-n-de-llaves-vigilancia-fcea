@@ -44,6 +44,18 @@ export type ZonaTablero =
   | 'Lateral derecho' 
   | 'Lateral izquierdo';
 
+export type TipoTablero = 'Tablero Principal' | 'Tablero Copias' | 'Tablero Jefes';
+
+export const tiposTablero: TipoTablero[] = ['Tablero Principal', 'Tablero Copias', 'Tablero Jefes'];
+
+export type EstadoLicencia = 'activo' | 'licencia' | 'licencia_medica';
+
+export const estadosLicencia: { value: EstadoLicencia; label: string }[] = [
+  { value: 'activo', label: 'Activo' },
+  { value: 'licencia', label: 'Licencia' },
+  { value: 'licencia_medica', label: 'Licencia Médica' },
+];
+
 export type Turno = 'Matutino' | 'Vespertino' | 'Nocturno';
 
 export interface Lugar {
@@ -51,6 +63,7 @@ export interface Lugar {
   nombre: string;
   tipo: TipoLugar;
   edificio: string;
+  tablero: TipoTablero;
   ubicacion: {
     zona: ZonaTablero;
     fila?: number;
@@ -65,6 +78,7 @@ export interface Vigilante {
   nombre: string;
   esJefe: boolean;
   turno: Turno;
+  estadoLicencia?: EstadoLicencia;
 }
 
 export interface UsuarioRegistrado {
@@ -123,265 +137,41 @@ export const vigilantes: Vigilante[] = [
 // Lugares de ejemplo basados en FCEA
 export const lugares: Lugar[] = [
   // Salones Comunes - Edificio Central
-  { 
-    id: 'l1', 
-    nombre: 'Salón 101', 
-    tipo: 'Salón', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Puerta izquierda', fila: 6, columna: 'B' },
-    disponible: true,
-    esHibrido: false
-  },
-  { 
-    id: 'l2', 
-    nombre: 'Salón 102', 
-    tipo: 'Salón', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Puerta izquierda', fila: 5, columna: 'B' },
-    disponible: true,
-    esHibrido: false
-  },
-  { 
-    id: 'l3', 
-    nombre: 'Salón 103', 
-    tipo: 'Salón', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Puerta izquierda', fila: 4, columna: 'B' },
-    disponible: true,
-    esHibrido: false
-  },
-  { 
-    id: 'l4', 
-    nombre: 'Salón 201', 
-    tipo: 'Salón', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Puerta derecha', fila: 3, columna: 'C' },
-    disponible: true,
-    esHibrido: false
-  },
-  { 
-    id: 'l5', 
-    nombre: 'Salón 202', 
-    tipo: 'Salón', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Puerta derecha', fila: 4, columna: 'C' },
-    disponible: false,
-    esHibrido: false
-  },
-  
-  // Salones Híbridos - Alta seguridad
-  { 
-    id: 'l6', 
-    nombre: 'Salón Híbrido A', 
-    tipo: 'Salón Híbrido', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Fondo', fila: 7, columna: 'G' },
-    disponible: true,
-    esHibrido: true
-  },
-  { 
-    id: 'l7', 
-    nombre: 'Salón Híbrido B', 
-    tipo: 'Salón Híbrido', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Fondo', fila: 8, columna: 'G' },
-    disponible: true,
-    esHibrido: true
-  },
-  { 
-    id: 'l8', 
-    nombre: 'Sala de Videoconferencias', 
-    tipo: 'Salón Híbrido', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Fondo', fila: 6, columna: 'F' },
-    disponible: true,
-    esHibrido: true
-  },
-  { 
-    id: 'l9', 
-    nombre: 'Informática', 
-    tipo: 'Salón', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Puerta derecha', fila: 2, columna: 'A' },
-    disponible: true,
-    esHibrido: false
-  },
-  
+  { id: 'l1', nombre: 'Salón 101', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 6, columna: 'B' }, disponible: true, esHibrido: false },
+  { id: 'l2', nombre: 'Salón 102', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 5, columna: 'B' }, disponible: true, esHibrido: false },
+  { id: 'l3', nombre: 'Salón 103', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 4, columna: 'B' }, disponible: true, esHibrido: false },
+  { id: 'l4', nombre: 'Salón 201', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 3, columna: 'C' }, disponible: true, esHibrido: false },
+  { id: 'l5', nombre: 'Salón 202', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 4, columna: 'C' }, disponible: false, esHibrido: false },
+  // Salones Híbridos
+  { id: 'l6', nombre: 'Salón Híbrido A', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 7, columna: 'G' }, disponible: true, esHibrido: true },
+  { id: 'l7', nombre: 'Salón Híbrido B', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 8, columna: 'G' }, disponible: true, esHibrido: true },
+  { id: 'l8', nombre: 'Sala de Videoconferencias', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 6, columna: 'F' }, disponible: true, esHibrido: true },
+  { id: 'l9', nombre: 'Informática', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 2, columna: 'A' }, disponible: true, esHibrido: false },
   // Oficinas
-  { 
-    id: 'l10', 
-    nombre: 'Oficina Concursos', 
-    tipo: 'Oficina', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Puerta derecha', fila: 1, columna: 'D' },
-    disponible: true,
-    esHibrido: false
-  },
-  { 
-    id: 'l11', 
-    nombre: 'Oficina Gastos', 
-    tipo: 'Oficina', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Puerta derecha', fila: 2, columna: 'D' },
-    disponible: true,
-    esHibrido: false
-  },
-  { 
-    id: 'l12', 
-    nombre: 'Oficina Sueldos', 
-    tipo: 'Oficina', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Puerta derecha', fila: 3, columna: 'D' },
-    disponible: true,
-    esHibrido: false
-  },
-  { 
-    id: 'l13', 
-    nombre: 'Decanato', 
-    tipo: 'Oficina', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Lateral derecho' },
-    disponible: true,
-    esHibrido: false
-  },
-  { 
-    id: 'l14', 
-    nombre: 'Secretaría Académica', 
-    tipo: 'Oficina', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Lateral derecho' },
-    disponible: true,
-    esHibrido: false
-  },
-  { 
-    id: 'l15', 
-    nombre: 'Bedelía', 
-    tipo: 'Oficina', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Puerta izquierda', fila: 1, columna: 'A' },
-    disponible: true,
-    esHibrido: false
-  },
-  
+  { id: 'l10', nombre: 'Oficina Concursos', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 1, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l11', nombre: 'Oficina Gastos', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 2, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l12', nombre: 'Oficina Sueldos', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 3, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l13', nombre: 'Decanato', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral derecho' }, disponible: true, esHibrido: false },
+  { id: 'l14', nombre: 'Secretaría Académica', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral derecho' }, disponible: true, esHibrido: false },
+  { id: 'l15', nombre: 'Bedelía', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 1, columna: 'A' }, disponible: true, esHibrido: false },
   // Biblioteca
-  { 
-    id: 'l16', 
-    nombre: 'Biblioteca Principal', 
-    tipo: 'Biblioteca', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Lateral izquierdo' },
-    disponible: true,
-    esHibrido: false
-  },
-  { 
-    id: 'l17', 
-    nombre: 'Sala de Lectura', 
-    tipo: 'Biblioteca', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Lateral izquierdo' },
-    disponible: true,
-    esHibrido: false
-  },
-  
+  { id: 'l16', nombre: 'Biblioteca Principal', tipo: 'Biblioteca', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral izquierdo' }, disponible: true, esHibrido: false },
+  { id: 'l17', nombre: 'Sala de Lectura', tipo: 'Biblioteca', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral izquierdo' }, disponible: true, esHibrido: false },
   // Salas
-  { 
-    id: 'l18', 
-    nombre: 'Sala de Profesores', 
-    tipo: 'Sala', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Fondo', fila: 2, columna: 'E' },
-    disponible: true,
-    esHibrido: false
-  },
-  { 
-    id: 'l19', 
-    nombre: 'Sala de Reuniones', 
-    tipo: 'Sala', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Fondo', fila: 3, columna: 'E' },
-    disponible: true,
-    esHibrido: false
-  },
-  
+  { id: 'l18', nombre: 'Sala de Profesores', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 2, columna: 'E' }, disponible: true, esHibrido: false },
+  { id: 'l19', nombre: 'Sala de Reuniones', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 3, columna: 'E' }, disponible: true, esHibrido: false },
   // Áreas Comunes
-  { 
-    id: 'l20', 
-    nombre: 'Azotea', 
-    tipo: 'Área Común', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Lateral derecho' },
-    disponible: true,
-    esHibrido: false
-  },
-  { 
-    id: 'l21', 
-    nombre: 'Buhardilla', 
-    tipo: 'Área Común', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Lateral derecho' },
-    disponible: true,
-    esHibrido: false
-  },
-  { 
-    id: 'l22', 
-    nombre: 'Comedor', 
-    tipo: 'Área Común', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Lateral izquierdo' },
-    disponible: true,
-    esHibrido: false
-  },
-  
+  { id: 'l20', nombre: 'Azotea', tipo: 'Área Común', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral derecho' }, disponible: true, esHibrido: false },
+  { id: 'l21', nombre: 'Buhardilla', tipo: 'Área Común', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral derecho' }, disponible: true, esHibrido: false },
+  { id: 'l22', nombre: 'Comedor', tipo: 'Área Común', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral izquierdo' }, disponible: true, esHibrido: false },
   // Depósitos
-  { 
-    id: 'l23', 
-    nombre: 'Depósito General', 
-    tipo: 'Depósito', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Fondo', fila: 1, columna: 'H' },
-    disponible: true,
-    esHibrido: false
-  },
-  { 
-    id: 'l24', 
-    nombre: 'Depósito Limpieza', 
-    tipo: 'Depósito', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Fondo', fila: 2, columna: 'H' },
-    disponible: true,
-    esHibrido: false
-  },
-  
+  { id: 'l23', nombre: 'Depósito General', tipo: 'Depósito', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 1, columna: 'H' }, disponible: true, esHibrido: false },
+  { id: 'l24', nombre: 'Depósito Limpieza', tipo: 'Depósito', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 2, columna: 'H' }, disponible: true, esHibrido: false },
   // Baños
-  { 
-    id: 'l25', 
-    nombre: 'Baño PB', 
-    tipo: 'Baño', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Puerta izquierda', fila: 7, columna: 'A' },
-    disponible: true,
-    esHibrido: false
-  },
-  { 
-    id: 'l26', 
-    nombre: 'Baño 1er piso', 
-    tipo: 'Baño', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Puerta izquierda', fila: 8, columna: 'A' },
-    disponible: true,
-    esHibrido: false
-  },
-  
+  { id: 'l25', nombre: 'Baño PB', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 7, columna: 'A' }, disponible: true, esHibrido: false },
+  { id: 'l26', nombre: 'Baño 1er piso', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 8, columna: 'A' }, disponible: true, esHibrido: false },
   // Auditorio
-  { 
-    id: 'l27', 
-    nombre: 'Auditorio Principal', 
-    tipo: 'Auditorio', 
-    edificio: 'Central',
-    ubicacion: { zona: 'Fondo', fila: 5, columna: 'F' },
-    disponible: true,
-    esHibrido: false
-  },
+  { id: 'l27', nombre: 'Auditorio Principal', tipo: 'Auditorio', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5, columna: 'F' }, disponible: true, esHibrido: false },
 ];
 
 // Edificios disponibles

@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart3, ArrowLeft, Clock, Users, Key, ArrowUpRight, ArrowDownLeft, Sun, Sunset, Moon, FileSpreadsheet } from 'lucide-react';
+import { BarChart3, ArrowLeft, Clock, Users, Key, ArrowUpRight, ArrowDownLeft, Sun, Sunset, Moon, FileSpreadsheet, Palmtree, Stethoscope } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
-import { Turno, vigilantes } from '@/data/fceaData';
+import { Turno } from '@/data/fceaData';
+import { useVigilantes } from '@/hooks/useVigilantes';
 import { EstadisticasTurno, EstadisticasVigilante } from '@/types/estadisticas';
 import { ExportReportModal } from '@/components/dashboard/ExportReportModal';
 
@@ -18,6 +19,7 @@ const turnosConfig: Record<Turno, { label: string; horario: string; color: strin
 
 export default function Dashboard() {
   const { registrosActividad } = useSolicitudesContext();
+  const { vigilantes } = useVigilantes();
   const [, setTick] = useState(0);
   const [exportModalOpen, setExportModalOpen] = useState(false);
 
@@ -163,6 +165,31 @@ export default function Dashboard() {
                       <p className="text-xs text-muted-foreground">Devoluciones</p>
                     </div>
                   </div>
+
+                  {/* Vigilantes en licencia */}
+                  {(() => {
+                    const vigilantesTurno = vigilantes.filter(v => v.turno === stat.turno);
+                    const enLicencia = vigilantesTurno.filter(v => v.estadoLicencia && v.estadoLicencia !== 'activo');
+                    if (enLicencia.length === 0) return null;
+                    return (
+                      <div className="mb-4 pb-4 border-b space-y-1">
+                        <h4 className="text-xs font-medium text-muted-foreground">Ausencias</h4>
+                        {enLicencia.map(v => (
+                          <div key={v.id} className="flex items-center gap-2 text-sm">
+                            {v.estadoLicencia === 'licencia' ? (
+                              <Palmtree className="w-3.5 h-3.5 text-amber-600" />
+                            ) : (
+                              <Stethoscope className="w-3.5 h-3.5 text-red-600" />
+                            )}
+                            <span className="text-muted-foreground">{v.nombre}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {v.estadoLicencia === 'licencia' ? 'Licencia' : 'Lic. Médica'}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
 
                   {/* Desglose por vigilante */}
                   <div className="space-y-3">

@@ -96,13 +96,13 @@ export function useVigilantes() {
       minutosEnTurno = minutosHoy - minutosInicioTurno;
     }
 
-    // Vigilantes del turno actual
-    const vigilantesTurnoActual = vigilantes.filter(v => v.turno === turnoActual);
+    // Vigilantes del turno actual (solo activos, sin licencia)
+    const vigilantesTurnoActual = vigilantes.filter(v => v.turno === turnoActual && (!v.estadoLicencia || v.estadoLicencia === 'activo'));
     
     // Si estamos en período de transición, incluir vigilantes del turno anterior
     if (minutosEnTurno < transicionMinutos) {
       const turnoAnterior = obtenerTurnoAnterior(turnoActual);
-      const vigilantesTurnoAnterior = vigilantes.filter(v => v.turno === turnoAnterior);
+      const vigilantesTurnoAnterior = vigilantes.filter(v => v.turno === turnoAnterior && (!v.estadoLicencia || v.estadoLicencia === 'activo'));
       return {
         actuales: vigilantesTurnoActual,
         anteriores: vigilantesTurnoAnterior,
