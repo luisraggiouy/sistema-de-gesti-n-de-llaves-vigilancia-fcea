@@ -24,8 +24,10 @@ import { Plus, Trash2, Key, MapPin, Building2, Search, X } from 'lucide-react';
 import { 
   Lugar, 
   TipoLugar, 
+  TipoTablero,
   ZonaTablero, 
   tiposLugar, 
+  tiposTablero,
   zonasTablero, 
   edificios,
   formatearUbicacion,
@@ -55,6 +57,7 @@ export function KeyManagementModal({
   const [nombre, setNombre] = useState('');
   const [edificio, setEdificio] = useState('');
   const [tipo, setTipo] = useState<TipoLugar | ''>('');
+  const [tablero, setTablero] = useState<TipoTablero>('Tablero Principal');
   const [zona, setZona] = useState<ZonaTablero | ''>('');
   const [fila, setFila] = useState('');
   const [columna, setColumna] = useState('');
@@ -67,6 +70,7 @@ export function KeyManagementModal({
     setNombre('');
     setEdificio('');
     setTipo('');
+    setTablero('Tablero Principal');
     setZona('');
     setFila('');
     setColumna('');
@@ -86,6 +90,7 @@ export function KeyManagementModal({
       nombre: nombre.trim(),
       edificio,
       tipo: tipo as TipoLugar,
+      tablero,
       ubicacion: {
         zona: zona as ZonaTablero,
         fila: fila ? parseInt(fila) : undefined,
@@ -206,6 +211,20 @@ export function KeyManagementModal({
               <div className="flex items-center gap-2 text-sm font-medium">
                 <MapPin className="w-4 h-4" />
                 Ubicación en el Tablero
+              </div>
+
+              <div className="space-y-2">
+                <Label>Tablero *</Label>
+                <Select value={tablero} onValueChange={(v) => setTablero(v as TipoTablero)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar tablero" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    {tiposTablero.map((t) => (
+                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">

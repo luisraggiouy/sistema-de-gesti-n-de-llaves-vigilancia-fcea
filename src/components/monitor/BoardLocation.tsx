@@ -35,6 +35,7 @@ export function BoardLocation({ lugar, size = 'md' }: BoardLocationProps) {
       <span className={`w-2 h-2 rounded-full ${zonaColor}`} />
       <MapPin className={`${iconSizes[size]} text-muted-foreground`} />
       <span className="font-mono font-medium">
+        {lugar.tablero !== 'Tablero Principal' && <span className="text-muted-foreground mr-1">[{lugar.tablero.replace('Tablero ', '')}]</span>}
         {formatearUbicacion(ubicacion)}
       </span>
     </div>

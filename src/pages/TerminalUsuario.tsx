@@ -56,8 +56,47 @@ export default function TerminalUsuario() {
     setSelectedKeys(prev => prev.filter(k => k.id !== lugarId));
   };
 
+  // Verificar restricción horaria
+  const verificarHorario = (): boolean => {
+    if (!currentUser) return false;
+    const hora = new Date().getHours();
+    const fueraDeHorario = hora < 7 || hora >= 23;
+    if (!fueraDeHorario) return true;
+    
+    // Tipos exentos de la restricción
+    const tiposExentos = ['Personal TAS'];
+    const departamentosExentos = ['Servicios Generales'];
+    
+    if (currentUser.tipo === 'Personal TAS' && currentUser.departamento && departamentosExentos.includes(currentUser.departamento)) {
+      return true;
+    }
+    // Vigilancia no solicita llaves por terminal, pero por si acaso
+    return false;
+  };
+
+  const esHorarioRestringido = (): boolean => {
+    const hora = new Date().getHours();
+    return hora < 7 || hora >= 23;
+  };
+
+  const usuarioExentoHorario = (): boolean => {
+    if (!currentUser) return false;
+    if (currentUser.tipo === 'Personal TAS' && currentUser.departamento === 'Servicios Generales') return true;
+    return false;
+  };
+
   const handleSubmit = async () => {
     if (!isFormValid || selectedKeys.length === 0 || !currentUser) return;
+    
+    // Verificar restricción horaria
+    if (esHorarioRestringido() && !usuarioExentoHorario()) {
+      toast({
+        title: "Horario no permitido",
+        description: "Por orden del Decano, no se permite la entrega de llaves antes de las 7:00 AM ni después de las 23:00 PM para su tipo de usuario.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     
@@ -185,6 +224,25 @@ export default function TerminalUsuario() {
               selectedKeys={selectedKeys}
               onToggleKey={handleToggleKey}
             />
+          </div>
+        )}
+
+        {/* Banner de restricción horaria */}
+        {currentUser && esHorarioRestringido() && !usuarioExentoHorario() && (
+          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-destructive/20 rounded-full">
+                <span className="text-destructive text-xl">⚠️</span>
+              </div>
+              <div>
+                <h3 className="font-semibold text-destructive">Horario restringido</h3>
+                <p className="text-sm text-destructive/80">
+                  Por orden del Decano, no se permite la entrega de llaves antes de las 7:00 AM ni después de las 23:00 PM 
+                  para {currentUser.tipo === 'Docente' ? 'docentes' : currentUser.tipo === 'Alumno' ? 'alumnos' : currentUser.tipo === 'Empresa' ? 'empresas' : 'personal TAS (excepto Servicios Generales)'}.
+                  Solo el personal de vigilancia y servicios generales puede solicitar llaves en este horario.
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
