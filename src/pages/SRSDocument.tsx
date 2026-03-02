@@ -69,7 +69,7 @@ const SRSDocument = () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'SRS_Sistema_Gestion_Llaves_FCEA_v3.8.html';
+            a.download = 'SRS_Sistema_Gestion_Llaves_FCEA_v3.9.html';
             a.click();
             URL.revokeObjectURL(url);
           }}
@@ -479,6 +479,22 @@ const SRSDocument = () => {
                 <p><strong>Prioridad:</strong> Media</p>
                 <p><strong>Estados:</strong> Activo, Licencia (vacaciones/personal), Licencia Medica</p>
                 <p><strong>Impacto:</strong> Los vigilantes en licencia no aparecen en los botones de entrega/devolucion del monitor. El dashboard refleja las ausencias por turno.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-020: Sistema de Notificaciones Sonoras</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> El Monitor de Vigilancia emite señales sonoras delicadas (tipo campana/ding) para eventos clave.</p>
+                <p><strong>Prioridad:</strong> Alta</p>
+                <p><strong>Eventos sonoros:</strong></p>
+                <ul className="list-disc pl-6 mt-1 space-y-1">
+                  <li><strong>Nueva solicitud:</strong> Doble campana ascendente al recibir un nuevo pedido de llave</li>
+                  <li><strong>Entrega de llave:</strong> Sonido unico por vigilante (ding descendente con frecuencia personalizada)</li>
+                  <li><strong>Devolucion de llave:</strong> Triple campana ascendente con frecuencia unica del vigilante receptor</li>
+                </ul>
+                <p className="mt-2"><strong>Controles:</strong> Control de volumen (slider 0-100%), boton de silenciar/activar (mute), boton de prueba de sonido. Configuracion persistida en localStorage.</p>
+                <p><strong>Implementacion:</strong> Generacion de sonidos via Web Audio API sin archivos externos. Cada vigilante tiene una frecuencia musical unica derivada de su nombre.</p>
               </div>
             </div>
           </div>
@@ -957,10 +973,14 @@ const SRSDocument = () => {
             <tbody>
               <tr><td>Solicitud pendiente</td><td>Borde amarillo/naranja</td></tr>
               <tr><td>Llave en uso (normal)</td><td>Fondo rosa, borde rosa</td></tr>
-              <tr><td>Llave en uso (tiempo excedido)</td><td>Punto rojo pulsante + boton WhatsApp (solo Salones)</td></tr>
+              <tr><td>Llave en uso (tiempo excedido)</td><td>Punto rojo pulsante + boton WhatsApp (solo Salones y Salones Hibridos)</td></tr>
               <tr><td>Llave devuelta</td><td>Fondo verde, borde verde</td></tr>
               <tr><td>Intercambio de llave</td><td>Badge "Intercambio" + nombre del usuario anterior</td></tr>
               <tr><td>Opcion deshacer disponible</td><td>Boton con cuenta regresiva</td></tr>
+              <tr><td>Vigilante jefe de turno</td><td>Nombre con indicador especial</td></tr>
+              <tr><td>Nueva solicitud recibida</td><td>Señal sonora de doble campana ascendente</td></tr>
+              <tr><td>Entrega de llave</td><td>Sonido unico del vigilante (ding descendente)</td></tr>
+              <tr><td>Devolucion de llave</td><td>Triple campana ascendente del vigilante receptor</td></tr>
               <tr><td>Vigilante jefe de turno</td><td>Nombre con indicador especial</td></tr>
             </tbody>
           </table>
@@ -1088,6 +1108,8 @@ const SRSDocument = () => {
               <tr><td>Notas</td><td>Campo de texto libre en cada llave entregada para registrar observaciones del vigilante</td></tr>
               <tr><td>Restriccion Horaria</td><td>Politica que impide solicitar llaves antes de las 7:00 AM y despues de las 23:00 PM, excepto para vigilancia y servicios generales</td></tr>
               <tr><td>Licencia</td><td>Estado de ausencia temporal de un vigilante por vacaciones, razones personales o medicas</td></tr>
+              <tr><td>Notificacion Sonora</td><td>Señal acustica generada via Web Audio API para alertar eventos en el monitor de vigilancia</td></tr>
+              <tr><td>Web Audio API</td><td>API del navegador para generar y controlar sonidos programaticamente sin archivos externos</td></tr>
             </tbody>
           </table>
         </div>
@@ -1095,7 +1117,7 @@ const SRSDocument = () => {
         {/* Pie de pagina del documento */}
         <div className="border-t-2 border-gray-300 pt-8 mt-12 text-center text-gray-600">
           <p className="font-semibold">Sistema de Gestion de Llaves - FCEA UdelaR</p>
-          <p className="text-sm">Documento de Especificacion de Requisitos de Software - Version 3.8</p>
+          <p className="text-sm">Documento de Especificacion de Requisitos de Software - Version 3.9</p>
           <p className="text-sm">Marzo 2026</p>
         </div>
       </div>
