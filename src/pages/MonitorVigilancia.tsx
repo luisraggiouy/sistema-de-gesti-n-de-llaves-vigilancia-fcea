@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MonitorHeader } from '@/components/monitor/MonitorHeader';
 import { PendingRequestCard } from '@/components/monitor/PendingRequestCard';
 import { KeyInUseCard } from '@/components/monitor/KeyInUseCard';
@@ -15,6 +15,8 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ClipboardList, Key, CheckCircle2, Settings2, Users, Settings, History, BookUser } from 'lucide-react';
+import { useSonidos } from '@/hooks/useSonidos';
+import { SoundControls } from '@/components/monitor/SoundControls';
 
 export default function MonitorVigilancia() {
   const { toast } = useToast();
@@ -42,6 +44,16 @@ export default function MonitorVigilancia() {
   } = useVigilantes();
 
   const { configuracion, actualizarConfiguracion, resetearConfiguracion } = useConfiguracion();
+  const { config: sonidoConfig, setVolumen, toggleMute, sonarNuevaSolicitud, sonarEntrega, sonarDevolucion, sonarPrueba } = useSonidos();
+
+  // Detectar nuevas solicitudes para sonar
+  const prevPendientesRef = useRef(solicitudesPendientes.length);
+  useEffect(() => {
+    if (solicitudesPendientes.length > prevPendientesRef.current) {
+      sonarNuevaSolicitud();
+    }
+    prevPendientesRef.current = solicitudesPendientes.length;
+  }, [solicitudesPendientes.length, sonarNuevaSolicitud]);
 
   const [keyModalOpen, setKeyModalOpen] = useState(false);
   const [guardModalOpen, setGuardModalOpen] = useState(false);
@@ -65,6 +77,7 @@ export default function MonitorVigilancia() {
     if (!solicitud) return;
 
     entregarLlave(solicitudId, vigilante);
+    sonarEntrega(vigilante);
     
     toast({
       title: "Llave entregada",
@@ -77,6 +90,7 @@ export default function MonitorVigilancia() {
     if (!solicitud) return;
 
     devolverLlave(solicitudId, vigilante);
+    sonarDevolucion(vigilante);
     
     toast({
       title: "Llave devuelta",
@@ -124,6 +138,12 @@ export default function MonitorVigilancia() {
         enUso={solicitudesEntregadas.length}
       >
         <div className="flex gap-2">
+          <SoundControls
+            config={sonidoConfig}
+            onVolumeChange={setVolumen}
+            onToggleMute={toggleMute}
+            onTestSound={sonarPrueba}
+          />
            <Button 
             variant="outline" 
             onClick={() => setAgendaOpen(true)}
@@ -335,7 +355,7 @@ export default function MonitorVigilancia() {
       </main>
 
       <footer className="py-4 text-center text-sm text-muted-foreground border-t mt-8">
-        <p>Monitor de Vigilancia • FCEA UdelaR • Sistema de Gestión de Llaves v3.7</p>
+        <p>Monitor de Vigilancia • FCEA UdelaR • Sistema de Gestión de Llaves v3.9</p>
       </footer>
     </div>
   );
