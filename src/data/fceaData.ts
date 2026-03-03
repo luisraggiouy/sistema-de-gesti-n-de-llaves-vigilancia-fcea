@@ -326,3 +326,20 @@ export function buscarUsuariosPorTexto(texto: string): UsuarioRegistrado[] {
     return nombreMatch || celularMatch || emailMatch;
   });
 }
+
+export function actualizarUsuario(id: string, datos: Partial<Omit<UsuarioRegistrado, 'id' | 'fechaRegistro'>>): UsuarioRegistrado | null {
+  const usuarios = getUsuariosRegistrados();
+  const idx = usuarios.findIndex(u => u.id === id);
+  if (idx === -1) return null;
+  usuarios[idx] = { ...usuarios[idx], ...datos };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(usuarios));
+  return usuarios[idx];
+}
+
+export function eliminarUsuario(id: string): boolean {
+  const usuarios = getUsuariosRegistrados();
+  const filtered = usuarios.filter(u => u.id !== id);
+  if (filtered.length === usuarios.length) return false;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+  return true;
+}
