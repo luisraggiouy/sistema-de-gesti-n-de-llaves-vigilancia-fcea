@@ -138,12 +138,6 @@ export default function MonitorVigilancia() {
         enUso={solicitudesEntregadas.length}
       >
         <div className="flex gap-2">
-          <SoundControls
-            config={sonidoConfig}
-            onVolumeChange={setVolumen}
-            onToggleMute={toggleMute}
-            onTestSound={sonarPrueba}
-          />
            <Button 
             variant="outline" 
             onClick={() => setAgendaOpen(true)}
@@ -191,6 +185,18 @@ export default function MonitorVigilancia() {
           </Button>
         </div>
       </MonitorHeader>
+
+      {/* Sound controls bar - always visible */}
+      <div className="bg-card border-b px-6 py-2">
+        <div className="max-w-7xl mx-auto">
+          <SoundControls
+            config={sonidoConfig}
+            onVolumeChange={setVolumen}
+            onToggleMute={toggleMute}
+            onTestSound={sonarPrueba}
+          />
+        </div>
+      </div>
 
       <KeyManagementModal
         open={keyModalOpen}
