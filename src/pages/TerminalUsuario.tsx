@@ -180,7 +180,9 @@ export default function TerminalUsuario() {
   };
 
   const handleUserRegistered = (usuario: UsuarioRegistrado) => {
-    setCurrentUser(usuario);
+    // No auto-login: reset terminal so user can test their registration
+    setCurrentUser(null);
+    setSelectedKeys([]);
   };
 
   const handleUserSelect = (usuario: UsuarioRegistrado | null) => {

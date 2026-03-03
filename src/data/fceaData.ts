@@ -88,6 +88,7 @@ export interface UsuarioRegistrado {
   email?: string;
   tipo: TipoUsuario;
   departamento?: DepartamentoTAS;
+  nombreEmpresa?: string;
   fechaRegistro: string;
 }
 

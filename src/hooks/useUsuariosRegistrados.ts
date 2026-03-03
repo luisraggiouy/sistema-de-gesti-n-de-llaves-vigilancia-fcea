@@ -23,6 +23,7 @@ export function useUsuariosRegistrados() {
     email?: string;
     tipo: TipoUsuario;
     departamento?: DepartamentoTAS;
+    nombreEmpresa?: string;
   }) => {
     const nuevoUsuario = guardarUsuario(datos);
     setUsuarios(getUsuariosRegistrados());

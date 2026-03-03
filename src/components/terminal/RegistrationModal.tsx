@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TipoUsuario, tiposUsuario, DepartamentoTAS, departamentosTAS, UsuarioRegistrado } from '@/data/fceaData';
 import { useUsuariosRegistrados } from '@/hooks/useUsuariosRegistrados';
-import { User, Phone, Mail, UserCog, UserPlus, CheckCircle, Building2 } from 'lucide-react';
+import { User, Phone, Mail, UserCog, UserPlus, CheckCircle, Building2, Building } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface RegistrationModalProps {
@@ -24,10 +24,11 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
   const [email, setEmail] = useState('');
   const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario | ''>('');
   const [departamento, setDepartamento] = useState<DepartamentoTAS | ''>('');
+  const [nombreEmpresa, setNombreEmpresa] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const tieneContacto = celular.trim() || email.trim();
-  const isFormValid = nombre.trim() && tieneContacto && tipoUsuario;
+  const isFormValid = nombre.trim() && tieneContacto && tipoUsuario && (tipoUsuario !== 'Empresa' || nombreEmpresa.trim());
 
   const handleSubmit = async () => {
     if (!isFormValid || !tipoUsuario) return;
@@ -53,11 +54,12 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
       email: email.trim() || undefined,
       tipo: tipoUsuario,
       departamento: tipoUsuario === 'Personal TAS' && departamento ? departamento : undefined,
+      nombreEmpresa: tipoUsuario === 'Empresa' && nombreEmpresa.trim() ? nombreEmpresa.trim() : undefined,
     });
     
     toast({
-      title: "¡Registro exitoso!",
-      description: "Ahora puede solicitar llaves usando su celular o email",
+      title: "¡Se ha registrado con éxito!",
+      description: "Ahora ingrese su celular o email en el campo de búsqueda para probar su registro",
     });
     
     setIsSubmitting(false);
@@ -72,6 +74,7 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
     setEmail('');
     setTipoUsuario('');
     setDepartamento('');
+    setNombreEmpresa('');
   };
 
   return (
@@ -143,6 +146,7 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
             <Select value={tipoUsuario} onValueChange={(val) => {
               setTipoUsuario(val as TipoUsuario);
               if (val !== 'Personal TAS') setDepartamento('');
+              if (val !== 'Empresa') setNombreEmpresa('');
             }}>
               <SelectTrigger className="h-11">
                 <SelectValue placeholder="Seleccione tipo" />
@@ -175,6 +179,22 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          )}
+
+          {tipoUsuario === 'Empresa' && (
+            <div className="space-y-2">
+              <Label htmlFor="reg-empresa" className="flex items-center gap-2">
+                <Building className="w-4 h-4 text-muted-foreground" />
+                Nombre de la empresa *
+              </Label>
+              <Input
+                id="reg-empresa"
+                placeholder="Ingrese el nombre de la empresa"
+                value={nombreEmpresa}
+                onChange={(e) => setNombreEmpresa(e.target.value)}
+                className="h-11"
+              />
             </div>
           )}
         </div>
