@@ -21,7 +21,7 @@ export function SoundControls({ config, onVolumeChange, onToggleMute, onTestSoun
       </div>
 
       <Button 
-        variant={config.muted ? "destructive" : "outline"} 
+        variant="outline" 
         size="sm" 
         onClick={onToggleMute} 
         className="gap-2 h-8"

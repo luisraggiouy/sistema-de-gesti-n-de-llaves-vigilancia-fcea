@@ -69,7 +69,7 @@ const SRSDocument = () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'SRS_Sistema_Gestion_Llaves_FCEA_v3.9.html';
+            a.download = 'SRS_Sistema_Gestion_Llaves_FCEA_v4.0.html';
             a.click();
             URL.revokeObjectURL(url);
           }}
@@ -106,8 +106,8 @@ const SRSDocument = () => {
             </h2>
             
             <div className="border-t-2 border-gray-300 pt-8 mt-8 text-left max-w-sm mx-auto">
-              <p className="mb-2"><strong>Version:</strong> 3.8</p>
-              <p className="mb-2"><strong>Fecha:</strong> Marzo 2026</p>
+              <p className="mb-2"><strong>Version:</strong> 4.0</p>
+              <p className="mb-2"><strong>Fecha:</strong> 5 de Marzo de 2026</p>
               <p className="mb-2"><strong>Elaborado por:</strong> Equipo de Desarrollo</p>
               <p><strong>Institucion:</strong> Facultad de Ciencias Economicas y de Administracion</p>
             </div>
@@ -495,6 +495,33 @@ const SRSDocument = () => {
                 </ul>
                 <p className="mt-2"><strong>Controles:</strong> Control de volumen (slider 0-100%), boton de silenciar/activar (mute), boton de prueba de sonido. Configuracion persistida en localStorage.</p>
                 <p><strong>Implementacion:</strong> Generacion de sonidos via Web Audio API sin archivos externos. Cada vigilante tiene una frecuencia musical unica derivada de su nombre.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-021: Registro de Usuarios con Empresa</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> Cuando un usuario selecciona el tipo "Empresa" durante el registro, el sistema muestra un campo obligatorio para ingresar el nombre de la empresa. Este dato se almacena y se muestra en todas las vistas del sistema.</p>
+                <p><strong>Prioridad:</strong> Alta</p>
+                <p><strong>Validacion:</strong> El campo "Nombre de empresa" es obligatorio cuando el tipo es Empresa; el registro no puede completarse sin este dato.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-022: Gestion de Usuarios Registrados (Agenda)</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> El modulo Agenda del Monitor de Vigilancia permite editar y eliminar usuarios registrados. Los vigilantes pueden modificar nombre, telefono, email, tipo de usuario, departamento y nombre de empresa.</p>
+                <p><strong>Prioridad:</strong> Alta</p>
+                <p><strong>Operaciones:</strong> Editar datos de usuario (inline), eliminar usuario con confirmacion, buscar por nombre/telefono/email/empresa</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-023: Reinicio de Terminal tras Registro</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> Al completar el registro de un nuevo usuario, el terminal muestra un mensaje de exito y se reinicia completamente, permitiendo al usuario probar su registro ingresando su telefono o email.</p>
+                <p><strong>Prioridad:</strong> Media</p>
+                <p><strong>Justificacion:</strong> Permite al usuario verificar inmediatamente que su registro fue exitoso antes de solicitar llaves.</p>
               </div>
             </div>
           </div>
@@ -919,7 +946,152 @@ const SRSDocument = () => {
                     +-------------+  | Bloquear envio  |
                                      +-----------------+
           `}</div>
+
+          <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">6.5 Flujo de Registro de Usuario (con Empresa)</h3>
+          <div className="diagram mb-6">{`
+                          +-------------+
+                          |   INICIO    |
+                          +------+------+
+                                 |
+                                 v
+                    +------------------------+
+                    | Usuario accede a       |
+                    | Terminal y presiona    |
+                    | "Registrarse"          |
+                    +------------------------+
+                                 |
+                                 v
+                    +------------------------+
+                    | Ingresa nombre,        |
+                    | celular, email (opc.)  |
+                    +------------------------+
+                                 |
+                                 v
+                    +------------------------+
+                    | Selecciona tipo de     |
+                    | usuario                |
+                    +------------------------+
+                                 |
+                                 v
+               +----------------------------------+
+               | Tipo seleccionado = "Empresa"?  |
+               +----------------------------------+
+                      |                |
+                     NO               SI
+                      |                |
+                      v                v
+          +-----------------+  +-----------------+
+          | Continuar       |  | Mostrar campo   |
+          | registro        |  | "Nombre de la   |
+          |                 |  |  empresa" (req.) |
+          +-----------------+  +-----------------+
+                      |                |
+                      +-------+--------+
+                              |
+                              v
+                    +------------------------+
+                    | Guardar usuario en     |
+                    | sistema                |
+                    +------------------------+
+                              |
+                              v
+                    +------------------------+
+                    | Mostrar toast:         |
+                    | "Registrado con exito" |
+                    +------------------------+
+                              |
+                              v
+                    +------------------------+
+                    | Reiniciar terminal     |
+                    | para probar registro   |
+                    +------------------------+
+                              |
+                              v
+                        +-------------+
+                        |     FIN     |
+                        +-------------+
+          `}</div>
+
+          <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">6.6 Flujo de Gestion de Usuarios en Agenda</h3>
+          <div className="diagram mb-6">{`
+                          +-------------+
+                          |   INICIO    |
+                          +------+------+
+                                 |
+                                 v
+                    +------------------------+
+                    | Vigilante abre modulo  |
+                    | "Agenda" en Monitor    |
+                    +------------------------+
+                                 |
+                                 v
+                    +------------------------+
+                    | Buscar usuario por     |
+                    | nombre/tel/email/empresa|
+                    +------------------------+
+                                 |
+                                 v
+               +----------------------------------+
+               | Accion deseada?                  |
+               +----------------------------------+
+                  |          |           |
+                EDITAR    ELIMINAR    CONSULTAR
+                  |          |           |
+                  v          v           v
+          +----------+  +----------+  +----------+
+          | Formulario|  | Confirmar|  | Mostrar  |
+          | inline de |  | elimina- |  | datos de |
+          | edicion   |  | cion     |  | contacto |
+          +----------+  +----------+  +----------+
+                  |          |           |
+                  v          v           |
+          +----------+  +----------+    |
+          | Guardar  |  | Eliminar |    |
+          | cambios  |  | registro |    |
+          +----------+  +----------+    |
+                  |          |           |
+                  +----+-----+-----------+
+                       |
+                       v
+                 +-------------+
+                 |     FIN     |
+                 +-------------+
+          `}</div>
+
+          <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">6.7 Flujo de Notificaciones Sonoras</h3>
+          <div className="diagram mb-6">{`
+                          +-------------+
+                          |   EVENTO    |
+                          +------+------+
+                                 |
+                                 v
+               +----------------------------------+
+               | Tipo de evento?                  |
+               +----------------------------------+
+                  |            |            |
+              SOLICITUD    ENTREGA    DEVOLUCION
+                  |            |            |
+                  v            v            v
+          +----------+  +----------+  +----------+
+          | Doble    |  | Ding     |  | Triple   |
+          | campana  |  | descend. |  | campana  |
+          | ascend.  |  | unico    |  | ascend.  |
+          |          |  | x vigil. |  | x vigil. |
+          +----------+  +----------+  +----------+
+                  |            |            |
+                  +-----+------+-----+------+
+                        |            |
+                        v            v
+               +-------------+  +----------+
+               | Silenciado? |  | Ajustar  |
+               | (muted)     |  | volumen  |
+               +-------------+  +----------+
+                     |
+                    SI -> No reproducir
+                    NO -> Reproducir sonido
+          `}</div>
         </div>
+
 
         {/* Seccion 7: Interfaces de Usuario */}
         <div className="page-break print-section mb-12">
