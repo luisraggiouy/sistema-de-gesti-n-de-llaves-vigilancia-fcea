@@ -29,12 +29,13 @@ export type DepartamentoTAS =
   | 'Convenios'
   | 'Concursos'
   | 'Sistemas'
-  | 'Mantenimiento';
+  | 'Mantenimiento'
+  | 'Vigilancia';
 
 export const departamentosTAS: DepartamentoTAS[] = [
   'Electrotecnia', 'Servicios Generales', 'Compras', 'Gastos', 'UPC',
   'Decanato', 'Suministros', 'Apoyo Docente', 'Bedelía', 'Contaduría',
-  'Sueldos', 'CAVIDA', 'Convenios', 'Concursos', 'Sistemas', 'Mantenimiento'
+  'Sueldos', 'CAVIDA', 'Convenios', 'Concursos', 'Sistemas', 'Mantenimiento', 'Vigilancia'
 ];
 
 export type ZonaTablero = 

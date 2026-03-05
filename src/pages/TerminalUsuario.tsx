@@ -65,7 +65,7 @@ export default function TerminalUsuario() {
     
     // Tipos exentos de la restricción
     const tiposExentos = ['Personal TAS'];
-    const departamentosExentos = ['Servicios Generales'];
+    const departamentosExentos = ['Servicios Generales', 'Vigilancia'];
     
     if (currentUser.tipo === 'Personal TAS' && currentUser.departamento && departamentosExentos.includes(currentUser.departamento)) {
       return true;
@@ -81,7 +81,7 @@ export default function TerminalUsuario() {
 
   const usuarioExentoHorario = (): boolean => {
     if (!currentUser) return false;
-    if (currentUser.tipo === 'Personal TAS' && currentUser.departamento === 'Servicios Generales') return true;
+    if (currentUser.tipo === 'Personal TAS' && (currentUser.departamento === 'Servicios Generales' || currentUser.departamento === 'Vigilancia')) return true;
     return false;
   };
 
@@ -241,7 +241,7 @@ export default function TerminalUsuario() {
                 <p className="text-sm text-destructive/80">
                   Por orden del Decano, no se permite la entrega de llaves antes de las 7:00 AM ni después de las 23:00 PM 
                   para {currentUser.tipo === 'Docente' ? 'docentes' : currentUser.tipo === 'Alumno' ? 'alumnos' : currentUser.tipo === 'Empresa' ? 'empresas' : 'personal TAS (excepto Servicios Generales)'}.
-                  Solo el personal de vigilancia y servicios generales puede solicitar llaves en este horario.
+                  Solo el personal de Vigilancia y Servicios Generales puede solicitar llaves en este horario.
                 </p>
               </div>
             </div>
