@@ -26,7 +26,8 @@ export function AutorizacionesTab() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     personaNombre: '', lugarAutorizado: '', autorizadoPor: '',
-    fechaAutorizacion: '', horario: '', emailReferencia: '', observaciones: ''
+    fechaAutorizacion: '', fechaDesde: '', fechaHasta: '',
+    horario: '', emailReferencia: '', observaciones: ''
   });
 
   const refresh = useCallback(() => setRefreshKey(k => k + 1), []);
