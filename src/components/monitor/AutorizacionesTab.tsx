@@ -209,6 +209,16 @@ export function AutorizacionesTab() {
                 <Input value={form.emailReferencia} onChange={e => setForm(f => ({ ...f, emailReferencia: e.target.value }))} placeholder="correo@fcea.edu.uy" className="h-9" />
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">Vigencia desde (opcional)</Label>
+                <Input type="date" value={form.fechaDesde} onChange={e => setForm(f => ({ ...f, fechaDesde: e.target.value }))} className="h-9" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Vigencia hasta (opcional)</Label>
+                <Input type="date" value={form.fechaHasta} onChange={e => setForm(f => ({ ...f, fechaHasta: e.target.value }))} className="h-9" />
+              </div>
+            </div>
             <div className="space-y-1">
               <Label className="text-xs">Horario autorizado</Label>
               <Input value={form.horario} onChange={e => setForm(f => ({ ...f, horario: e.target.value }))} placeholder="Ej: Lunes a Viernes de 9 a 18" className="h-9" />
