@@ -344,3 +344,67 @@ export function eliminarUsuario(id: string): boolean {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
   return true;
 }
+
+// ============= GESTIÓN DE AUTORIZACIONES =============
+const AUTORIZACIONES_KEY = 'fcea_autorizaciones';
+
+export interface Autorizacion {
+  id: string;
+  personaNombre: string;
+  lugarAutorizado: string; // nombre de llave/lugar
+  autorizadoPor: string; // quién autoriza (ej: "Director del IESTA Juan González")
+  fechaAutorizacion: string; // ISO date
+  horario?: string; // ej: "Lunes a Viernes de 9 a 18"
+  emailReferencia?: string; // mail de referencia
+  observaciones?: string;
+  fechaCreacion: string;
+}
+
+export function getAutorizaciones(): Autorizacion[] {
+  try {
+    const data = localStorage.getItem(AUTORIZACIONES_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function guardarAutorizacion(auth: Omit<Autorizacion, 'id' | 'fechaCreacion'>): Autorizacion {
+  const auths = getAutorizaciones();
+  const nueva: Autorizacion = {
+    ...auth,
+    id: `auth${Date.now()}`,
+    fechaCreacion: new Date().toISOString(),
+  };
+  auths.push(nueva);
+  localStorage.setItem(AUTORIZACIONES_KEY, JSON.stringify(auths));
+  return nueva;
+}
+
+export function actualizarAutorizacion(id: string, datos: Partial<Omit<Autorizacion, 'id' | 'fechaCreacion'>>): Autorizacion | null {
+  const auths = getAutorizaciones();
+  const idx = auths.findIndex(a => a.id === id);
+  if (idx === -1) return null;
+  auths[idx] = { ...auths[idx], ...datos };
+  localStorage.setItem(AUTORIZACIONES_KEY, JSON.stringify(auths));
+  return auths[idx];
+}
+
+export function eliminarAutorizacion(id: string): boolean {
+  const auths = getAutorizaciones();
+  const filtered = auths.filter(a => a.id !== id);
+  if (filtered.length === auths.length) return false;
+  localStorage.setItem(AUTORIZACIONES_KEY, JSON.stringify(filtered));
+  return true;
+}
+
+export function buscarAutorizacion(persona: string, lugar: string): Autorizacion[] {
+  const auths = getAutorizaciones();
+  const pNorm = normalizarTexto(persona);
+  const lNorm = normalizarTexto(lugar);
+  return auths.filter(a => {
+    const matchPersona = !persona.trim() || normalizarTexto(a.personaNombre).includes(pNorm);
+    const matchLugar = !lugar.trim() || normalizarTexto(a.lugarAutorizado).includes(lNorm);
+    return matchPersona && matchLugar;
+  });
+}
