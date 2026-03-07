@@ -145,7 +145,7 @@ export default function MonitorVigilancia() {
             size="sm"
           >
             <BookUser className="w-4 h-4" />
-            <span className="hidden md:inline">Agenda</span>
+            <span className="hidden md:inline">Agenda / Autorizaciones</span>
           </Button>
           <Button 
             variant="outline" 
