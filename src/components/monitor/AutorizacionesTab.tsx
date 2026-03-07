@@ -55,6 +55,8 @@ export function AutorizacionesTab() {
       lugarAutorizado: a.lugarAutorizado,
       autorizadoPor: a.autorizadoPor,
       fechaAutorizacion: a.fechaAutorizacion?.split('T')[0] || '',
+      fechaDesde: a.fechaDesde?.split('T')[0] || '',
+      fechaHasta: a.fechaHasta?.split('T')[0] || '',
       horario: a.horario || '',
       emailReferencia: a.emailReferencia || '',
       observaciones: a.observaciones || '',
