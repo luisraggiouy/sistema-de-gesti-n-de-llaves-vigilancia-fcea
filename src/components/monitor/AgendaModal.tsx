@@ -6,13 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, Phone, Mail, User, Pencil, Trash2, X, Check, Building } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Search, Phone, Mail, User, Pencil, Trash2, X, Check, Building, ShieldCheck } from 'lucide-react';
 import { 
   getUsuariosRegistrados, normalizarTexto, UsuarioRegistrado, 
   actualizarUsuario, eliminarUsuario, 
   TipoUsuario, tiposUsuario, DepartamentoTAS, departamentosTAS 
 } from '@/data/fceaData';
 import { useToast } from '@/hooks/use-toast';
+import { AutorizacionesTab } from './AutorizacionesTab';
 
 interface AgendaModalProps {
   open: boolean;
@@ -91,124 +93,140 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="w-5 h-5" />
-            Agenda de Contactos
+            Agenda
           </DialogTitle>
         </DialogHeader>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nombre, teléfono, email o función..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            className="pl-10"
-            autoFocus
-          />
-        </div>
+        <Tabs defaultValue="contactos" className="w-full">
+          <TabsList className="w-full grid grid-cols-2">
+            <TabsTrigger value="contactos" className="gap-1.5">
+              <User className="w-3.5 h-3.5" />Contactos
+            </TabsTrigger>
+            <TabsTrigger value="autorizaciones" className="gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" />Autorizaciones
+            </TabsTrigger>
+          </TabsList>
 
-        <ScrollArea className="h-[400px] -mx-2 px-2">
-          {resultados.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {usuarios.length === 0
-                ? 'No hay usuarios registrados aún'
-                : 'Sin resultados para esta búsqueda'}
+          <TabsContent value="contactos" className="space-y-3 mt-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nombre, teléfono, email o función..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="pl-10"
+              />
             </div>
-          ) : (
-            <div className="space-y-2">
-              {resultados.map((u: UsuarioRegistrado) => (
-                <div key={u.id} className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
-                  {editingId === u.id ? (
-                    <div className="space-y-3">
-                      <div className="space-y-1">
-                        <Label className="text-xs">Nombre</Label>
-                        <Input value={editData.nombre || ''} onChange={e => setEditData(d => ({ ...d, nombre: e.target.value }))} className="h-9" />
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="space-y-1">
-                          <Label className="text-xs">Celular</Label>
-                          <Input value={editData.celular || ''} onChange={e => setEditData(d => ({ ...d, celular: e.target.value }))} className="h-9" />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">Email</Label>
-                          <Input value={editData.email || ''} onChange={e => setEditData(d => ({ ...d, email: e.target.value }))} className="h-9" />
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">Tipo</Label>
-                        <Select value={editData.tipo} onValueChange={v => setEditData(d => ({ ...d, tipo: v as TipoUsuario, departamento: v !== 'Personal TAS' ? undefined : d.departamento, nombreEmpresa: v !== 'Empresa' ? undefined : d.nombreEmpresa }))}>
-                          <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {tiposUsuario.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      {editData.tipo === 'Personal TAS' && (
-                        <div className="space-y-1">
-                          <Label className="text-xs">Departamento</Label>
-                          <Select value={editData.departamento || ''} onValueChange={v => setEditData(d => ({ ...d, departamento: v as DepartamentoTAS }))}>
-                            <SelectTrigger className="h-9"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
-                            <SelectContent className="max-h-48">
-                              {departamentosTAS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-                      {editData.tipo === 'Empresa' && (
-                        <div className="space-y-1">
-                          <Label className="text-xs">Empresa</Label>
-                          <Input value={editData.nombreEmpresa || ''} onChange={e => setEditData(d => ({ ...d, nombreEmpresa: e.target.value }))} className="h-9" placeholder="Nombre de la empresa" />
-                        </div>
-                      )}
-                      <div className="flex gap-2 justify-end">
-                        <Button variant="ghost" size="sm" onClick={cancelEdit} className="h-8 gap-1"><X className="w-3.5 h-3.5" />Cancelar</Button>
-                        <Button size="sm" onClick={saveEdit} className="h-8 gap-1"><Check className="w-3.5 h-3.5" />Guardar</Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{u.nombre}</p>
-                        <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground flex-wrap">
-                          {u.celular && (
-                            <a href={`tel:${u.celular}`} className="flex items-center gap-1 hover:text-primary">
-                              <Phone className="w-3 h-3" />{u.celular}
-                            </a>
-                          )}
-                          {u.email && (
-                            <a href={`mailto:${u.email}`} className="flex items-center gap-1 hover:text-primary truncate">
-                              <Mail className="w-3 h-3" />{u.email}
-                            </a>
-                          )}
-                          {u.nombreEmpresa && (
-                            <span className="flex items-center gap-1">
-                              <Building className="w-3 h-3" />{u.nombreEmpresa}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <div className="flex flex-col items-end gap-1 mr-2">
-                          <Badge variant="outline" className={getBadgeColor(u.tipo)}>{u.tipo}</Badge>
-                          {u.departamento && <span className="text-xs text-muted-foreground">{u.departamento}</span>}
-                        </div>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEdit(u)}>
-                          <Pencil className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleDelete(u)}>
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+
+            <ScrollArea className="h-[370px] -mx-2 px-2">
+              {resultados.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  {usuarios.length === 0
+                    ? 'No hay usuarios registrados aún'
+                    : 'Sin resultados para esta búsqueda'}
                 </div>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
+              ) : (
+                <div className="space-y-2">
+                  {resultados.map((u: UsuarioRegistrado) => (
+                    <div key={u.id} className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
+                      {editingId === u.id ? (
+                        <div className="space-y-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs">Nombre</Label>
+                            <Input value={editData.nombre || ''} onChange={e => setEditData(d => ({ ...d, nombre: e.target.value }))} className="h-9" />
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                              <Label className="text-xs">Celular</Label>
+                              <Input value={editData.celular || ''} onChange={e => setEditData(d => ({ ...d, celular: e.target.value }))} className="h-9" />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Email</Label>
+                              <Input value={editData.email || ''} onChange={e => setEditData(d => ({ ...d, email: e.target.value }))} className="h-9" />
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Tipo</Label>
+                            <Select value={editData.tipo} onValueChange={v => setEditData(d => ({ ...d, tipo: v as TipoUsuario, departamento: v !== 'Personal TAS' ? undefined : d.departamento, nombreEmpresa: v !== 'Empresa' ? undefined : d.nombreEmpresa }))}>
+                              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {tiposUsuario.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {editData.tipo === 'Personal TAS' && (
+                            <div className="space-y-1">
+                              <Label className="text-xs">Departamento</Label>
+                              <Select value={editData.departamento || ''} onValueChange={v => setEditData(d => ({ ...d, departamento: v as DepartamentoTAS }))}>
+                                <SelectTrigger className="h-9"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                                <SelectContent className="max-h-48">
+                                  {departamentosTAS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+                          {editData.tipo === 'Empresa' && (
+                            <div className="space-y-1">
+                              <Label className="text-xs">Empresa</Label>
+                              <Input value={editData.nombreEmpresa || ''} onChange={e => setEditData(d => ({ ...d, nombreEmpresa: e.target.value }))} className="h-9" placeholder="Nombre de la empresa" />
+                            </div>
+                          )}
+                          <div className="flex gap-2 justify-end">
+                            <Button variant="ghost" size="sm" onClick={cancelEdit} className="h-8 gap-1"><X className="w-3.5 h-3.5" />Cancelar</Button>
+                            <Button size="sm" onClick={saveEdit} className="h-8 gap-1"><Check className="w-3.5 h-3.5" />Guardar</Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{u.nombre}</p>
+                            <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground flex-wrap">
+                              {u.celular && (
+                                <a href={`tel:${u.celular}`} className="flex items-center gap-1 hover:text-primary">
+                                  <Phone className="w-3 h-3" />{u.celular}
+                                </a>
+                              )}
+                              {u.email && (
+                                <a href={`mailto:${u.email}`} className="flex items-center gap-1 hover:text-primary truncate">
+                                  <Mail className="w-3 h-3" />{u.email}
+                                </a>
+                              )}
+                              {u.nombreEmpresa && (
+                                <span className="flex items-center gap-1">
+                                  <Building className="w-3 h-3" />{u.nombreEmpresa}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="flex flex-col items-end gap-1 mr-2">
+                              <Badge variant="outline" className={getBadgeColor(u.tipo)}>{u.tipo}</Badge>
+                              {u.departamento && <span className="text-xs text-muted-foreground">{u.departamento}</span>}
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => startEdit(u)}>
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleDelete(u)}>
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
 
-        <p className="text-xs text-muted-foreground text-center">
-          {resultados.length} de {usuarios.length} contacto{usuarios.length !== 1 ? 's' : ''}
-        </p>
+            <p className="text-xs text-muted-foreground text-center">
+              {resultados.length} de {usuarios.length} contacto{usuarios.length !== 1 ? 's' : ''}
+            </p>
+          </TabsContent>
+
+          <TabsContent value="autorizaciones" className="mt-3">
+            <AutorizacionesTab />
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
