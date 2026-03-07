@@ -74,6 +74,8 @@ export function AutorizacionesTab() {
       lugarAutorizado: form.lugarAutorizado.trim(),
       autorizadoPor: form.autorizadoPor.trim(),
       fechaAutorizacion: form.fechaAutorizacion || new Date().toISOString().split('T')[0],
+      fechaDesde: form.fechaDesde || undefined,
+      fechaHasta: form.fechaHasta || undefined,
       horario: form.horario.trim() || undefined,
       emailReferencia: form.emailReferencia.trim() || undefined,
       observaciones: form.observaciones.trim() || undefined,
