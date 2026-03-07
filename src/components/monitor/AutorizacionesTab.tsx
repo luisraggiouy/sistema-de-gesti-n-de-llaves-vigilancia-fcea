@@ -26,7 +26,8 @@ export function AutorizacionesTab() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     personaNombre: '', lugarAutorizado: '', autorizadoPor: '',
-    fechaAutorizacion: '', horario: '', emailReferencia: '', observaciones: ''
+    fechaAutorizacion: '', fechaDesde: '', fechaHasta: '',
+    horario: '', emailReferencia: '', observaciones: ''
   });
 
   const refresh = useCallback(() => setRefreshKey(k => k + 1), []);
@@ -43,7 +44,7 @@ export function AutorizacionesTab() {
   const handleBuscar = () => setBuscado(true);
 
   const resetForm = () => {
-    setForm({ personaNombre: '', lugarAutorizado: '', autorizadoPor: '', fechaAutorizacion: '', horario: '', emailReferencia: '', observaciones: '' });
+    setForm({ personaNombre: '', lugarAutorizado: '', autorizadoPor: '', fechaAutorizacion: '', fechaDesde: '', fechaHasta: '', horario: '', emailReferencia: '', observaciones: '' });
     setEditingId(null);
   };
 
@@ -54,6 +55,8 @@ export function AutorizacionesTab() {
       lugarAutorizado: a.lugarAutorizado,
       autorizadoPor: a.autorizadoPor,
       fechaAutorizacion: a.fechaAutorizacion?.split('T')[0] || '',
+      fechaDesde: a.fechaDesde?.split('T')[0] || '',
+      fechaHasta: a.fechaHasta?.split('T')[0] || '',
       horario: a.horario || '',
       emailReferencia: a.emailReferencia || '',
       observaciones: a.observaciones || '',
@@ -71,6 +74,8 @@ export function AutorizacionesTab() {
       lugarAutorizado: form.lugarAutorizado.trim(),
       autorizadoPor: form.autorizadoPor.trim(),
       fechaAutorizacion: form.fechaAutorizacion || new Date().toISOString().split('T')[0],
+      fechaDesde: form.fechaDesde || undefined,
+      fechaHasta: form.fechaHasta || undefined,
       horario: form.horario.trim() || undefined,
       emailReferencia: form.emailReferencia.trim() || undefined,
       observaciones: form.observaciones.trim() || undefined,
@@ -204,6 +209,16 @@ export function AutorizacionesTab() {
                 <Input value={form.emailReferencia} onChange={e => setForm(f => ({ ...f, emailReferencia: e.target.value }))} placeholder="correo@fcea.edu.uy" className="h-9" />
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">Vigencia desde (opcional)</Label>
+                <Input type="date" value={form.fechaDesde} onChange={e => setForm(f => ({ ...f, fechaDesde: e.target.value }))} className="h-9" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Vigencia hasta (opcional)</Label>
+                <Input type="date" value={form.fechaHasta} onChange={e => setForm(f => ({ ...f, fechaHasta: e.target.value }))} className="h-9" />
+              </div>
+            </div>
             <div className="space-y-1">
               <Label className="text-xs">Horario autorizado</Label>
               <Input value={form.horario} onChange={e => setForm(f => ({ ...f, horario: e.target.value }))} placeholder="Ej: Lunes a Viernes de 9 a 18" className="h-9" />
@@ -255,6 +270,12 @@ function AutorizacionCard({ auth, onEdit, onDelete }: { auth: Autorizacion; onEd
         {auth.fechaAutorizacion && (
           <span className="flex items-center gap-1">
             <CalendarDays className="w-3 h-3" />{new Date(auth.fechaAutorizacion).toLocaleDateString('es-UY')}
+          </span>
+        )}
+        {(auth.fechaDesde || auth.fechaHasta) && (
+          <span className="flex items-center gap-1">
+            <CalendarDays className="w-3 h-3" />
+            Vigencia: {auth.fechaDesde ? new Date(auth.fechaDesde).toLocaleDateString('es-UY') : '...'} — {auth.fechaHasta ? new Date(auth.fechaHasta).toLocaleDateString('es-UY') : '...'}
           </span>
         )}
         {auth.horario && (
