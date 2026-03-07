@@ -272,6 +272,12 @@ function AutorizacionCard({ auth, onEdit, onDelete }: { auth: Autorizacion; onEd
             <CalendarDays className="w-3 h-3" />{new Date(auth.fechaAutorizacion).toLocaleDateString('es-UY')}
           </span>
         )}
+        {(auth.fechaDesde || auth.fechaHasta) && (
+          <span className="flex items-center gap-1">
+            <CalendarDays className="w-3 h-3" />
+            Vigencia: {auth.fechaDesde ? new Date(auth.fechaDesde).toLocaleDateString('es-UY') : '...'} — {auth.fechaHasta ? new Date(auth.fechaHasta).toLocaleDateString('es-UY') : '...'}
+          </span>
+        )}
         {auth.horario && (
           <span className="flex items-center gap-1">
             <Clock className="w-3 h-3" />{auth.horario}

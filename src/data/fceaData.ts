@@ -354,6 +354,8 @@ export interface Autorizacion {
   lugarAutorizado: string; // nombre de llave/lugar
   autorizadoPor: string; // quién autoriza (ej: "Director del IESTA Juan González")
   fechaAutorizacion: string; // ISO date
+  fechaDesde?: string; // ISO date - vigencia desde
+  fechaHasta?: string; // ISO date - vigencia hasta
   horario?: string; // ej: "Lunes a Viernes de 9 a 18"
   emailReferencia?: string; // mail de referencia
   observaciones?: string;
