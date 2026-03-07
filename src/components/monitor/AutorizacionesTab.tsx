@@ -44,7 +44,7 @@ export function AutorizacionesTab() {
   const handleBuscar = () => setBuscado(true);
 
   const resetForm = () => {
-    setForm({ personaNombre: '', lugarAutorizado: '', autorizadoPor: '', fechaAutorizacion: '', horario: '', emailReferencia: '', observaciones: '' });
+    setForm({ personaNombre: '', lugarAutorizado: '', autorizadoPor: '', fechaAutorizacion: '', fechaDesde: '', fechaHasta: '', horario: '', emailReferencia: '', observaciones: '' });
     setEditingId(null);
   };
 
