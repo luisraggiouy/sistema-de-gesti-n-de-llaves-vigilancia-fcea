@@ -93,7 +93,7 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="w-5 h-5" />
-            Agenda
+            Agenda / Autorizaciones
           </DialogTitle>
         </DialogHeader>
 
