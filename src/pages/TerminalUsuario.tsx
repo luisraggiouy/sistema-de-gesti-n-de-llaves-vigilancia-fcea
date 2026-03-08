@@ -287,7 +287,7 @@ export default function TerminalUsuario() {
       </main>
       
       <footer className="py-4 text-center text-sm text-muted-foreground border-t">
-        <p>Terminal de Usuario • FCEA UdelaR • Sistema de Gestión de Llaves v4.0</p>
+        <p>Terminal de Usuario • FCEA UdelaR • Sistema de Gestión de Llaves v4.3</p>
       </footer>
 
       {/* Modal de registro */}

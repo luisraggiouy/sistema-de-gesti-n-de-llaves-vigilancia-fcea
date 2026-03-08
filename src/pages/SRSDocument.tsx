@@ -158,12 +158,15 @@ const SRSDocument = () => {
           <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">1.2 Alcance</h3>
           <p className="text-gray-700 leading-relaxed mb-4">El Sistema de Gestion de Llaves abarca:</p>
           <ul className="list-disc list-inside text-gray-700 mb-4 space-y-1 pl-4">
+            <li>Registro e identificacion de usuarios por celular o email</li>
             <li>Solicitud de llaves por parte de docentes, alumnos, personal TAS y empresas</li>
-            <li>Gestion de entregas y devoluciones por parte del personal de vigilancia</li>
-            <li>Control de tiempos de uso con alertas automatizadas</li>
+            <li>Gestion de entregas, devoluciones e intercambios por parte del personal de vigilancia</li>
+            <li>Control de tiempos de uso con alertas automatizadas y notificaciones sonoras</li>
             <li>Registro historico de todas las operaciones</li>
-            <li>Generacion de reportes para la administracion</li>
-            <li>Gestion de personal de vigilancia por turnos</li>
+            <li>Generacion de reportes para la administracion con exportacion CSV</li>
+            <li>Gestion de personal de vigilancia por turnos con control de licencias</li>
+            <li>Modulo de autorizaciones temporales con busqueda inteligente y purga automatica</li>
+            <li>Agenda de contactos con edicion y eliminacion de usuarios</li>
           </ul>
 
           <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">1.3 Definiciones y Acronimos</h3>
@@ -628,6 +631,10 @@ const SRSDocument = () => {
 |   | useSolicitudes   |  | useVigilantes    |  | useConfiguracion| |
 |   | Context          |  | Hook             |  | Hook            | |
 |   +------------------+  +------------------+  +------------------+ |
+|   +------------------+  +------------------+  +------------------+ |
+|   | useSonidos       |  | useHistorial     |  | useUsuarios     | |
+|   | Hook             |  | Llaves Hook      |  | Registrados Hook| |
+|   +------------------+  +------------------+  +------------------+ |
 +------------------------------------------------------------------+
             |                    |                    |
 +-----------v--------------------v--------------------v-------------+
@@ -649,30 +656,43 @@ const SRSDocument = () => {
 | nombre: string   |<------| lugar: Lugar     |       | nombre: string   |
 | tipo: TipoLugar  |       | usuario: Usuario |       | turno: Turno     |
 | tablero: Tablero |       | terminal: string |       | esJefe: boolean  |
-| disponible: bool |       | horaSolicitud    |       | estadoLicencia?: |
-| ubicacion:       |       | horaEntrega?     |       |   EstadoLicencia |
-|   zona: string   |       | horaDevolucion?  |       +------------------+
-|   fila: number   |       | entregadoPor?    |
-|   columna: string|       | recibidoPor?     |       Tableros:
-+------------------+       | estado: Estado   |       - Tablero Principal
-                           | notas?: string   |       - Tablero Copias
-                           +------------------+       - Tablero Jefes
-
-                           EstadoLicencia:
-                           - activo
-                           - licencia
-                           - licencia_medica
+| edificio: string |       | horaSolicitud    |       | estadoLicencia?: |
+| disponible: bool |       | horaEntrega?     |       |   EstadoLicencia |
+| esHibrido: bool  |       | horaDevolucion?  |       +------------------+
+| ubicacion:       |       | entregadoPor?    |
+|   zona: string   |       | recibidoPor?     |       +------------------+
+|   fila?: number  |       | estado: Estado   |       | UsuarioRegistrado|
+|   columna?:string|       | esIntercambio?   |       +------------------+
++------------------+       | usuarioAnterior? |       | id: string       |
+                           | notas?: string   |       | nombre: string   |
+                           +------------------+       | celular: string  |
+                                                      | email?: string   |
++------------------+                                  | tipo: TipoUsuario|
+|  Autorizacion    |                                  | departamento?    |
++------------------+                                  | nombreEmpresa?   |
+| id: string       |                                  | fechaRegistro    |
+| personaNombre    |                                  +------------------+
+| lugarAutorizado  |
+| autorizadoPor    |       EstadoLicencia:
+| fechaAutorizacion|       - activo
+| fechaDesde?      |       - licencia
+| fechaHasta?      |       - licencia_medica
+| horario?         |
+| emailReferencia? |
+| observaciones?   |
+| fechaCreacion    |
++------------------+
           `}</div>
 
           <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">4.3 Enumeraciones</h3>
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-gray-50 p-4 rounded-lg border">
-              <h4 className="font-semibold text-blue-900 mb-2">Tipos de Lugar</h4>
-              <code className="text-sm">salon | oficina | laboratorio | deposito | otro</code>
+              <h4 className="font-semibold text-blue-900 mb-2">Tipos de Lugar (TipoLugar)</h4>
+              <code className="text-sm">Salon | Salon Hibrido | Oficina | Sala | Deposito | Baño | Area Comun | Biblioteca | Auditorio</code>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg border">
-              <h4 className="font-semibold text-blue-900 mb-2">Tipos de Usuario</h4>
-              <code className="text-sm">Docente | Alumno | Personal TAS (con departamento) | Empresa</code>
+              <h4 className="font-semibold text-blue-900 mb-2">Tipos de Usuario (TipoUsuario)</h4>
+              <code className="text-sm">Docente | Alumno | Personal TAS (con departamento) | Empresa (con nombre empresa)</code>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg border">
               <h4 className="font-semibold text-blue-900 mb-2">Estados de Solicitud</h4>
@@ -680,7 +700,23 @@ const SRSDocument = () => {
             </div>
             <div className="bg-gray-50 p-4 rounded-lg border">
               <h4 className="font-semibold text-blue-900 mb-2">Turnos de Vigilancia</h4>
-              <code className="text-sm">Matutino | Vespertino | Nocturno</code>
+              <code className="text-sm">Matutino (06-14) | Vespertino (14-22) | Nocturno (22-06)</code>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <h4 className="font-semibold text-blue-900 mb-2">Tipos de Tablero (TipoTablero)</h4>
+              <code className="text-sm">Tablero Principal | Tablero Copias | Tablero Jefes</code>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <h4 className="font-semibold text-blue-900 mb-2">Estado de Licencia</h4>
+              <code className="text-sm">activo | licencia | licencia_medica</code>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <h4 className="font-semibold text-blue-900 mb-2">Zonas del Tablero</h4>
+              <code className="text-sm">Puerta derecha | Puerta izquierda | Fondo | Lateral derecho | Lateral izquierdo</code>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <h4 className="font-semibold text-blue-900 mb-2">Departamentos TAS</h4>
+              <code className="text-sm">Electrotecnia | Servicios Generales | Compras | Gastos | UPC | Decanato | Suministros | Apoyo Docente | Bedelia | Contaduria | Sueldos | CAVIDA | Convenios | Concursos | Sistemas | Mantenimiento | Vigilancia</code>
             </div>
           </div>
         </div>
@@ -743,12 +779,16 @@ const SRSDocument = () => {
                     <tr><td className="font-semibold pr-4 align-top">Actor Principal</td><td>Usuario Solicitante</td></tr>
                     <tr><td className="font-semibold pr-4 align-top">Descripcion</td><td>El usuario solicita una o mas llaves desde el terminal</td></tr>
                     <tr><td className="font-semibold pr-4 align-top">Flujo Principal</td><td>
-                      1. Usuario ingresa nombre y celular<br/>
-                      2. Selecciona tipo de usuario<br/>
-                      3. Busca la llave deseada<br/>
-                      4. Selecciona una o mas llaves<br/>
-                      5. Confirma la solicitud<br/>
-                      6. Sistema registra y notifica a vigilancia
+                      1. Usuario ingresa celular o email en el campo de busqueda<br/>
+                      2. Sistema busca en usuarios registrados<br/>
+                      3. Si no existe, presiona "Registrarse" y completa el formulario<br/>
+                      4. Busca la llave deseada (con filtros de tipo y edificio)<br/>
+                      5. Selecciona una o mas llaves (o usa llaves frecuentes)<br/>
+                      6. Confirma la solicitud<br/>
+                      7. Sistema registra, emite sonido y notifica a vigilancia
+                    </td></tr>
+                    <tr><td className="font-semibold pr-4 align-top">Flujo Alterno</td><td>
+                      Si la llave esta en uso, el usuario puede solicitar un intercambio aceptando responsabilidad
                     </td></tr>
                   </tbody>
                 </table>
@@ -814,32 +854,48 @@ const SRSDocument = () => {
                     +------------------------+
                                  |
                                  v
-                    +------------------------+
-                    | Ingresa nombre y       |
-                    | numero de celular      |
-                    +------------------------+
-                                 |
-                                 v
-                    +------------------------+
-                    | Selecciona tipo de     |
-                    | usuario                |
-                    +------------------------+
-                                 |
-                                 v
+               +----------------------------------+
+               | Se identifica con celular o     |
+               | email (busqueda en registrados) |
+               +----------------------------------+
+                       |                |
+                   ENCONTRADO       NO ENCONTRADO
+                       |                |
+                       v                v
+              +-----------------+  +-----------------+
+              | Seleccion       |  | Presiona boton  |
+              | automatica      |  | "Registrarse"   |
+              | del usuario     |  | (ver flujo 6.5) |
+              +-----------------+  +-----------------+
+                       |                |
+                       +-------+--------+
+                               |
+                               v
                +----------------------------------+
                | Busca llave por nombre o        |
                | selecciona de llaves frecuentes |
+               | (filtro por tipo y edificio)    |
                +----------------------------------+
                                  |
                                  v
-                    +------------------------+
-                    | Confirmar seleccion    |
-                    +------------------------+
-                                 |
-                                 v
+               +----------------------------------+
+               | Hora actual entre 7:00 y 23:00? |
+               | (o usuario exento?)             |
+               +----------------------------------+
+                       |                |
+                      SI               NO
+                       |                |
+                       v                v
+              +-----------------+  +-----------------+
+              | Confirmar       |  | Banner "Horario |
+              | seleccion       |  | restringido"    |
+              |                 |  | Bloquear envio  |
+              +-----------------+  +-----------------+
+                       |
+                       v
                     +------------------------+
                     | Sistema genera         |
-                    | solicitud              |
+                    | solicitud + sonido     |
                     +------------------------+
                                  |
                                  v
@@ -1207,7 +1263,7 @@ const SRSDocument = () => {
 
           <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">7.1 Terminal de Usuario</h3>
           <p className="text-gray-700 mb-4">
-            El Terminal de Usuario es la interfaz publica donde los docentes, alumnos, personal TAS y empresas solicitan las llaves. Los usuarios pueden identificarse con celular o email.
+            El Terminal de Usuario es la interfaz publica donde los docentes, alumnos, personal TAS y empresas solicitan las llaves. Los usuarios se identifican ingresando su celular o email en un campo de busqueda. Si no estan registrados, pueden hacerlo mediante el boton "Registrarse".
           </p>
           <div className="diagram mb-6">{`
 +------------------------------------------------------------------+
@@ -1215,21 +1271,33 @@ const SRSDocument = () => {
 +------------------------------------------------------------------+
 |                                                                   |
 |  +------------------------------------------------------------+  |
-|  |                    REGISTRO DE USUARIO                      |  |
+|  |              IDENTIFICACION DE USUARIO                      |  |
 |  +------------------------------------------------------------+  |
-|  |  Nombre completo: [________________________]                |  |
-|  |  Celular/Email:   [________________________]                |  |
-|  |  Tipo: ( ) Docente  ( ) Alumno  ( ) Personal TAS  ( ) Empresa|  |
+|  |  [Ingrese su celular o email...     ]  [Registrarse]        |  |
+|  |  (busca en usuarios registrados por celular/email)          |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|  +------------------------------------------------------------+  |
+|  | LLAVES FRECUENTES (basadas en historial del usuario):       |  |
+|  | +----------+ +----------+ +----------+ +----------+         |  |
+|  | | Salon 101| | Ofi.Conc | | Sala Prof| | Auditor. |         |  |
 |  +------------------------------------------------------------+  |
 |                                                                   |
 |  +------------------------------------------------------------+  |
 |  |                    BUSQUEDA DE LLAVES                       |  |
 |  +------------------------------------------------------------+  |
-|  |  [Buscar llave...                              ] [Buscar]   |  |
+|  |  [Buscar llave...] Tipo:[Todos v] Edificio:[Todos v]       |  |
 |  |                                                             |  |
-|  |  LLAVES FRECUENTES:                                         |  |
-|  |  +----------+ +----------+ +----------+ +----------+        |  |
-|  |  | Salon 1  | | Salon 2  | | Lab. A   | | Oficina  |        |  |
+|  |  Salon 101 [Disponible]  Salon 102 [Disponible]            |  |
+|  |  Salon 201 [En uso por: Maria Lopez] [Intercambiar]        |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|  +------------------------------------------------------------+  |
+|  | [!] Banner restriccion horaria (si aplica, 23:00-07:00)    |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|  +------------------------------------------------------------+  |
+|  | CONFIRMACION: 2 llaves seleccionadas  [Enviar] [Cancelar]  |  |
 |  +------------------------------------------------------------+  |
 |                                                                   |
 +------------------------------------------------------------------+
@@ -1254,12 +1322,15 @@ const SRSDocument = () => {
               <tr><td>Llave en uso (tiempo excedido)</td><td>Punto rojo pulsante + boton WhatsApp (solo Salones y Salones Hibridos)</td></tr>
               <tr><td>Llave devuelta</td><td>Fondo verde, borde verde</td></tr>
               <tr><td>Intercambio de llave</td><td>Badge "Intercambio" + nombre del usuario anterior</td></tr>
-              <tr><td>Opcion deshacer disponible</td><td>Boton con cuenta regresiva</td></tr>
-              <tr><td>Vigilante jefe de turno</td><td>Nombre con indicador especial</td></tr>
+              <tr><td>Opcion deshacer disponible</td><td>Barra de progreso con cuenta regresiva (2 minutos)</td></tr>
+              <tr><td>Vigilante jefe de turno</td><td>Punto de color junto al nombre</td></tr>
+              <tr><td>Vigilante en licencia</td><td>No aparece en botones de entrega/devolucion; visible en Dashboard con icono</td></tr>
               <tr><td>Nueva solicitud recibida</td><td>Señal sonora de doble campana ascendente</td></tr>
-              <tr><td>Entrega de llave</td><td>Sonido unico del vigilante (ding descendente)</td></tr>
+              <tr><td>Entrega de llave</td><td>Sonido unico del vigilante (ding descendente con frecuencia personalizada)</td></tr>
               <tr><td>Devolucion de llave</td><td>Triple campana ascendente del vigilante receptor</td></tr>
-              <tr><td>Vigilante jefe de turno</td><td>Nombre con indicador especial</td></tr>
+              <tr><td>Autorizacion vigente</td><td>Badge verde con nombre del lugar autorizado</td></tr>
+              <tr><td>Autorizacion proxima a vencer</td><td>Badge "Vence pronto" con icono de alerta</td></tr>
+              <tr><td>Restriccion horaria activa</td><td>Banner rojo con mensaje y bloqueo del boton de envio</td></tr>
             </tbody>
           </table>
         </div>
@@ -1371,25 +1442,29 @@ const SRSDocument = () => {
             </thead>
             <tbody>
               <tr><td>Cola de Solicitudes</td><td>Lista ordenada de peticiones de llaves pendientes de atencion</td></tr>
-              <tr><td>Dashboard</td><td>Panel de control con visualizaciones estadisticas</td></tr>
-              <tr><td>Deshacer</td><td>Funcion para revertir una operacion reciente (entrega o devolucion)</td></tr>
-              <tr><td>Jefe de Turno</td><td>Vigilante designado como responsable durante un turno especifico</td></tr>
-              <tr><td>localStorage</td><td>Mecanismo de almacenamiento del navegador para persistencia de datos</td></tr>
-              <tr><td>Monitor</td><td>Interfaz de vigilancia para gestion de entregas y devoluciones</td></tr>
+              <tr><td>Dashboard</td><td>Panel de control con visualizaciones estadisticas por turno y por vigilante</td></tr>
+              <tr><td>Deshacer</td><td>Funcion para revertir una entrega o devolucion dentro de los 2 minutos siguientes</td></tr>
+              <tr><td>Intercambio</td><td>Transferencia directa de una llave entre usuarios sin devolucion al mostrador, con aceptacion de responsabilidad</td></tr>
+              <tr><td>Jefe de Turno</td><td>Vigilante designado como responsable durante un turno especifico, indicado visualmente</td></tr>
+              <tr><td>Llaves Frecuentes</td><td>Sugerencias personalizadas basadas en el historial de uso de cada usuario registrado</td></tr>
+              <tr><td>localStorage</td><td>Mecanismo de almacenamiento del navegador para persistencia de datos (usuarios, vigilantes, configuracion, autorizaciones)</td></tr>
+              <tr><td>Monitor</td><td>Interfaz de vigilancia para gestion de entregas, devoluciones, intercambios, agenda y autorizaciones</td></tr>
               <tr><td>Responsivo</td><td>Diseño que se adapta a diferentes tamaños de pantalla</td></tr>
               <tr><td>Tablero</td><td>Panel fisico donde se almacenan las llaves organizadas por filas y columnas. Existen tres tipos: Principal, Copias y Jefes</td></tr>
-              <tr><td>Terminal</td><td>Punto de acceso para que usuarios soliciten llaves</td></tr>
-              <tr><td>Tiempo Excedido</td><td>Condicion cuando una llave supera el tiempo limite de uso configurado</td></tr>
-              <tr><td>Transicion</td><td>Periodo de superposicion entre turnos saliente y entrante</td></tr>
+              <tr><td>Terminal</td><td>Punto de acceso donde usuarios se identifican por celular/email y solicitan llaves</td></tr>
+              <tr><td>Tiempo Excedido</td><td>Condicion cuando una llave de tipo Salon o Salon Hibrido supera el tiempo limite configurado (por defecto 2h 15min)</td></tr>
+              <tr><td>Transicion</td><td>Periodo de superposicion entre turnos saliente y entrante, configurable en minutos</td></tr>
               <tr><td>Turno</td><td>Periodo de trabajo: Matutino (06:00-14:00), Vespertino (14:00-22:00), Nocturno (22:00-06:00)</td></tr>
-              <tr><td>Agenda</td><td>Modulo de busqueda de contactos registrados para consulta rapida por vigilantes</td></tr>
+              <tr><td>Agenda</td><td>Modulo de busqueda, edicion y eliminacion de contactos registrados para consulta rapida por vigilantes</td></tr>
               <tr><td>Notas</td><td>Campo de texto libre en cada llave entregada para registrar observaciones del vigilante</td></tr>
               <tr><td>Restriccion Horaria</td><td>Politica que impide solicitar llaves antes de las 7:00 AM y despues de las 23:00 PM, excepto para vigilancia y servicios generales</td></tr>
-              <tr><td>Licencia</td><td>Estado de ausencia temporal de un vigilante por vacaciones, razones personales o medicas</td></tr>
-              <tr><td>Notificacion Sonora</td><td>Señal acustica generada via Web Audio API para alertar eventos en el monitor de vigilancia</td></tr>
-              <tr><td>Autorizacion Temporal</td><td>Permiso registrado en el sistema que habilita a una persona a retirar llaves de un lugar especifico por un periodo determinado</td></tr>
-              <tr><td>Busqueda Inteligente</td><td>Filtrado en tiempo real que muestra coincidencias parciales a medida que el usuario escribe</td></tr>
-              <tr><td>Purga Automatica</td><td>Eliminacion automatica de autorizaciones cuya fecha de finalizacion ha vencido</td></tr>
+              <tr><td>Licencia</td><td>Estado de ausencia temporal de un vigilante: licencia (vacaciones/personal) o licencia medica. Los vigilantes en licencia no aparecen en botones de entrega/devolucion</td></tr>
+              <tr><td>Notificacion Sonora</td><td>Señal acustica generada via Web Audio API: doble campana (nueva solicitud), ding unico por vigilante (entrega), triple campana por vigilante (devolucion)</td></tr>
+              <tr><td>Autorizacion Temporal</td><td>Permiso registrado que habilita a una persona a retirar llaves de un lugar especifico, con vigencia opcional (desde-hasta) y purga automatica</td></tr>
+              <tr><td>Busqueda Inteligente</td><td>Filtrado en tiempo real insensible a acentos (normalizacion NFD) que muestra coincidencias parciales a medida que el usuario escribe</td></tr>
+              <tr><td>Purga Automatica</td><td>Eliminacion automatica de autorizaciones cuya fecha de finalizacion (fechaHasta) es anterior a la fecha actual</td></tr>
+              <tr><td>Usuario Registrado</td><td>Persona que completo el formulario de registro con nombre, celular/email, tipo y datos opcionales (departamento TAS o nombre empresa)</td></tr>
+              <tr><td>Web Audio API</td><td>API del navegador utilizada para generar sonidos programaticos sin archivos de audio externos</td></tr>
             </tbody>
           </table>
         </div>

@@ -297,7 +297,7 @@ export default function Dashboard() {
       />
 
       <footer className="py-4 text-center text-sm text-muted-foreground border-t mt-8">
-        <p>Dashboard de Actividad • FCEA UdelaR • Sistema de Gestión de Llaves v3.6</p>
+        <p>Dashboard de Actividad • FCEA UdelaR • Sistema de Gestión de Llaves v4.3</p>
       </footer>
     </div>
   );
