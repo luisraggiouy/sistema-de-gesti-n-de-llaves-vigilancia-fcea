@@ -1387,7 +1387,9 @@ const SRSDocument = () => {
               <tr><td>Restriccion Horaria</td><td>Politica que impide solicitar llaves antes de las 7:00 AM y despues de las 23:00 PM, excepto para vigilancia y servicios generales</td></tr>
               <tr><td>Licencia</td><td>Estado de ausencia temporal de un vigilante por vacaciones, razones personales o medicas</td></tr>
               <tr><td>Notificacion Sonora</td><td>Señal acustica generada via Web Audio API para alertar eventos en el monitor de vigilancia</td></tr>
-              <tr><td>Web Audio API</td><td>API del navegador para generar y controlar sonidos programaticamente sin archivos externos</td></tr>
+              <tr><td>Autorizacion Temporal</td><td>Permiso registrado en el sistema que habilita a una persona a retirar llaves de un lugar especifico por un periodo determinado</td></tr>
+              <tr><td>Busqueda Inteligente</td><td>Filtrado en tiempo real que muestra coincidencias parciales a medida que el usuario escribe</td></tr>
+              <tr><td>Purga Automatica</td><td>Eliminacion automatica de autorizaciones cuya fecha de finalizacion ha vencido</td></tr>
             </tbody>
           </table>
         </div>
