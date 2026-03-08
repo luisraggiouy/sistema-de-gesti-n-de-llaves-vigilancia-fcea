@@ -1,6 +1,7 @@
-import { Key, Shield } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import fceaLogo from '@/assets/fcea-logo.png';
 
 export function TerminalHeader() {
   const ahora = new Date();
@@ -19,9 +20,7 @@ export function TerminalHeader() {
     <header className="bg-primary text-primary-foreground py-6 px-8 shadow-lg">
       <div className="max-w-4xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="bg-primary-foreground/10 p-3 rounded-xl">
-            <Key className="w-8 h-8" />
-          </div>
+          <img src={fceaLogo} alt="FCEA - Universidad de la República" className="h-16 w-auto" />
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
               Sistema de Gestión de Llaves
