@@ -1322,12 +1322,15 @@ const SRSDocument = () => {
               <tr><td>Llave en uso (tiempo excedido)</td><td>Punto rojo pulsante + boton WhatsApp (solo Salones y Salones Hibridos)</td></tr>
               <tr><td>Llave devuelta</td><td>Fondo verde, borde verde</td></tr>
               <tr><td>Intercambio de llave</td><td>Badge "Intercambio" + nombre del usuario anterior</td></tr>
-              <tr><td>Opcion deshacer disponible</td><td>Boton con cuenta regresiva</td></tr>
-              <tr><td>Vigilante jefe de turno</td><td>Nombre con indicador especial</td></tr>
+              <tr><td>Opcion deshacer disponible</td><td>Barra de progreso con cuenta regresiva (2 minutos)</td></tr>
+              <tr><td>Vigilante jefe de turno</td><td>Punto de color junto al nombre</td></tr>
+              <tr><td>Vigilante en licencia</td><td>No aparece en botones de entrega/devolucion; visible en Dashboard con icono</td></tr>
               <tr><td>Nueva solicitud recibida</td><td>Señal sonora de doble campana ascendente</td></tr>
-              <tr><td>Entrega de llave</td><td>Sonido unico del vigilante (ding descendente)</td></tr>
+              <tr><td>Entrega de llave</td><td>Sonido unico del vigilante (ding descendente con frecuencia personalizada)</td></tr>
               <tr><td>Devolucion de llave</td><td>Triple campana ascendente del vigilante receptor</td></tr>
-              <tr><td>Vigilante jefe de turno</td><td>Nombre con indicador especial</td></tr>
+              <tr><td>Autorizacion vigente</td><td>Badge verde con nombre del lugar autorizado</td></tr>
+              <tr><td>Autorizacion proxima a vencer</td><td>Badge "Vence pronto" con icono de alerta</td></tr>
+              <tr><td>Restriccion horaria activa</td><td>Banner rojo con mensaje y bloqueo del boton de envio</td></tr>
             </tbody>
           </table>
         </div>
