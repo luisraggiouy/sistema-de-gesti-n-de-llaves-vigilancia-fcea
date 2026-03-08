@@ -69,7 +69,7 @@ const SRSDocument = () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'SRS_Sistema_Gestion_Llaves_FCEA_v4.0.html';
+            a.download = 'SRS_Sistema_Gestion_Llaves_FCEA_v4.3.html';
             a.click();
             URL.revokeObjectURL(url);
           }}
