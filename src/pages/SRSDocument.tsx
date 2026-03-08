@@ -69,7 +69,7 @@ const SRSDocument = () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'SRS_Sistema_Gestion_Llaves_FCEA_v4.0.html';
+            a.download = 'SRS_Sistema_Gestion_Llaves_FCEA_v4.3.html';
             a.click();
             URL.revokeObjectURL(url);
           }}
@@ -106,8 +106,8 @@ const SRSDocument = () => {
             </h2>
             
             <div className="border-t-2 border-gray-300 pt-8 mt-8 text-left max-w-sm mx-auto">
-              <p className="mb-2"><strong>Version:</strong> 4.0</p>
-              <p className="mb-2"><strong>Fecha:</strong> 5 de Marzo de 2026</p>
+              <p className="mb-2"><strong>Version:</strong> 4.3</p>
+              <p className="mb-2"><strong>Fecha:</strong> 8 de Marzo de 2026</p>
               <p className="mb-2"><strong>Elaborado por:</strong> Equipo de Desarrollo</p>
               <p><strong>Institucion:</strong> Facultad de Ciencias Economicas y de Administracion</p>
             </div>
@@ -522,6 +522,44 @@ const SRSDocument = () => {
                 <p><strong>Descripcion:</strong> Al completar el registro de un nuevo usuario, el terminal muestra un mensaje de exito y se reinicia completamente, permitiendo al usuario probar su registro ingresando su telefono o email.</p>
                 <p><strong>Prioridad:</strong> Media</p>
                 <p><strong>Justificacion:</strong> Permite al usuario verificar inmediatamente que su registro fue exitoso antes de solicitar llaves.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-024: Modulo de Autorizaciones Temporales</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> El sistema permite registrar autorizaciones temporales que habilitan a personas especificas a retirar llaves de lugares determinados. Cada autorizacion incluye: persona, lugar, autorizante, fecha de autorizacion, periodo de vigencia opcional (desde-hasta), horario, email de referencia y observaciones.</p>
+                <p><strong>Prioridad:</strong> Alta</p>
+                <p><strong>Ubicacion:</strong> Pestaña "Autorizaciones" dentro del modulo "Agenda / Autorizaciones" del Monitor de Vigilancia.</p>
+                <p><strong>Justificacion:</strong> Sustituye la busqueda manual en correos electronicos que realizaban los vigilantes para verificar permisos temporales.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-025: Busqueda Inteligente en Autorizaciones</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> Los campos de busqueda de nombre y lugar en el verificador de autorizaciones funcionan como buscador inteligente en tiempo real. A medida que el vigilante escribe, el sistema filtra y muestra coincidencias parciales del listado de autorizaciones registradas.</p>
+                <p><strong>Prioridad:</strong> Alta</p>
+                <p><strong>Ejemplo:</strong> Al escribir "S" se muestran todos los nombres con S; al escribir "Sh" se filtran nombres que contienen "Sh".</p>
+                <p><strong>Implementacion:</strong> Busqueda insensible a acentos (NFD normalization) ejecutada en cada cambio de caracter.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-026: Baja Automatica de Autorizaciones Vencidas</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> Las autorizaciones que tengan fecha de finalizacion (fechaHasta) anterior a la fecha actual se eliminan automaticamente al abrir el modulo. El sistema notifica al vigilante cuantas autorizaciones fueron purgadas.</p>
+                <p><strong>Prioridad:</strong> Alta</p>
+                <p><strong>Complemento:</strong> Se muestra un badge de "Vence pronto" para autorizaciones que expiran dentro de los proximos 7 dias.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-027: Edicion y Eliminacion de Autorizaciones</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> Desde el verificador de autorizaciones, el vigilante puede editar todos los campos de una autorizacion existente o eliminarla con confirmacion previa.</p>
+                <p><strong>Prioridad:</strong> Alta</p>
+                <p><strong>Operaciones:</strong> Editar (abre formulario precargado), Eliminar (con dialogo de confirmacion).</p>
               </div>
             </div>
           </div>
@@ -1088,7 +1126,75 @@ const SRSDocument = () => {
                +-------------+  +----------+
                      |
                     SI -> No reproducir
-                    NO -> Reproducir sonido
+                     NO -> Reproducir sonido
+          `}</div>
+
+          <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">6.8 Flujo de Verificacion de Autorizaciones</h3>
+          <div className="diagram mb-6">{`
+                          +-------------+
+                          |   INICIO    |
+                          +------+------+
+                                 |
+                                 v
+                    +------------------------+
+                    | Vigilante abre modulo  |
+                    | "Agenda/Autorizaciones"|
+                    +------------------------+
+                                 |
+                                 v
+                    +------------------------+
+                    | Sistema purga          |
+                    | autorizaciones vencidas|
+                    | (fechaHasta < hoy)     |
+                    +------------------------+
+                                 |
+                                 v
+                    +------------------------+
+                    | Vigilante escribe      |
+                    | nombre o lugar         |
+                    +------------------------+
+                                 |
+                                 v
+               +----------------------------------+
+               | Busqueda inteligente en         |
+               | tiempo real (filtrado parcial)  |
+               +----------------------------------+
+                                 |
+                                 v
+               +----------------------------------+
+               | Se encontraron resultados?       |
+               +----------------------------------+
+                      |                |
+                     SI               NO
+                      |                |
+                      v                v
+            +-----------------+  +-----------------+
+            | Mostrar         |  | Mostrar "No se  |
+            | autorizaciones  |  | encontro        |
+            | con editar/     |  | autorizacion"   |
+            | eliminar        |  +-----------------+
+            +-----------------+
+                      |
+                      v
+               +----------------------------------+
+               | Accion deseada?                  |
+               +----------------------------------+
+                  |          |           |
+                EDITAR    ELIMINAR    CONSULTAR
+                  |          |           |
+                  v          v           v
+          +----------+  +----------+  +----------+
+          | Formulario|  | Confirmar|  | Ver      |
+          | edicion   |  | elimina- |  | detalles |
+          | precargado|  | cion     |  | vigencia |
+          +----------+  +----------+  +----------+
+                  |          |           |
+                  +----+-----+-----------+
+                       |
+                       v
+                 +-------------+
+                 |     FIN     |
+                 +-------------+
           `}</div>
         </div>
 
@@ -1281,7 +1387,9 @@ const SRSDocument = () => {
               <tr><td>Restriccion Horaria</td><td>Politica que impide solicitar llaves antes de las 7:00 AM y despues de las 23:00 PM, excepto para vigilancia y servicios generales</td></tr>
               <tr><td>Licencia</td><td>Estado de ausencia temporal de un vigilante por vacaciones, razones personales o medicas</td></tr>
               <tr><td>Notificacion Sonora</td><td>Señal acustica generada via Web Audio API para alertar eventos en el monitor de vigilancia</td></tr>
-              <tr><td>Web Audio API</td><td>API del navegador para generar y controlar sonidos programaticamente sin archivos externos</td></tr>
+              <tr><td>Autorizacion Temporal</td><td>Permiso registrado en el sistema que habilita a una persona a retirar llaves de un lugar especifico por un periodo determinado</td></tr>
+              <tr><td>Busqueda Inteligente</td><td>Filtrado en tiempo real que muestra coincidencias parciales a medida que el usuario escribe</td></tr>
+              <tr><td>Purga Automatica</td><td>Eliminacion automatica de autorizaciones cuya fecha de finalizacion ha vencido</td></tr>
             </tbody>
           </table>
         </div>
@@ -1289,8 +1397,8 @@ const SRSDocument = () => {
         {/* Pie de pagina del documento */}
         <div className="border-t-2 border-gray-300 pt-8 mt-12 text-center text-gray-600">
           <p className="font-semibold">Sistema de Gestion de Llaves - FCEA UdelaR</p>
-          <p className="text-sm">Documento de Especificacion de Requisitos de Software - Version 3.9</p>
-          <p className="text-sm">Marzo 2026</p>
+          <p className="text-sm">Documento de Especificacion de Requisitos de Software - Version 4.3</p>
+          <p className="text-sm">8 de Marzo de 2026</p>
         </div>
       </div>
     </div>

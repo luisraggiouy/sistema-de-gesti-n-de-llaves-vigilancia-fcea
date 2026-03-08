@@ -1,14 +1,15 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { Search, Plus, Pencil, Trash2, X, Check, ShieldCheck, ShieldX, Mail, Clock, CalendarDays, UserCheck } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, X, Check, ShieldCheck, ShieldX, Mail, Clock, CalendarDays, UserCheck, AlertTriangle } from 'lucide-react';
 import {
   Autorizacion, getAutorizaciones, guardarAutorizacion,
-  actualizarAutorizacion, eliminarAutorizacion, buscarAutorizacion, normalizarTexto
+  actualizarAutorizacion, eliminarAutorizacion, buscarAutorizacionEnVivo,
+  purgarAutorizacionesVencidas, normalizarTexto
 } from '@/data/fceaData';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,7 +21,6 @@ export function AutorizacionesTab() {
   // Búsqueda
   const [busqPersona, setBusqPersona] = useState('');
   const [busqLugar, setBusqLugar] = useState('');
-  const [buscado, setBuscado] = useState(false);
 
   // Form nueva/editar
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -32,16 +32,23 @@ export function AutorizacionesTab() {
 
   const refresh = useCallback(() => setRefreshKey(k => k + 1), []);
 
-  const resultados = useMemo(() => {
-    if (!buscado && modo === 'buscar') return [];
-    if (modo === 'buscar') return buscarAutorizacion(busqPersona, busqLugar);
-    return getAutorizaciones();
+  // Auto-purge expired authorizations on mount and refresh
+  useEffect(() => {
+    const eliminadas = purgarAutorizacionesVencidas();
+    if (eliminadas > 0) {
+      toast({ title: `${eliminadas} autorización${eliminadas > 1 ? 'es' : ''} vencida${eliminadas > 1 ? 's' : ''} eliminada${eliminadas > 1 ? 's' : ''}` });
+      refresh();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [busqPersona, busqLugar, buscado, modo, refreshKey]);
+  }, []);
+
+  // Live search results - updates as user types
+  const resultados = useMemo(() => {
+    if (!busqPersona.trim() && !busqLugar.trim()) return [];
+    return buscarAutorizacionEnVivo(busqPersona, busqLugar);
+  }, [busqPersona, busqLugar, refreshKey]);
 
   const todasLasAutorizaciones = useMemo(() => getAutorizaciones(), [refreshKey]);
-
-  const handleBuscar = () => setBuscado(true);
 
   const resetForm = () => {
     setForm({ personaNombre: '', lugarAutorizado: '', autorizadoPor: '', fechaAutorizacion: '', fechaDesde: '', fechaHasta: '', horario: '', emailReferencia: '', observaciones: '' });
@@ -90,7 +97,6 @@ export function AutorizacionesTab() {
     }
     resetForm();
     setModo('buscar');
-    setBuscado(false);
     refresh();
   };
 
@@ -100,6 +106,8 @@ export function AutorizacionesTab() {
     toast({ title: 'Autorización eliminada', variant: 'destructive' });
     refresh();
   };
+
+  const hayBusqueda = busqPersona.trim().length > 0 || busqLugar.trim().length > 0;
 
   return (
     <div className="space-y-3">
@@ -116,7 +124,7 @@ export function AutorizacionesTab() {
         <Button
           variant={modo === 'nueva' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => { setModo('nueva'); resetForm(); setBuscado(false); }}
+          onClick={() => { setModo('nueva'); resetForm(); }}
           className="gap-1.5"
         >
           <Plus className="w-3.5 h-3.5" />{editingId ? 'Editando' : 'Nueva'}
@@ -125,14 +133,14 @@ export function AutorizacionesTab() {
 
       {modo === 'buscar' ? (
         <>
-          {/* Búsqueda de autorización */}
+          {/* Smart search fields */}
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <Label className="text-xs">Nombre de la persona</Label>
               <Input
                 placeholder="Ej: María López"
                 value={busqPersona}
-                onChange={e => { setBusqPersona(e.target.value); setBuscado(false); }}
+                onChange={e => setBusqPersona(e.target.value)}
                 className="h-9"
               />
             </div>
@@ -141,47 +149,51 @@ export function AutorizacionesTab() {
               <Input
                 placeholder="Ej: Sala 21-C"
                 value={busqLugar}
-                onChange={e => { setBusqLugar(e.target.value); setBuscado(false); }}
+                onChange={e => setBusqLugar(e.target.value)}
                 className="h-9"
               />
             </div>
           </div>
-          <Button size="sm" onClick={handleBuscar} disabled={!busqPersona.trim() && !busqLugar.trim()} className="w-full gap-1.5">
-            <Search className="w-3.5 h-3.5" />Verificar autorización
-          </Button>
 
-          {buscado && (
-            <ScrollArea className="h-[260px] -mx-1 px-1">
-              {resultados.length === 0 ? (
-                <div className="text-center py-6 space-y-2">
-                  <ShieldX className="w-10 h-10 mx-auto text-destructive/60" />
-                  <p className="font-medium text-destructive">No se encontró autorización</p>
-                  <p className="text-sm text-muted-foreground">
-                    No hay registros que coincidan con "{busqPersona}" {busqLugar && `para "${busqLugar}"`}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 py-1">
-                    <ShieldCheck className="w-5 h-5 text-green-500" />
-                    <span className="font-medium text-green-600 dark:text-green-400">
-                      {resultados.length} autorización{resultados.length > 1 ? 'es' : ''} encontrada{resultados.length > 1 ? 's' : ''}
-                    </span>
-                  </div>
-                  {resultados.map(a => (
-                    <AutorizacionCard key={a.id} auth={a} onEdit={startEdit} onDelete={handleEliminar} />
-                  ))}
-                </div>
-              )}
-            </ScrollArea>
+          {hayBusqueda && (
+            <p className="text-xs text-muted-foreground">
+              Mostrando resultados en tiempo real...
+            </p>
           )}
 
-          {/* Lista completa */}
-          {!buscado && todasLasAutorizaciones.length > 0 && (
-            <div className="text-xs text-muted-foreground text-center pt-2">
-              {todasLasAutorizaciones.length} autorización{todasLasAutorizaciones.length > 1 ? 'es' : ''} registrada{todasLasAutorizaciones.length > 1 ? 's' : ''}
-            </div>
-          )}
+          <ScrollArea className="h-[260px] -mx-1 px-1">
+            {hayBusqueda && resultados.length === 0 ? (
+              <div className="text-center py-6 space-y-2">
+                <ShieldX className="w-10 h-10 mx-auto text-destructive/60" />
+                <p className="font-medium text-destructive">No se encontró autorización</p>
+                <p className="text-sm text-muted-foreground">
+                  No hay registros que coincidan con "{busqPersona}" {busqLugar && `para "${busqLugar}"`}
+                </p>
+              </div>
+            ) : hayBusqueda && resultados.length > 0 ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 py-1">
+                  <ShieldCheck className="w-5 h-5 text-green-500" />
+                  <span className="font-medium text-green-600 dark:text-green-400">
+                    {resultados.length} autorización{resultados.length > 1 ? 'es' : ''} encontrada{resultados.length > 1 ? 's' : ''}
+                  </span>
+                </div>
+                {resultados.map(a => (
+                  <AutorizacionCard key={a.id} auth={a} onEdit={startEdit} onDelete={handleEliminar} />
+                ))}
+              </div>
+            ) : !hayBusqueda && todasLasAutorizaciones.length > 0 ? (
+              <div className="text-center py-8 text-muted-foreground space-y-2">
+                <Search className="w-8 h-8 mx-auto opacity-40" />
+                <p className="text-sm">Escriba un nombre o lugar para buscar autorizaciones</p>
+                <p className="text-xs">{todasLasAutorizaciones.length} autorización{todasLasAutorizaciones.length > 1 ? 'es' : ''} registrada{todasLasAutorizaciones.length > 1 ? 's' : ''}</p>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No hay autorizaciones registradas aún
+              </div>
+            )}
+          </ScrollArea>
         </>
       ) : (
         /* Formulario nueva/editar */
@@ -243,6 +255,9 @@ export function AutorizacionesTab() {
 }
 
 function AutorizacionCard({ auth, onEdit, onDelete }: { auth: Autorizacion; onEdit: (a: Autorizacion) => void; onDelete: (a: Autorizacion) => void }) {
+  const hoy = new Date().toISOString().split('T')[0];
+  const proximaAVencer = auth.fechaHasta && auth.fechaHasta >= hoy && auth.fechaHasta <= new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
+
   return (
     <div className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors space-y-1.5">
       <div className="flex items-start justify-between gap-2">
@@ -252,6 +267,11 @@ function AutorizacionCard({ auth, onEdit, onDelete }: { auth: Autorizacion; onEd
             <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30 mr-1.5">
               {auth.lugarAutorizado}
             </Badge>
+            {proximaAVencer && (
+              <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30 gap-1">
+                <AlertTriangle className="w-3 h-3" />Vence pronto
+              </Badge>
+            )}
           </p>
         </div>
         <div className="flex gap-1 shrink-0">
