@@ -1431,25 +1431,29 @@ const SRSDocument = () => {
             </thead>
             <tbody>
               <tr><td>Cola de Solicitudes</td><td>Lista ordenada de peticiones de llaves pendientes de atencion</td></tr>
-              <tr><td>Dashboard</td><td>Panel de control con visualizaciones estadisticas</td></tr>
-              <tr><td>Deshacer</td><td>Funcion para revertir una operacion reciente (entrega o devolucion)</td></tr>
-              <tr><td>Jefe de Turno</td><td>Vigilante designado como responsable durante un turno especifico</td></tr>
-              <tr><td>localStorage</td><td>Mecanismo de almacenamiento del navegador para persistencia de datos</td></tr>
-              <tr><td>Monitor</td><td>Interfaz de vigilancia para gestion de entregas y devoluciones</td></tr>
+              <tr><td>Dashboard</td><td>Panel de control con visualizaciones estadisticas por turno y por vigilante</td></tr>
+              <tr><td>Deshacer</td><td>Funcion para revertir una entrega o devolucion dentro de los 2 minutos siguientes</td></tr>
+              <tr><td>Intercambio</td><td>Transferencia directa de una llave entre usuarios sin devolucion al mostrador, con aceptacion de responsabilidad</td></tr>
+              <tr><td>Jefe de Turno</td><td>Vigilante designado como responsable durante un turno especifico, indicado visualmente</td></tr>
+              <tr><td>Llaves Frecuentes</td><td>Sugerencias personalizadas basadas en el historial de uso de cada usuario registrado</td></tr>
+              <tr><td>localStorage</td><td>Mecanismo de almacenamiento del navegador para persistencia de datos (usuarios, vigilantes, configuracion, autorizaciones)</td></tr>
+              <tr><td>Monitor</td><td>Interfaz de vigilancia para gestion de entregas, devoluciones, intercambios, agenda y autorizaciones</td></tr>
               <tr><td>Responsivo</td><td>Diseño que se adapta a diferentes tamaños de pantalla</td></tr>
               <tr><td>Tablero</td><td>Panel fisico donde se almacenan las llaves organizadas por filas y columnas. Existen tres tipos: Principal, Copias y Jefes</td></tr>
-              <tr><td>Terminal</td><td>Punto de acceso para que usuarios soliciten llaves</td></tr>
-              <tr><td>Tiempo Excedido</td><td>Condicion cuando una llave supera el tiempo limite de uso configurado</td></tr>
-              <tr><td>Transicion</td><td>Periodo de superposicion entre turnos saliente y entrante</td></tr>
+              <tr><td>Terminal</td><td>Punto de acceso donde usuarios se identifican por celular/email y solicitan llaves</td></tr>
+              <tr><td>Tiempo Excedido</td><td>Condicion cuando una llave de tipo Salon o Salon Hibrido supera el tiempo limite configurado (por defecto 2h 15min)</td></tr>
+              <tr><td>Transicion</td><td>Periodo de superposicion entre turnos saliente y entrante, configurable en minutos</td></tr>
               <tr><td>Turno</td><td>Periodo de trabajo: Matutino (06:00-14:00), Vespertino (14:00-22:00), Nocturno (22:00-06:00)</td></tr>
-              <tr><td>Agenda</td><td>Modulo de busqueda de contactos registrados para consulta rapida por vigilantes</td></tr>
+              <tr><td>Agenda</td><td>Modulo de busqueda, edicion y eliminacion de contactos registrados para consulta rapida por vigilantes</td></tr>
               <tr><td>Notas</td><td>Campo de texto libre en cada llave entregada para registrar observaciones del vigilante</td></tr>
               <tr><td>Restriccion Horaria</td><td>Politica que impide solicitar llaves antes de las 7:00 AM y despues de las 23:00 PM, excepto para vigilancia y servicios generales</td></tr>
-              <tr><td>Licencia</td><td>Estado de ausencia temporal de un vigilante por vacaciones, razones personales o medicas</td></tr>
-              <tr><td>Notificacion Sonora</td><td>Señal acustica generada via Web Audio API para alertar eventos en el monitor de vigilancia</td></tr>
-              <tr><td>Autorizacion Temporal</td><td>Permiso registrado en el sistema que habilita a una persona a retirar llaves de un lugar especifico por un periodo determinado</td></tr>
-              <tr><td>Busqueda Inteligente</td><td>Filtrado en tiempo real que muestra coincidencias parciales a medida que el usuario escribe</td></tr>
-              <tr><td>Purga Automatica</td><td>Eliminacion automatica de autorizaciones cuya fecha de finalizacion ha vencido</td></tr>
+              <tr><td>Licencia</td><td>Estado de ausencia temporal de un vigilante: licencia (vacaciones/personal) o licencia medica. Los vigilantes en licencia no aparecen en botones de entrega/devolucion</td></tr>
+              <tr><td>Notificacion Sonora</td><td>Señal acustica generada via Web Audio API: doble campana (nueva solicitud), ding unico por vigilante (entrega), triple campana por vigilante (devolucion)</td></tr>
+              <tr><td>Autorizacion Temporal</td><td>Permiso registrado que habilita a una persona a retirar llaves de un lugar especifico, con vigencia opcional (desde-hasta) y purga automatica</td></tr>
+              <tr><td>Busqueda Inteligente</td><td>Filtrado en tiempo real insensible a acentos (normalizacion NFD) que muestra coincidencias parciales a medida que el usuario escribe</td></tr>
+              <tr><td>Purga Automatica</td><td>Eliminacion automatica de autorizaciones cuya fecha de finalizacion (fechaHasta) es anterior a la fecha actual</td></tr>
+              <tr><td>Usuario Registrado</td><td>Persona que completo el formulario de registro con nombre, celular/email, tipo y datos opcionales (departamento TAS o nombre empresa)</td></tr>
+              <tr><td>Web Audio API</td><td>API del navegador utilizada para generar sonidos programaticos sin archivos de audio externos</td></tr>
             </tbody>
           </table>
         </div>
