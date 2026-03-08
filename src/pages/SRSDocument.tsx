@@ -779,12 +779,16 @@ const SRSDocument = () => {
                     <tr><td className="font-semibold pr-4 align-top">Actor Principal</td><td>Usuario Solicitante</td></tr>
                     <tr><td className="font-semibold pr-4 align-top">Descripcion</td><td>El usuario solicita una o mas llaves desde el terminal</td></tr>
                     <tr><td className="font-semibold pr-4 align-top">Flujo Principal</td><td>
-                      1. Usuario ingresa nombre y celular<br/>
-                      2. Selecciona tipo de usuario<br/>
-                      3. Busca la llave deseada<br/>
-                      4. Selecciona una o mas llaves<br/>
-                      5. Confirma la solicitud<br/>
-                      6. Sistema registra y notifica a vigilancia
+                      1. Usuario ingresa celular o email en el campo de busqueda<br/>
+                      2. Sistema busca en usuarios registrados<br/>
+                      3. Si no existe, presiona "Registrarse" y completa el formulario<br/>
+                      4. Busca la llave deseada (con filtros de tipo y edificio)<br/>
+                      5. Selecciona una o mas llaves (o usa llaves frecuentes)<br/>
+                      6. Confirma la solicitud<br/>
+                      7. Sistema registra, emite sonido y notifica a vigilancia
+                    </td></tr>
+                    <tr><td className="font-semibold pr-4 align-top">Flujo Alterno</td><td>
+                      Si la llave esta en uso, el usuario puede solicitar un intercambio aceptando responsabilidad
                     </td></tr>
                   </tbody>
                 </table>
