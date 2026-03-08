@@ -522,6 +522,7 @@ const SRSDocument = () => {
                 <p><strong>Descripcion:</strong> Al completar el registro de un nuevo usuario, el terminal muestra un mensaje de exito y se reinicia completamente, permitiendo al usuario probar su registro ingresando su telefono o email.</p>
                 <p><strong>Prioridad:</strong> Media</p>
                 <p><strong>Justificacion:</strong> Permite al usuario verificar inmediatamente que su registro fue exitoso antes de solicitar llaves.</p>
+              </div>
             </div>
 
             <div className="border rounded-lg overflow-hidden">
