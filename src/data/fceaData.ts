@@ -371,6 +371,30 @@ export function getAutorizaciones(): Autorizacion[] {
   }
 }
 
+/** Remove authorizations whose fechaHasta is in the past */
+export function purgarAutorizacionesVencidas(): number {
+  const auths = getAutorizaciones();
+  const hoy = new Date().toISOString().split('T')[0];
+  const vigentes = auths.filter(a => !a.fechaHasta || a.fechaHasta >= hoy);
+  const eliminadas = auths.length - vigentes.length;
+  if (eliminadas > 0) {
+    localStorage.setItem(AUTORIZACIONES_KEY, JSON.stringify(vigentes));
+  }
+  return eliminadas;
+}
+
+/** Live search: returns authorizations matching partial name or place as user types */
+export function buscarAutorizacionEnVivo(persona: string, lugar: string): Autorizacion[] {
+  const auths = getAutorizaciones();
+  const pNorm = normalizarTexto(persona);
+  const lNorm = normalizarTexto(lugar);
+  return auths.filter(a => {
+    const matchPersona = !persona.trim() || normalizarTexto(a.personaNombre).includes(pNorm);
+    const matchLugar = !lugar.trim() || normalizarTexto(a.lugarAutorizado).includes(lNorm);
+    return matchPersona && matchLugar;
+  });
+}
+
 export function guardarAutorizacion(auth: Omit<Autorizacion, 'id' | 'fechaCreacion'>): Autorizacion {
   const auths = getAutorizaciones();
   const nueva: Autorizacion = {
