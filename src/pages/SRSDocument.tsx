@@ -670,12 +670,12 @@ const SRSDocument = () => {
           <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">4.3 Enumeraciones</h3>
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-gray-50 p-4 rounded-lg border">
-              <h4 className="font-semibold text-blue-900 mb-2">Tipos de Lugar</h4>
-              <code className="text-sm">salon | oficina | laboratorio | deposito | otro</code>
+              <h4 className="font-semibold text-blue-900 mb-2">Tipos de Lugar (TipoLugar)</h4>
+              <code className="text-sm">Salon | Salon Hibrido | Oficina | Sala | Deposito | Baño | Area Comun | Biblioteca | Auditorio</code>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg border">
-              <h4 className="font-semibold text-blue-900 mb-2">Tipos de Usuario</h4>
-              <code className="text-sm">Docente | Alumno | Personal TAS (con departamento) | Empresa</code>
+              <h4 className="font-semibold text-blue-900 mb-2">Tipos de Usuario (TipoUsuario)</h4>
+              <code className="text-sm">Docente | Alumno | Personal TAS (con departamento) | Empresa (con nombre empresa)</code>
             </div>
             <div className="bg-gray-50 p-4 rounded-lg border">
               <h4 className="font-semibold text-blue-900 mb-2">Estados de Solicitud</h4>
@@ -683,7 +683,23 @@ const SRSDocument = () => {
             </div>
             <div className="bg-gray-50 p-4 rounded-lg border">
               <h4 className="font-semibold text-blue-900 mb-2">Turnos de Vigilancia</h4>
-              <code className="text-sm">Matutino | Vespertino | Nocturno</code>
+              <code className="text-sm">Matutino (06-14) | Vespertino (14-22) | Nocturno (22-06)</code>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <h4 className="font-semibold text-blue-900 mb-2">Tipos de Tablero (TipoTablero)</h4>
+              <code className="text-sm">Tablero Principal | Tablero Copias | Tablero Jefes</code>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <h4 className="font-semibold text-blue-900 mb-2">Estado de Licencia</h4>
+              <code className="text-sm">activo | licencia | licencia_medica</code>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <h4 className="font-semibold text-blue-900 mb-2">Zonas del Tablero</h4>
+              <code className="text-sm">Puerta derecha | Puerta izquierda | Fondo | Lateral derecho | Lateral izquierdo</code>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <h4 className="font-semibold text-blue-900 mb-2">Departamentos TAS</h4>
+              <code className="text-sm">Electrotecnia | Servicios Generales | Compras | Gastos | UPC | Decanato | Suministros | Apoyo Docente | Bedelia | Contaduria | Sueldos | CAVIDA | Convenios | Concursos | Sistemas | Mantenimiento | Vigilancia</code>
             </div>
           </div>
         </div>
