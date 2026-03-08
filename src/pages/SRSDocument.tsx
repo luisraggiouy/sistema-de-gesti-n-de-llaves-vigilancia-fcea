@@ -846,32 +846,48 @@ const SRSDocument = () => {
                     +------------------------+
                                  |
                                  v
-                    +------------------------+
-                    | Ingresa nombre y       |
-                    | numero de celular      |
-                    +------------------------+
-                                 |
-                                 v
-                    +------------------------+
-                    | Selecciona tipo de     |
-                    | usuario                |
-                    +------------------------+
-                                 |
-                                 v
+               +----------------------------------+
+               | Se identifica con celular o     |
+               | email (busqueda en registrados) |
+               +----------------------------------+
+                       |                |
+                   ENCONTRADO       NO ENCONTRADO
+                       |                |
+                       v                v
+              +-----------------+  +-----------------+
+              | Seleccion       |  | Presiona boton  |
+              | automatica      |  | "Registrarse"   |
+              | del usuario     |  | (ver flujo 6.5) |
+              +-----------------+  +-----------------+
+                       |                |
+                       +-------+--------+
+                               |
+                               v
                +----------------------------------+
                | Busca llave por nombre o        |
                | selecciona de llaves frecuentes |
+               | (filtro por tipo y edificio)    |
                +----------------------------------+
                                  |
                                  v
-                    +------------------------+
-                    | Confirmar seleccion    |
-                    +------------------------+
-                                 |
-                                 v
+               +----------------------------------+
+               | Hora actual entre 7:00 y 23:00? |
+               | (o usuario exento?)             |
+               +----------------------------------+
+                       |                |
+                      SI               NO
+                       |                |
+                       v                v
+              +-----------------+  +-----------------+
+              | Confirmar       |  | Banner "Horario |
+              | seleccion       |  | restringido"    |
+              |                 |  | Bloquear envio  |
+              +-----------------+  +-----------------+
+                       |
+                       v
                     +------------------------+
                     | Sistema genera         |
-                    | solicitud              |
+                    | solicitud + sonido     |
                     +------------------------+
                                  |
                                  v
