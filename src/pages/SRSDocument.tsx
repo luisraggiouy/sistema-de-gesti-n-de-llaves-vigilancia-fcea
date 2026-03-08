@@ -522,6 +522,43 @@ const SRSDocument = () => {
                 <p><strong>Descripcion:</strong> Al completar el registro de un nuevo usuario, el terminal muestra un mensaje de exito y se reinicia completamente, permitiendo al usuario probar su registro ingresando su telefono o email.</p>
                 <p><strong>Prioridad:</strong> Media</p>
                 <p><strong>Justificacion:</strong> Permite al usuario verificar inmediatamente que su registro fue exitoso antes de solicitar llaves.</p>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-024: Modulo de Autorizaciones Temporales</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> El sistema permite registrar autorizaciones temporales que habilitan a personas especificas a retirar llaves de lugares determinados. Cada autorizacion incluye: persona, lugar, autorizante, fecha de autorizacion, periodo de vigencia opcional (desde-hasta), horario, email de referencia y observaciones.</p>
+                <p><strong>Prioridad:</strong> Alta</p>
+                <p><strong>Ubicacion:</strong> Pestaña "Autorizaciones" dentro del modulo "Agenda / Autorizaciones" del Monitor de Vigilancia.</p>
+                <p><strong>Justificacion:</strong> Sustituye la busqueda manual en correos electronicos que realizaban los vigilantes para verificar permisos temporales.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-025: Busqueda Inteligente en Autorizaciones</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> Los campos de busqueda de nombre y lugar en el verificador de autorizaciones funcionan como buscador inteligente en tiempo real. A medida que el vigilante escribe, el sistema filtra y muestra coincidencias parciales del listado de autorizaciones registradas.</p>
+                <p><strong>Prioridad:</strong> Alta</p>
+                <p><strong>Ejemplo:</strong> Al escribir "S" se muestran todos los nombres con S; al escribir "Sh" se filtran nombres que contienen "Sh".</p>
+                <p><strong>Implementacion:</strong> Busqueda insensible a acentos (NFD normalization) ejecutada en cada cambio de caracter.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-026: Baja Automatica de Autorizaciones Vencidas</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> Las autorizaciones que tengan fecha de finalizacion (fechaHasta) anterior a la fecha actual se eliminan automaticamente al abrir el modulo. El sistema notifica al vigilante cuantas autorizaciones fueron purgadas.</p>
+                <p><strong>Prioridad:</strong> Alta</p>
+                <p><strong>Complemento:</strong> Se muestra un badge de "Vence pronto" para autorizaciones que expiran dentro de los proximos 7 dias.</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-027: Edicion y Eliminacion de Autorizaciones</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> Desde el verificador de autorizaciones, el vigilante puede editar todos los campos de una autorizacion existente o eliminarla con confirmacion previa.</p>
+                <p><strong>Prioridad:</strong> Alta</p>
+                <p><strong>Operaciones:</strong> Editar (abre formulario precargado), Eliminar (con dialogo de confirmacion).</p>
               </div>
             </div>
           </div>
