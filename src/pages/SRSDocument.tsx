@@ -1255,7 +1255,7 @@ const SRSDocument = () => {
 
           <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">7.1 Terminal de Usuario</h3>
           <p className="text-gray-700 mb-4">
-            El Terminal de Usuario es la interfaz publica donde los docentes, alumnos, personal TAS y empresas solicitan las llaves. Los usuarios pueden identificarse con celular o email.
+            El Terminal de Usuario es la interfaz publica donde los docentes, alumnos, personal TAS y empresas solicitan las llaves. Los usuarios se identifican ingresando su celular o email en un campo de busqueda. Si no estan registrados, pueden hacerlo mediante el boton "Registrarse".
           </p>
           <div className="diagram mb-6">{`
 +------------------------------------------------------------------+
@@ -1263,21 +1263,33 @@ const SRSDocument = () => {
 +------------------------------------------------------------------+
 |                                                                   |
 |  +------------------------------------------------------------+  |
-|  |                    REGISTRO DE USUARIO                      |  |
+|  |              IDENTIFICACION DE USUARIO                      |  |
 |  +------------------------------------------------------------+  |
-|  |  Nombre completo: [________________________]                |  |
-|  |  Celular/Email:   [________________________]                |  |
-|  |  Tipo: ( ) Docente  ( ) Alumno  ( ) Personal TAS  ( ) Empresa|  |
+|  |  [Ingrese su celular o email...     ]  [Registrarse]        |  |
+|  |  (busca en usuarios registrados por celular/email)          |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|  +------------------------------------------------------------+  |
+|  | LLAVES FRECUENTES (basadas en historial del usuario):       |  |
+|  | +----------+ +----------+ +----------+ +----------+         |  |
+|  | | Salon 101| | Ofi.Conc | | Sala Prof| | Auditor. |         |  |
 |  +------------------------------------------------------------+  |
 |                                                                   |
 |  +------------------------------------------------------------+  |
 |  |                    BUSQUEDA DE LLAVES                       |  |
 |  +------------------------------------------------------------+  |
-|  |  [Buscar llave...                              ] [Buscar]   |  |
+|  |  [Buscar llave...] Tipo:[Todos v] Edificio:[Todos v]       |  |
 |  |                                                             |  |
-|  |  LLAVES FRECUENTES:                                         |  |
-|  |  +----------+ +----------+ +----------+ +----------+        |  |
-|  |  | Salon 1  | | Salon 2  | | Lab. A   | | Oficina  |        |  |
+|  |  Salon 101 [Disponible]  Salon 102 [Disponible]            |  |
+|  |  Salon 201 [En uso por: Maria Lopez] [Intercambiar]        |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|  +------------------------------------------------------------+  |
+|  | [!] Banner restriccion horaria (si aplica, 23:00-07:00)    |  |
+|  +------------------------------------------------------------+  |
+|                                                                   |
+|  +------------------------------------------------------------+  |
+|  | CONFIRMACION: 2 llaves seleccionadas  [Enviar] [Cancelar]  |  |
 |  +------------------------------------------------------------+  |
 |                                                                   |
 +------------------------------------------------------------------+
