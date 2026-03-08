@@ -652,19 +652,32 @@ const SRSDocument = () => {
 | nombre: string   |<------| lugar: Lugar     |       | nombre: string   |
 | tipo: TipoLugar  |       | usuario: Usuario |       | turno: Turno     |
 | tablero: Tablero |       | terminal: string |       | esJefe: boolean  |
-| disponible: bool |       | horaSolicitud    |       | estadoLicencia?: |
-| ubicacion:       |       | horaEntrega?     |       |   EstadoLicencia |
-|   zona: string   |       | horaDevolucion?  |       +------------------+
-|   fila: number   |       | entregadoPor?    |
-|   columna: string|       | recibidoPor?     |       Tableros:
-+------------------+       | estado: Estado   |       - Tablero Principal
-                           | notas?: string   |       - Tablero Copias
-                           +------------------+       - Tablero Jefes
-
-                           EstadoLicencia:
-                           - activo
-                           - licencia
-                           - licencia_medica
+| edificio: string |       | horaSolicitud    |       | estadoLicencia?: |
+| disponible: bool |       | horaEntrega?     |       |   EstadoLicencia |
+| esHibrido: bool  |       | horaDevolucion?  |       +------------------+
+| ubicacion:       |       | entregadoPor?    |
+|   zona: string   |       | recibidoPor?     |       +------------------+
+|   fila?: number  |       | estado: Estado   |       | UsuarioRegistrado|
+|   columna?:string|       | esIntercambio?   |       +------------------+
++------------------+       | usuarioAnterior? |       | id: string       |
+                           | notas?: string   |       | nombre: string   |
+                           +------------------+       | celular: string  |
+                                                      | email?: string   |
++------------------+                                  | tipo: TipoUsuario|
+|  Autorizacion    |                                  | departamento?    |
++------------------+                                  | nombreEmpresa?   |
+| id: string       |                                  | fechaRegistro    |
+| personaNombre    |                                  +------------------+
+| lugarAutorizado  |
+| autorizadoPor    |       EstadoLicencia:
+| fechaAutorizacion|       - activo
+| fechaDesde?      |       - licencia
+| fechaHasta?      |       - licencia_medica
+| horario?         |
+| emailReferencia? |
+| observaciones?   |
+| fechaCreacion    |
++------------------+
           `}</div>
 
           <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">4.3 Enumeraciones</h3>
