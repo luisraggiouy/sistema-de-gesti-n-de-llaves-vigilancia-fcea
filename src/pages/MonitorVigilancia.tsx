@@ -361,7 +361,7 @@ export default function MonitorVigilancia() {
       </main>
 
       <footer className="py-4 text-center text-sm text-muted-foreground border-t mt-8">
-        <p>Monitor de Vigilancia • FCEA UdelaR • Sistema de Gestión de Llaves v4.0</p>
+        <p>Monitor de Vigilancia • FCEA UdelaR • Sistema de Gestión de Llaves v4.3</p>
       </footer>
     </div>
   );
