@@ -1125,7 +1125,75 @@ const SRSDocument = () => {
                +-------------+  +----------+
                      |
                     SI -> No reproducir
-                    NO -> Reproducir sonido
+                     NO -> Reproducir sonido
+          `}</div>
+
+          <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">6.8 Flujo de Verificacion de Autorizaciones</h3>
+          <div className="diagram mb-6">{`
+                          +-------------+
+                          |   INICIO    |
+                          +------+------+
+                                 |
+                                 v
+                    +------------------------+
+                    | Vigilante abre modulo  |
+                    | "Agenda/Autorizaciones"|
+                    +------------------------+
+                                 |
+                                 v
+                    +------------------------+
+                    | Sistema purga          |
+                    | autorizaciones vencidas|
+                    | (fechaHasta < hoy)     |
+                    +------------------------+
+                                 |
+                                 v
+                    +------------------------+
+                    | Vigilante escribe      |
+                    | nombre o lugar         |
+                    +------------------------+
+                                 |
+                                 v
+               +----------------------------------+
+               | Busqueda inteligente en         |
+               | tiempo real (filtrado parcial)  |
+               +----------------------------------+
+                                 |
+                                 v
+               +----------------------------------+
+               | Se encontraron resultados?       |
+               +----------------------------------+
+                      |                |
+                     SI               NO
+                      |                |
+                      v                v
+            +-----------------+  +-----------------+
+            | Mostrar         |  | Mostrar "No se  |
+            | autorizaciones  |  | encontro        |
+            | con editar/     |  | autorizacion"   |
+            | eliminar        |  +-----------------+
+            +-----------------+
+                      |
+                      v
+               +----------------------------------+
+               | Accion deseada?                  |
+               +----------------------------------+
+                  |          |           |
+                EDITAR    ELIMINAR    CONSULTAR
+                  |          |           |
+                  v          v           v
+          +----------+  +----------+  +----------+
+          | Formulario|  | Confirmar|  | Ver      |
+          | edicion   |  | elimina- |  | detalles |
+          | precargado|  | cion     |  | vigencia |
+          +----------+  +----------+  +----------+
+                  |          |           |
+                  +----+-----+-----------+
+                       |
+                       v
+                 +-------------+
+                 |     FIN     |
+                 +-------------+
           `}</div>
         </div>
 
