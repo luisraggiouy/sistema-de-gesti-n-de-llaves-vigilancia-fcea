@@ -106,8 +106,8 @@ const SRSDocument = () => {
             </h2>
             
             <div className="border-t-2 border-gray-300 pt-8 mt-8 text-left max-w-sm mx-auto">
-              <p className="mb-2"><strong>Version:</strong> 4.0</p>
-              <p className="mb-2"><strong>Fecha:</strong> 5 de Marzo de 2026</p>
+              <p className="mb-2"><strong>Version:</strong> 4.3</p>
+              <p className="mb-2"><strong>Fecha:</strong> 8 de Marzo de 2026</p>
               <p className="mb-2"><strong>Elaborado por:</strong> Equipo de Desarrollo</p>
               <p><strong>Institucion:</strong> Facultad de Ciencias Economicas y de Administracion</p>
             </div>
