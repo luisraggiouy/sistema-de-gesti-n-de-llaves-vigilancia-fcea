@@ -158,12 +158,15 @@ const SRSDocument = () => {
           <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">1.2 Alcance</h3>
           <p className="text-gray-700 leading-relaxed mb-4">El Sistema de Gestion de Llaves abarca:</p>
           <ul className="list-disc list-inside text-gray-700 mb-4 space-y-1 pl-4">
+            <li>Registro e identificacion de usuarios por celular o email</li>
             <li>Solicitud de llaves por parte de docentes, alumnos, personal TAS y empresas</li>
-            <li>Gestion de entregas y devoluciones por parte del personal de vigilancia</li>
-            <li>Control de tiempos de uso con alertas automatizadas</li>
+            <li>Gestion de entregas, devoluciones e intercambios por parte del personal de vigilancia</li>
+            <li>Control de tiempos de uso con alertas automatizadas y notificaciones sonoras</li>
             <li>Registro historico de todas las operaciones</li>
-            <li>Generacion de reportes para la administracion</li>
-            <li>Gestion de personal de vigilancia por turnos</li>
+            <li>Generacion de reportes para la administracion con exportacion CSV</li>
+            <li>Gestion de personal de vigilancia por turnos con control de licencias</li>
+            <li>Modulo de autorizaciones temporales con busqueda inteligente y purga automatica</li>
+            <li>Agenda de contactos con edicion y eliminacion de usuarios</li>
           </ul>
 
           <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">1.3 Definiciones y Acronimos</h3>
