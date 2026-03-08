@@ -47,7 +47,7 @@ export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProp
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
         {/* Logo y título */}
         <div className="flex items-center gap-4">
-          <img src={fceaLogo} alt="FCEA - Universidad de la República" className="h-[4.5rem] w-auto" />
+          <img src={fceaLogo} alt="FCEA - Universidad de la República" className="h-[5.85rem] w-auto" />
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
               Monitor de Vigilancia
