@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
-import { Shield, Clock, Users, Key, BarChart3 } from 'lucide-react';
+import { Clock, Users, Key, BarChart3 } from 'lucide-react';
+import fceaLogo from '@/assets/fcea-logo.png';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
