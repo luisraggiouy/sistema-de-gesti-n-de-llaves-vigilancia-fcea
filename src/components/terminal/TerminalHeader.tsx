@@ -20,7 +20,7 @@ export function TerminalHeader() {
     <header className="bg-primary text-primary-foreground py-6 px-8 shadow-lg">
       <div className="max-w-4xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <img src={fceaLogo} alt="FCEA - Universidad de la República" className="h-[7.3rem] w-auto" />
+          <img src={fceaLogo} alt="FCEA - Universidad de la República" className="h-[6.2rem] w-auto" />
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
               Sistema de Gestión de Llaves
