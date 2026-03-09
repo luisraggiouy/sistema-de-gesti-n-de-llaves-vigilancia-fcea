@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import terminalScreenshot from "@/docs/screenshots/terminal-usuario.png";
 import monitorScreenshot from "@/docs/screenshots/monitor-vigilancia.png";
 import dashboardScreenshot from "@/docs/screenshots/dashboard-estadistico.png";
+import fceaLogo from "@/assets/fcea-logo.png";
 
 const SRSDocument = () => {
   useEffect(() => {
