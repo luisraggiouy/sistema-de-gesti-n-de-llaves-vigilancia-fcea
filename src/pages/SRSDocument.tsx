@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import terminalScreenshot from "@/docs/screenshots/terminal-usuario.png";
 import monitorScreenshot from "@/docs/screenshots/monitor-vigilancia.png";
 import dashboardScreenshot from "@/docs/screenshots/dashboard-estadistico.png";
+import fceaLogo from "@/assets/fcea-logo.png";
 
 const SRSDocument = () => {
   useEffect(() => {
@@ -95,7 +96,7 @@ const SRSDocument = () => {
         {/* Portada */}
         <div className="text-center mb-16 print-section">
           <div className="border-4 border-blue-900 p-12 rounded-lg">
-            <div className="text-blue-900 text-6xl font-bold mb-2">FCEA</div>
+            <img src={fceaLogo} alt="FCEA - Universidad de la República" className="h-32 w-auto mx-auto mb-4" />
             <div className="text-gray-600 text-lg mb-8">Universidad de la Republica</div>
             
             <h1 className="text-3xl font-bold text-gray-900 mb-4">
