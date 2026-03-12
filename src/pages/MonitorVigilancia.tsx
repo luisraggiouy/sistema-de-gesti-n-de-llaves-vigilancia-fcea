@@ -263,7 +263,7 @@ export default function MonitorVigilancia() {
         objetos={objetos}
         objetosEnCustodia={objetosEnCustodia}
         objetosDevueltos={objetosDevueltos}
-        vigilantes={vigilantesActuales}
+        vigilantes={vigilantesActuales.map(v => v.nombre)}
         onRegistrar={registrarObjeto}
         onDevolver={devolverObjeto}
         buscarObjetos={buscarObjetos}
