@@ -1498,10 +1498,12 @@ const SRSDocument = () => {
               <tr><td>Notificacion Sonora</td><td>Señal acustica generada via Web Audio API: doble campana (nueva solicitud), ding unico por vigilante (entrega), triple campana por vigilante (devolucion)</td></tr>
               <tr><td>Autorizacion Temporal</td><td>Permiso registrado que habilita a una persona a retirar llaves de un lugar especifico, con vigencia opcional (desde-hasta) y purga automatica</td></tr>
               <tr><td>Historial de Autorizaciones</td><td>Registro permanente de autorizaciones eliminadas o vencidas, consultable por lugar, persona y rango de fechas, preservando todos los datos originales y el motivo de baja</td></tr>
+              <tr><td>Objeto Olvidado</td><td>Articulo encontrado en las instalaciones de la FCEA, registrado con fotos via webcam, descripcion y lugar, custodiado hasta su devolucion con registro de receptor (nombre y cedula)</td></tr>
               <tr><td>Busqueda Inteligente</td><td>Filtrado en tiempo real insensible a acentos (normalizacion NFD) que muestra coincidencias parciales a medida que el usuario escribe</td></tr>
               <tr><td>Purga Automatica</td><td>Eliminacion automatica de autorizaciones cuya fecha de finalizacion (fechaHasta) es anterior a la fecha actual</td></tr>
               <tr><td>Usuario Registrado</td><td>Persona que completo el formulario de registro con nombre, celular/email, tipo y datos opcionales (departamento TAS o nombre empresa)</td></tr>
               <tr><td>Web Audio API</td><td>API del navegador utilizada para generar sonidos programaticos sin archivos de audio externos</td></tr>
+              <tr><td>WebCam / getUserMedia</td><td>API del navegador para acceder a la camara del dispositivo, utilizada para capturar fotografias de objetos olvidados</td></tr>
             </tbody>
           </table>
         </div>
