@@ -1511,7 +1511,7 @@ const SRSDocument = () => {
         {/* Pie de pagina del documento */}
         <div className="border-t-2 border-gray-300 pt-8 mt-12 text-center text-gray-600">
           <p className="font-semibold">Sistema de Gestion de Llaves - FCEA UdelaR</p>
-          <p className="text-sm">Documento de Especificacion de Requisitos de Software - Version 4.4</p>
+          <p className="text-sm">Documento de Especificacion de Requisitos de Software - Version 4.5</p>
           <p className="text-sm">12 de Marzo de 2026</p>
         </div>
       </div>
