@@ -257,6 +257,18 @@ export default function MonitorVigilancia() {
         onOpenChange={setAgendaOpen}
       />
 
+      <ObjetosOlvidadosModal
+        open={objetosOpen}
+        onOpenChange={setObjetosOpen}
+        objetos={objetos}
+        objetosEnCustodia={objetosEnCustodia}
+        objetosDevueltos={objetosDevueltos}
+        vigilantes={vigilantesActuales}
+        onRegistrar={registrarObjeto}
+        onDevolver={devolverObjeto}
+        buscarObjetos={buscarObjetos}
+      />
+
       <main className="max-w-7xl mx-auto py-6 px-4 space-y-8">
         {/* Sección: Cola de Solicitudes */}
         <section>
