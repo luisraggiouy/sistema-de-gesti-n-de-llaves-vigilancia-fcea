@@ -14,9 +14,11 @@ import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, Key, CheckCircle2, Settings2, Users, Settings, History, BookUser } from 'lucide-react';
+import { ClipboardList, Key, CheckCircle2, Settings2, Users, Settings, History, BookUser, Package } from 'lucide-react';
 import { useSonidos } from '@/hooks/useSonidos';
 import { SoundControls } from '@/components/monitor/SoundControls';
+import { ObjetosOlvidadosModal } from '@/components/monitor/ObjetosOlvidadosModal';
+import { useObjetosOlvidados } from '@/hooks/useObjetosOlvidados';
 
 export default function MonitorVigilancia() {
   const { toast } = useToast();
@@ -60,6 +62,16 @@ export default function MonitorVigilancia() {
   const [configModalOpen, setConfigModalOpen] = useState(false);
   const [historySearchOpen, setHistorySearchOpen] = useState(false);
   const [agendaOpen, setAgendaOpen] = useState(false);
+  const [objetosOpen, setObjetosOpen] = useState(false);
+
+  const {
+    objetos,
+    objetosEnCustodia,
+    objetosDevueltos,
+    registrarObjeto,
+    devolverObjeto,
+    buscarObjetos,
+  } = useObjetosOlvidados();
 
   // Auto-refresh de hora cada segundo
   const [, setTick] = useState(0);
@@ -139,6 +151,18 @@ export default function MonitorVigilancia() {
       >
         <div className="flex gap-2">
            <Button 
+            variant="outline" 
+            onClick={() => setObjetosOpen(true)}
+            className="gap-2"
+            size="sm"
+          >
+            <Package className="w-4 h-4" />
+            <span className="hidden md:inline">Objetos</span>
+            {objetosEnCustodia.length > 0 && (
+              <Badge variant="secondary" className="ml-1">{objetosEnCustodia.length}</Badge>
+            )}
+          </Button>
+          <Button 
             variant="outline" 
             onClick={() => setAgendaOpen(true)}
             className="gap-2"
@@ -231,6 +255,18 @@ export default function MonitorVigilancia() {
       <AgendaModal
         open={agendaOpen}
         onOpenChange={setAgendaOpen}
+      />
+
+      <ObjetosOlvidadosModal
+        open={objetosOpen}
+        onOpenChange={setObjetosOpen}
+        objetos={objetos}
+        objetosEnCustodia={objetosEnCustodia}
+        objetosDevueltos={objetosDevueltos}
+        vigilantes={vigilantesActuales.map(v => v.nombre)}
+        onRegistrar={registrarObjeto}
+        onDevolver={devolverObjeto}
+        buscarObjetos={buscarObjetos}
       />
 
       <main className="max-w-7xl mx-auto py-6 px-4 space-y-8">

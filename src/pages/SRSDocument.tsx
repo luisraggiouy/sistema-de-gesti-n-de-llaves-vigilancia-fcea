@@ -582,6 +582,25 @@ const SRSDocument = () => {
                 </ul>
               </div>
             </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-029: Registro de Objetos Olvidados</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> El sistema permite al personal de vigilancia registrar objetos olvidados encontrados en las instalaciones de la FCEA, incluyendo captura fotografica mediante webcam, y gestionar su custodia y devolucion con trazabilidad completa.</p>
+                <p><strong>Prioridad:</strong> Alta</p>
+                <p><strong>Funcionalidades:</strong></p>
+                <ul className="list-disc list-inside mt-1 space-y-1 pl-4">
+                  <li>Registro de objeto con descripcion breve (max 80 caracteres), lugar donde fue encontrado (opcional) y vigilante que lo registra</li>
+                  <li>Captura de 3 fotografias via webcam: foto general del objeto (obligatoria), foto de la marca (obligatoria) y foto adicional con caracteristica distintiva (opcional)</li>
+                  <li>Registro automatico de fecha y hora al momento del ingreso</li>
+                  <li>Buscador con filtros por descripcion, lugar, rango de fechas y estado (en custodia / devuelto / todos)</li>
+                  <li>Proceso de devolucion que registra: vigilante que entrega, nombre completo y cedula de identidad del receptor</li>
+                  <li>Visualizacion expandible de las fotografias del objeto en cualquier momento</li>
+                  <li>Pestanas organizativas: objetos en custodia, buscador y objetos devueltos</li>
+                  <li>Persistencia de datos en almacenamiento local con fotos codificadas en base64</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">3.2 Requisitos No Funcionales</h3>
@@ -1479,10 +1498,12 @@ const SRSDocument = () => {
               <tr><td>Notificacion Sonora</td><td>Señal acustica generada via Web Audio API: doble campana (nueva solicitud), ding unico por vigilante (entrega), triple campana por vigilante (devolucion)</td></tr>
               <tr><td>Autorizacion Temporal</td><td>Permiso registrado que habilita a una persona a retirar llaves de un lugar especifico, con vigencia opcional (desde-hasta) y purga automatica</td></tr>
               <tr><td>Historial de Autorizaciones</td><td>Registro permanente de autorizaciones eliminadas o vencidas, consultable por lugar, persona y rango de fechas, preservando todos los datos originales y el motivo de baja</td></tr>
+              <tr><td>Objeto Olvidado</td><td>Articulo encontrado en las instalaciones de la FCEA, registrado con fotos via webcam, descripcion y lugar, custodiado hasta su devolucion con registro de receptor (nombre y cedula)</td></tr>
               <tr><td>Busqueda Inteligente</td><td>Filtrado en tiempo real insensible a acentos (normalizacion NFD) que muestra coincidencias parciales a medida que el usuario escribe</td></tr>
               <tr><td>Purga Automatica</td><td>Eliminacion automatica de autorizaciones cuya fecha de finalizacion (fechaHasta) es anterior a la fecha actual</td></tr>
               <tr><td>Usuario Registrado</td><td>Persona que completo el formulario de registro con nombre, celular/email, tipo y datos opcionales (departamento TAS o nombre empresa)</td></tr>
               <tr><td>Web Audio API</td><td>API del navegador utilizada para generar sonidos programaticos sin archivos de audio externos</td></tr>
+              <tr><td>WebCam / getUserMedia</td><td>API del navegador para acceder a la camara del dispositivo, utilizada para capturar fotografias de objetos olvidados</td></tr>
             </tbody>
           </table>
         </div>
@@ -1490,7 +1511,7 @@ const SRSDocument = () => {
         {/* Pie de pagina del documento */}
         <div className="border-t-2 border-gray-300 pt-8 mt-12 text-center text-gray-600">
           <p className="font-semibold">Sistema de Gestion de Llaves - FCEA UdelaR</p>
-          <p className="text-sm">Documento de Especificacion de Requisitos de Software - Version 4.4</p>
+          <p className="text-sm">Documento de Especificacion de Requisitos de Software - Version 4.5</p>
           <p className="text-sm">12 de Marzo de 2026</p>
         </div>
       </div>
