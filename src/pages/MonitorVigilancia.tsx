@@ -14,9 +14,11 @@ import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, Key, CheckCircle2, Settings2, Users, Settings, History, BookUser } from 'lucide-react';
+import { ClipboardList, Key, CheckCircle2, Settings2, Users, Settings, History, BookUser, Package } from 'lucide-react';
 import { useSonidos } from '@/hooks/useSonidos';
 import { SoundControls } from '@/components/monitor/SoundControls';
+import { ObjetosOlvidadosModal } from '@/components/monitor/ObjetosOlvidadosModal';
+import { useObjetosOlvidados } from '@/hooks/useObjetosOlvidados';
 
 export default function MonitorVigilancia() {
   const { toast } = useToast();
