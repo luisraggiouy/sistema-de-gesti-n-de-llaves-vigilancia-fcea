@@ -582,6 +582,25 @@ const SRSDocument = () => {
                 </ul>
               </div>
             </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-029: Registro de Objetos Olvidados</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> El sistema permite al personal de vigilancia registrar objetos olvidados encontrados en las instalaciones de la FCEA, incluyendo captura fotografica mediante webcam, y gestionar su custodia y devolucion con trazabilidad completa.</p>
+                <p><strong>Prioridad:</strong> Alta</p>
+                <p><strong>Funcionalidades:</strong></p>
+                <ul className="list-disc list-inside mt-1 space-y-1 pl-4">
+                  <li>Registro de objeto con descripcion breve (max 80 caracteres), lugar donde fue encontrado (opcional) y vigilante que lo registra</li>
+                  <li>Captura de 3 fotografias via webcam: foto general del objeto (obligatoria), foto de la marca (obligatoria) y foto adicional con caracteristica distintiva (opcional)</li>
+                  <li>Registro automatico de fecha y hora al momento del ingreso</li>
+                  <li>Buscador con filtros por descripcion, lugar, rango de fechas y estado (en custodia / devuelto / todos)</li>
+                  <li>Proceso de devolucion que registra: vigilante que entrega, nombre completo y cedula de identidad del receptor</li>
+                  <li>Visualizacion expandible de las fotografias del objeto en cualquier momento</li>
+                  <li>Pestanas organizativas: objetos en custodia, buscador y objetos devueltos</li>
+                  <li>Persistencia de datos en almacenamiento local con fotos codificadas en base64</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">3.2 Requisitos No Funcionales</h3>
