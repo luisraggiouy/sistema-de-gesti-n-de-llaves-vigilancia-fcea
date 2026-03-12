@@ -152,6 +152,18 @@ export default function MonitorVigilancia() {
         <div className="flex gap-2">
            <Button 
             variant="outline" 
+            onClick={() => setObjetosOpen(true)}
+            className="gap-2"
+            size="sm"
+          >
+            <Package className="w-4 h-4" />
+            <span className="hidden md:inline">Objetos</span>
+            {objetosEnCustodia.length > 0 && (
+              <Badge variant="secondary" className="ml-1">{objetosEnCustodia.length}</Badge>
+            )}
+          </Button>
+          <Button 
+            variant="outline" 
             onClick={() => setAgendaOpen(true)}
             className="gap-2"
             size="sm"
