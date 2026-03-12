@@ -566,6 +566,22 @@ const SRSDocument = () => {
                 <p><strong>Operaciones:</strong> Editar (abre formulario precargado), Eliminar (con dialogo de confirmacion).</p>
               </div>
             </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-028: Historial de Autorizaciones</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> El sistema mantiene un historial permanente de todas las autorizaciones que fueron eliminadas manualmente o purgadas por vencimiento. El vigilante puede consultar este historial desde la pestaña "Historial" del modulo Agenda/Autorizaciones.</p>
+                <p><strong>Prioridad:</strong> Media</p>
+                <p><strong>Funcionalidades:</strong></p>
+                <ul className="list-disc list-inside mt-1 space-y-1 pl-4">
+                  <li>Busqueda por lugar o persona con filtrado en tiempo real (insensible a acentos)</li>
+                  <li>Filtrado por rango de fechas (fecha de autorizacion)</li>
+                  <li>Visualizacion de todos los datos originales: persona, lugar, quien autorizo, horario, vigencia, email de referencia y observaciones</li>
+                  <li>Indicador del motivo de baja (vencida o eliminada) y fecha de baja</li>
+                  <li>Las autorizaciones eliminadas manualmente y las purgadas automaticamente por vencimiento se preservan en el historial</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">3.2 Requisitos No Funcionales</h3>

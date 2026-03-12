@@ -230,6 +230,10 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
           <TabsContent value="autorizaciones" className="mt-3">
             <AutorizacionesTab />
           </TabsContent>
+
+          <TabsContent value="historial" className="mt-3">
+            <HistorialAutorizacionesTab />
+          </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>
