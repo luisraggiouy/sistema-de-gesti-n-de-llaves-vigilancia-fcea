@@ -99,12 +99,15 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
         </DialogHeader>
 
         <Tabs defaultValue="contactos" className="w-full">
-          <TabsList className="w-full grid grid-cols-2">
-            <TabsTrigger value="contactos" className="gap-1.5">
+          <TabsList className="w-full grid grid-cols-3">
+            <TabsTrigger value="contactos" className="gap-1 text-xs">
               <User className="w-3.5 h-3.5" />Contactos
             </TabsTrigger>
-            <TabsTrigger value="autorizaciones" className="gap-1.5">
+            <TabsTrigger value="autorizaciones" className="gap-1 text-xs">
               <ShieldCheck className="w-3.5 h-3.5" />Autorizaciones
+            </TabsTrigger>
+            <TabsTrigger value="historial" className="gap-1 text-xs">
+              <History className="w-3.5 h-3.5" />Historial
             </TabsTrigger>
           </TabsList>
 
