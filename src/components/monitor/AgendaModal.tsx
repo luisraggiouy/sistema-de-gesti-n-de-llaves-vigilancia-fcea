@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Phone, Mail, User, Pencil, Trash2, X, Check, Building, ShieldCheck } from 'lucide-react';
+import { Search, Phone, Mail, User, Pencil, Trash2, X, Check, Building, ShieldCheck, History } from 'lucide-react';
 import { 
   getUsuariosRegistrados, normalizarTexto, UsuarioRegistrado, 
   actualizarUsuario, eliminarUsuario, 
