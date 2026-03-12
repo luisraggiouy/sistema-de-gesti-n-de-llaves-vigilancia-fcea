@@ -347,19 +347,25 @@ export function eliminarUsuario(id: string): boolean {
 
 // ============= GESTIÓN DE AUTORIZACIONES =============
 const AUTORIZACIONES_KEY = 'fcea_autorizaciones';
+const HISTORIAL_AUTORIZACIONES_KEY = 'fcea_historial_autorizaciones';
 
 export interface Autorizacion {
   id: string;
   personaNombre: string;
-  lugarAutorizado: string; // nombre de llave/lugar
-  autorizadoPor: string; // quién autoriza (ej: "Director del IESTA Juan González")
-  fechaAutorizacion: string; // ISO date
-  fechaDesde?: string; // ISO date - vigencia desde
-  fechaHasta?: string; // ISO date - vigencia hasta
-  horario?: string; // ej: "Lunes a Viernes de 9 a 18"
-  emailReferencia?: string; // mail de referencia
+  lugarAutorizado: string;
+  autorizadoPor: string;
+  fechaAutorizacion: string;
+  fechaDesde?: string;
+  fechaHasta?: string;
+  horario?: string;
+  emailReferencia?: string;
   observaciones?: string;
   fechaCreacion: string;
+}
+
+export interface AutorizacionHistorial extends Autorizacion {
+  motivoBaja: 'vencida' | 'eliminada';
+  fechaBaja: string;
 }
 
 export function getAutorizaciones(): Autorizacion[] {
@@ -371,12 +377,40 @@ export function getAutorizaciones(): Autorizacion[] {
   }
 }
 
-/** Remove authorizations whose fechaHasta is in the past */
+export function getHistorialAutorizaciones(): AutorizacionHistorial[] {
+  try {
+    const data = localStorage.getItem(HISTORIAL_AUTORIZACIONES_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+function moverAHistorial(auth: Autorizacion, motivo: 'vencida' | 'eliminada') {
+  const historial = getHistorialAutorizaciones();
+  const registro: AutorizacionHistorial = {
+    ...auth,
+    motivoBaja: motivo,
+    fechaBaja: new Date().toISOString(),
+  };
+  historial.push(registro);
+  localStorage.setItem(HISTORIAL_AUTORIZACIONES_KEY, JSON.stringify(historial));
+}
+
+/** Remove authorizations whose fechaHasta is in the past — moves them to history */
 export function purgarAutorizacionesVencidas(): number {
   const auths = getAutorizaciones();
   const hoy = new Date().toISOString().split('T')[0];
-  const vigentes = auths.filter(a => !a.fechaHasta || a.fechaHasta >= hoy);
-  const eliminadas = auths.length - vigentes.length;
+  const vigentes: Autorizacion[] = [];
+  let eliminadas = 0;
+  for (const a of auths) {
+    if (a.fechaHasta && a.fechaHasta < hoy) {
+      moverAHistorial(a, 'vencida');
+      eliminadas++;
+    } else {
+      vigentes.push(a);
+    }
+  }
   if (eliminadas > 0) {
     localStorage.setItem(AUTORIZACIONES_KEY, JSON.stringify(vigentes));
   }
@@ -393,6 +427,17 @@ export function buscarAutorizacionEnVivo(persona: string, lugar: string): Autori
     const matchLugar = !lugar.trim() || normalizarTexto(a.lugarAutorizado).includes(lNorm);
     return matchPersona && matchLugar;
   });
+}
+
+export function buscarHistorialAutorizaciones(lugar: string, fechaDesde?: string, fechaHasta?: string): AutorizacionHistorial[] {
+  const historial = getHistorialAutorizaciones();
+  const lNorm = normalizarTexto(lugar);
+  return historial.filter(a => {
+    if (lugar.trim() && !normalizarTexto(a.lugarAutorizado).includes(lNorm) && !normalizarTexto(a.personaNombre).includes(lNorm)) return false;
+    if (fechaDesde && a.fechaAutorizacion < fechaDesde) return false;
+    if (fechaHasta && a.fechaAutorizacion > fechaHasta) return false;
+    return true;
+  }).sort((a, b) => b.fechaBaja.localeCompare(a.fechaBaja));
 }
 
 export function guardarAutorizacion(auth: Omit<Autorizacion, 'id' | 'fechaCreacion'>): Autorizacion {
@@ -418,8 +463,10 @@ export function actualizarAutorizacion(id: string, datos: Partial<Omit<Autorizac
 
 export function eliminarAutorizacion(id: string): boolean {
   const auths = getAutorizaciones();
+  const auth = auths.find(a => a.id === id);
+  if (!auth) return false;
+  moverAHistorial(auth, 'eliminada');
   const filtered = auths.filter(a => a.id !== id);
-  if (filtered.length === auths.length) return false;
   localStorage.setItem(AUTORIZACIONES_KEY, JSON.stringify(filtered));
   return true;
 }

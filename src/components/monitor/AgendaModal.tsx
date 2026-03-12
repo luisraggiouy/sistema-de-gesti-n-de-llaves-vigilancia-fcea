@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Phone, Mail, User, Pencil, Trash2, X, Check, Building, ShieldCheck } from 'lucide-react';
+import { Search, Phone, Mail, User, Pencil, Trash2, X, Check, Building, ShieldCheck, History } from 'lucide-react';
 import { 
   getUsuariosRegistrados, normalizarTexto, UsuarioRegistrado, 
   actualizarUsuario, eliminarUsuario, 
@@ -15,6 +15,7 @@ import {
 } from '@/data/fceaData';
 import { useToast } from '@/hooks/use-toast';
 import { AutorizacionesTab } from './AutorizacionesTab';
+import { HistorialAutorizacionesTab } from './HistorialAutorizacionesTab';
 
 interface AgendaModalProps {
   open: boolean;
@@ -98,12 +99,15 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
         </DialogHeader>
 
         <Tabs defaultValue="contactos" className="w-full">
-          <TabsList className="w-full grid grid-cols-2">
-            <TabsTrigger value="contactos" className="gap-1.5">
+          <TabsList className="w-full grid grid-cols-3">
+            <TabsTrigger value="contactos" className="gap-1 text-xs">
               <User className="w-3.5 h-3.5" />Contactos
             </TabsTrigger>
-            <TabsTrigger value="autorizaciones" className="gap-1.5">
+            <TabsTrigger value="autorizaciones" className="gap-1 text-xs">
               <ShieldCheck className="w-3.5 h-3.5" />Autorizaciones
+            </TabsTrigger>
+            <TabsTrigger value="historial" className="gap-1 text-xs">
+              <History className="w-3.5 h-3.5" />Historial
             </TabsTrigger>
           </TabsList>
 
@@ -225,6 +229,10 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
 
           <TabsContent value="autorizaciones" className="mt-3">
             <AutorizacionesTab />
+          </TabsContent>
+
+          <TabsContent value="historial" className="mt-3">
+            <HistorialAutorizacionesTab />
           </TabsContent>
         </Tabs>
       </DialogContent>

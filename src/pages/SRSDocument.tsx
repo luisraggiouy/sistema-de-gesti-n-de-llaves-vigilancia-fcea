@@ -70,7 +70,7 @@ const SRSDocument = () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'SRS_Sistema_Gestion_Llaves_FCEA_v4.3.html';
+            a.download = 'SRS_Sistema_Gestion_Llaves_FCEA_v4.4.html';
             a.click();
             URL.revokeObjectURL(url);
           }}
@@ -564,6 +564,22 @@ const SRSDocument = () => {
                 <p><strong>Descripcion:</strong> Desde el verificador de autorizaciones, el vigilante puede editar todos los campos de una autorizacion existente o eliminarla con confirmacion previa.</p>
                 <p><strong>Prioridad:</strong> Alta</p>
                 <p><strong>Operaciones:</strong> Editar (abre formulario precargado), Eliminar (con dialogo de confirmacion).</p>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-028: Historial de Autorizaciones</div>
+              <div className="p-4 text-gray-700">
+                <p><strong>Descripcion:</strong> El sistema mantiene un historial permanente de todas las autorizaciones que fueron eliminadas manualmente o purgadas por vencimiento. El vigilante puede consultar este historial desde la pestaña "Historial" del modulo Agenda/Autorizaciones.</p>
+                <p><strong>Prioridad:</strong> Media</p>
+                <p><strong>Funcionalidades:</strong></p>
+                <ul className="list-disc list-inside mt-1 space-y-1 pl-4">
+                  <li>Busqueda por lugar o persona con filtrado en tiempo real (insensible a acentos)</li>
+                  <li>Filtrado por rango de fechas (fecha de autorizacion)</li>
+                  <li>Visualizacion de todos los datos originales: persona, lugar, quien autorizo, horario, vigencia, email de referencia y observaciones</li>
+                  <li>Indicador del motivo de baja (vencida o eliminada) y fecha de baja</li>
+                  <li>Las autorizaciones eliminadas manualmente y las purgadas automaticamente por vencimiento se preservan en el historial</li>
+                </ul>
               </div>
             </div>
           </div>
@@ -1462,6 +1478,7 @@ const SRSDocument = () => {
               <tr><td>Licencia</td><td>Estado de ausencia temporal de un vigilante: licencia (vacaciones/personal) o licencia medica. Los vigilantes en licencia no aparecen en botones de entrega/devolucion</td></tr>
               <tr><td>Notificacion Sonora</td><td>Señal acustica generada via Web Audio API: doble campana (nueva solicitud), ding unico por vigilante (entrega), triple campana por vigilante (devolucion)</td></tr>
               <tr><td>Autorizacion Temporal</td><td>Permiso registrado que habilita a una persona a retirar llaves de un lugar especifico, con vigencia opcional (desde-hasta) y purga automatica</td></tr>
+              <tr><td>Historial de Autorizaciones</td><td>Registro permanente de autorizaciones eliminadas o vencidas, consultable por lugar, persona y rango de fechas, preservando todos los datos originales y el motivo de baja</td></tr>
               <tr><td>Busqueda Inteligente</td><td>Filtrado en tiempo real insensible a acentos (normalizacion NFD) que muestra coincidencias parciales a medida que el usuario escribe</td></tr>
               <tr><td>Purga Automatica</td><td>Eliminacion automatica de autorizaciones cuya fecha de finalizacion (fechaHasta) es anterior a la fecha actual</td></tr>
               <tr><td>Usuario Registrado</td><td>Persona que completo el formulario de registro con nombre, celular/email, tipo y datos opcionales (departamento TAS o nombre empresa)</td></tr>
@@ -1473,8 +1490,8 @@ const SRSDocument = () => {
         {/* Pie de pagina del documento */}
         <div className="border-t-2 border-gray-300 pt-8 mt-12 text-center text-gray-600">
           <p className="font-semibold">Sistema de Gestion de Llaves - FCEA UdelaR</p>
-          <p className="text-sm">Documento de Especificacion de Requisitos de Software - Version 4.3</p>
-          <p className="text-sm">8 de Marzo de 2026</p>
+          <p className="text-sm">Documento de Especificacion de Requisitos de Software - Version 4.4</p>
+          <p className="text-sm">12 de Marzo de 2026</p>
         </div>
       </div>
     </div>
