@@ -62,6 +62,16 @@ export default function MonitorVigilancia() {
   const [configModalOpen, setConfigModalOpen] = useState(false);
   const [historySearchOpen, setHistorySearchOpen] = useState(false);
   const [agendaOpen, setAgendaOpen] = useState(false);
+  const [objetosOpen, setObjetosOpen] = useState(false);
+
+  const {
+    objetos,
+    objetosEnCustodia,
+    objetosDevueltos,
+    registrarObjeto,
+    devolverObjeto,
+    buscarObjetos,
+  } = useObjetosOlvidados();
 
   // Auto-refresh de hora cada segundo
   const [, setTick] = useState(0);
