@@ -15,6 +15,7 @@ import {
 } from '@/data/fceaData';
 import { useToast } from '@/hooks/use-toast';
 import { AutorizacionesTab } from './AutorizacionesTab';
+import { HistorialAutorizacionesTab } from './HistorialAutorizacionesTab';
 
 interface AgendaModalProps {
   open: boolean;
