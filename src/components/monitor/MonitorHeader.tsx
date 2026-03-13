@@ -44,42 +44,20 @@ export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProp
 
   return (
     <header className="bg-card border-b py-4 px-6 shadow-sm">
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-        {/* Logo y título */}
-        <div className="flex items-center gap-4">
-          <img src={fceaLogo} alt="FCEA - Universidad de la República" className="h-[5.85rem] w-auto" />
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              Monitor de Vigilancia
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              FCEA - Sistema de Gestión de Llaves
-            </p>
+      <div className="max-w-7xl mx-auto space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          {/* Logo y título */}
+          <div className="flex items-center gap-4">
+            <img src={fceaLogo} alt="FCEA - Universidad de la República" className="h-[5.85rem] w-auto" />
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">
+                Monitor de Vigilancia
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                FCEA - Sistema de Gestión de Llaves
+              </p>
+            </div>
           </div>
-          <Button 
-            asChild 
-            variant="outline" 
-            size="sm"
-            className="ml-4 gap-2"
-          >
-            <Link to="/">
-              <Key className="w-4 h-4" />
-              Terminal Usuario
-            </Link>
-          </Button>
-          <Button 
-            asChild 
-            variant="outline" 
-            size="sm"
-            className="gap-2"
-          >
-            <Link to="/dashboard">
-              <BarChart3 className="w-4 h-4" />
-              Dashboard
-            </Link>
-          </Button>
-          {children}
-        </div>
 
         {/* Info del turno */}
         <div className="flex items-center gap-6">
