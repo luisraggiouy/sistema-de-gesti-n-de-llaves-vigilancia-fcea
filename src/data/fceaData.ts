@@ -1,5 +1,3 @@
-// Datos reales de FCEA UdelaR según SRS v3.6
-
 export type TipoLugar = 
   | 'Salón' 
   | 'Salón Híbrido' 
@@ -8,8 +6,13 @@ export type TipoLugar =
   | 'Depósito' 
   | 'Baño' 
   | 'Área Común' 
-  | 'Biblioteca' 
-  | 'Auditorio';
+  | 'Biblioteca'
+  | 'Taller'
+  | 'Recreación'
+  | 'Guardería'
+  | 'Acceso'
+  | 'Espacio Común'
+  | 'Otro';
 
 export type TipoUsuario = 'Docente' | 'Alumno' | 'Personal TAS' | 'Empresa';
 
@@ -30,12 +33,17 @@ export type DepartamentoTAS =
   | 'Concursos'
   | 'Sistemas'
   | 'Mantenimiento'
-  | 'Vigilancia';
+  | 'Vigilancia'
+  | 'UGE'
+  | 'UEAM'
+  | 'UAE'
+  | 'Otro';
 
 export const departamentosTAS: DepartamentoTAS[] = [
-  'Electrotecnia', 'Servicios Generales', 'Compras', 'Gastos', 'UPC',
-  'Decanato', 'Suministros', 'Apoyo Docente', 'Bedelía', 'Contaduría',
-  'Sueldos', 'CAVIDA', 'Convenios', 'Concursos', 'Sistemas', 'Mantenimiento', 'Vigilancia'
+  'Apoyo Docente', 'Bedelía', 'CAVIDA', 'Compras', 'Concursos', 'Contaduría',
+  'Convenios', 'Decanato', 'Electrotecnia', 'Gastos', 'Mantenimiento',
+  'Servicios Generales', 'Sistemas', 'Sueldos', 'Suministros',
+  'UAE', 'UEAM', 'UGE', 'UPC', 'Vigilancia', 'Otro'
 ];
 
 export type ZonaTablero = 
@@ -47,7 +55,7 @@ export type ZonaTablero =
 
 export type TipoTablero = 'Tablero Principal' | 'Tablero Copias' | 'Tablero Jefes';
 
-export const tiposTablero: TipoTablero[] = ['Tablero Principal', 'Tablero Copias', 'Tablero Jefes'];
+export const tiposTablero: TipoTablero[] = ['Tablero Copias', 'Tablero Jefes', 'Tablero Principal'];
 
 export type EstadoLicencia = 'activo' | 'licencia' | 'licencia_medica';
 
@@ -93,145 +101,272 @@ export interface UsuarioRegistrado {
   fechaRegistro: string;
 }
 
-export interface SolicitudLlave {
-  id: string;
-  lugarId: string;
-  usuario: {
-    nombre: string;
-    celular: string;
-    tipo: TipoUsuario;
-  };
-  terminal: string;
-  horaSolicitud: Date;
-  horaEntrega?: Date;
-  horaDevolucion?: Date;
-  entregadoPor?: string;
-  recibidoPor?: string;
-  esIntercambio: boolean;
-  estado: 'pendiente' | 'entregada' | 'devuelta';
-}
+// SolicitudLlave se define en src/types/solicitud.ts
+// Re-exportamos desde ahí para compatibilidad
+export type { SolicitudLlave } from '@/types/solicitud';
 
-// Personal de vigilancia REAL de FCEA
 export const vigilantes: Vigilante[] = [
-  // Turno Matutino (06:00 - 14:00)
   { id: 'v1', nombre: 'Sylvia', esJefe: true, turno: 'Matutino' },
   { id: 'v2', nombre: 'Claudia', esJefe: false, turno: 'Matutino' },
   { id: 'v3', nombre: 'Laura', esJefe: false, turno: 'Matutino' },
   { id: 'v4', nombre: 'Lourdes', esJefe: false, turno: 'Matutino' },
   { id: 'v5', nombre: 'Luis', esJefe: false, turno: 'Matutino' },
   { id: 'v6', nombre: 'Dahiana', esJefe: false, turno: 'Matutino' },
-  
-  // Turno Vespertino (14:00 - 22:00)
   { id: 'v7', nombre: 'Martín', esJefe: true, turno: 'Vespertino' },
   { id: 'v8', nombre: 'Daniel', esJefe: false, turno: 'Vespertino' },
   { id: 'v9', nombre: 'Nathia', esJefe: false, turno: 'Vespertino' },
   { id: 'v10', nombre: 'Silvia', esJefe: false, turno: 'Vespertino' },
   { id: 'v11', nombre: 'Alejandro', esJefe: false, turno: 'Vespertino' },
   { id: 'v12', nombre: 'Caterin', esJefe: false, turno: 'Vespertino' },
-  
-  // Turno Nocturno (22:00 - 06:00)
   { id: 'v13', nombre: 'Gustavo', esJefe: true, turno: 'Nocturno' },
   { id: 'v14', nombre: 'Mario', esJefe: false, turno: 'Nocturno' },
   { id: 'v15', nombre: 'Silvana', esJefe: false, turno: 'Nocturno' },
   { id: 'v16', nombre: 'Fernando', esJefe: false, turno: 'Nocturno' },
 ];
 
-// Lugares de ejemplo basados en FCEA
 export const lugares: Lugar[] = [
-  // Salones Comunes - Edificio Central
-  { id: 'l1', nombre: 'Salón 101', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 6, columna: 'B' }, disponible: true, esHibrido: false },
-  { id: 'l2', nombre: 'Salón 102', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 5, columna: 'B' }, disponible: true, esHibrido: false },
-  { id: 'l3', nombre: 'Salón 103', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 4, columna: 'B' }, disponible: true, esHibrido: false },
-  { id: 'l4', nombre: 'Salón 201', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 3, columna: 'C' }, disponible: true, esHibrido: false },
-  { id: 'l5', nombre: 'Salón 202', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 4, columna: 'C' }, disponible: false, esHibrido: false },
-  // Salones Híbridos
-  { id: 'l6', nombre: 'Salón Híbrido A', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 7, columna: 'G' }, disponible: true, esHibrido: true },
-  { id: 'l7', nombre: 'Salón Híbrido B', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 8, columna: 'G' }, disponible: true, esHibrido: true },
-  { id: 'l8', nombre: 'Sala de Videoconferencias', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 6, columna: 'F' }, disponible: true, esHibrido: true },
-  { id: 'l9', nombre: 'Informática', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 2, columna: 'A' }, disponible: true, esHibrido: false },
-  // Oficinas
-  { id: 'l10', nombre: 'Oficina Concursos', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 1, columna: 'D' }, disponible: true, esHibrido: false },
-  { id: 'l11', nombre: 'Oficina Gastos', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 2, columna: 'D' }, disponible: true, esHibrido: false },
-  { id: 'l12', nombre: 'Oficina Sueldos', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 3, columna: 'D' }, disponible: true, esHibrido: false },
-  { id: 'l13', nombre: 'Decanato', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral derecho' }, disponible: true, esHibrido: false },
-  { id: 'l14', nombre: 'Secretaría Académica', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral derecho' }, disponible: true, esHibrido: false },
-  { id: 'l15', nombre: 'Bedelía', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 1, columna: 'A' }, disponible: true, esHibrido: false },
-  // Biblioteca
-  { id: 'l16', nombre: 'Biblioteca Principal', tipo: 'Biblioteca', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral izquierdo' }, disponible: true, esHibrido: false },
-  { id: 'l17', nombre: 'Sala de Lectura', tipo: 'Biblioteca', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral izquierdo' }, disponible: true, esHibrido: false },
-  // Salas
-  { id: 'l18', nombre: 'Sala de Profesores', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 2, columna: 'E' }, disponible: true, esHibrido: false },
-  { id: 'l19', nombre: 'Sala de Reuniones', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 3, columna: 'E' }, disponible: true, esHibrido: false },
-  // Áreas Comunes
-  { id: 'l20', nombre: 'Azotea', tipo: 'Área Común', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral derecho' }, disponible: true, esHibrido: false },
-  { id: 'l21', nombre: 'Buhardilla', tipo: 'Área Común', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral derecho' }, disponible: true, esHibrido: false },
-  { id: 'l22', nombre: 'Comedor', tipo: 'Área Común', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral izquierdo' }, disponible: true, esHibrido: false },
-  // Depósitos
-  { id: 'l23', nombre: 'Depósito General', tipo: 'Depósito', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 1, columna: 'H' }, disponible: true, esHibrido: false },
-  { id: 'l24', nombre: 'Depósito Limpieza', tipo: 'Depósito', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 2, columna: 'H' }, disponible: true, esHibrido: false },
-  // Baños
-  { id: 'l25', nombre: 'Baño PB', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 7, columna: 'A' }, disponible: true, esHibrido: false },
-  { id: 'l26', nombre: 'Baño 1er piso', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 8, columna: 'A' }, disponible: true, esHibrido: false },
-  // Auditorio
-  { id: 'l27', nombre: 'Auditorio Principal', tipo: 'Auditorio', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5, columna: 'F' }, disponible: true, esHibrido: false },
+  { id: 'l1', nombre: 'Intendencia', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 1, columna: 'A' }, disponible: true, esHibrido: false },
+  { id: 'l2', nombre: 'UGE', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 1, columna: 'B' }, disponible: true, esHibrido: false },
+  { id: 'l3', nombre: 'Servicios.Generles', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 1, columna: 'C' }, disponible: true, esHibrido: false },
+  { id: 'l4', nombre: 'Mantenimiento', tipo: 'Taller', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 1, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l5', nombre: 'Reproducciones', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 1, columna: 'E' }, disponible: true, esHibrido: false },
+  { id: 'l6', nombre: 'Electrotécnia', tipo: 'Taller', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 1, columna: 'F' }, disponible: true, esHibrido: false },
+  { id: 'l7', nombre: 'Puerta vigilancia', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 1, columna: 'G' }, disponible: true, esHibrido: false },
+  { id: 'l8', nombre: 'entrada', tipo: 'Biblioteca', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 2, columna: 'A' }, disponible: true, esHibrido: false },
+  { id: 'l9', nombre: 'salida patio subsuelo', tipo: 'Biblioteca', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 2, columna: 'B' }, disponible: true, esHibrido: false },
+  { id: 'l10', nombre: 'depósito', tipo: 'Biblioteca', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 2, columna: 'C' }, disponible: true, esHibrido: false },
+  { id: 'l11', nombre: 'Sala de lectura', tipo: 'Biblioteca', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 2, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l12', nombre: 'Pasaje sale de lectura a biblioteca', tipo: 'Biblioteca', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 2, columna: 'E' }, disponible: true, esHibrido: false },
+  { id: 'l13', nombre: 'Entrepiso Biblioteca', tipo: 'Biblioteca', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 2, columna: 'F' }, disponible: true, esHibrido: false },
+  { id: 'l14', nombre: 'Sala A', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 2, columna: 'G' }, disponible: true, esHibrido: false },
+  { id: 'l15', nombre: 'Decanato', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 3, columna: 'A' }, disponible: true, esHibrido: false },
+  { id: 'l16', nombre: 'Sala consejo', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 3, columna: 'B' }, disponible: true, esHibrido: false },
+  { id: 'l17', nombre: 'Oficina decano', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 3, columna: 'C' }, disponible: true, esHibrido: false },
+  { id: 'l18', nombre: 'Decanato interior', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 3, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l19', nombre: 'Comunicaciones', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 3, columna: 'E' }, disponible: true, esHibrido: false },
+  { id: 'l20', nombre: 'Asistencia académica', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 3, columna: 'F' }, disponible: true, esHibrido: false },
+  { id: 'l21', nombre: 'Cavida', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 3, columna: 'G' }, disponible: true, esHibrido: false },
+  { id: 'l22', nombre: 'Decanato a sala de consejo', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 3, columna: 'H' }, disponible: true, esHibrido: false },
+  { id: 'l23', nombre: 'Recrea subsuelo entrada', tipo: 'Recreación', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 3, columna: 'I' }, disponible: true, esHibrido: false },
+  { id: 'l24', nombre: 'Archivo Area de recreación', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 3, columna: 'J' }, disponible: true, esHibrido: false },
+  { id: 'l25', nombre: 'Depósito cecea', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 3, columna: 'K' }, disponible: true, esHibrido: false },
+  { id: 'l26', nombre: 'Bedelía', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 4, columna: 'A' }, disponible: true, esHibrido: false },
+  { id: 'l27', nombre: 'Sistemas', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 4, columna: 'B' }, disponible: true, esHibrido: false },
+  { id: 'l28', nombre: 'Sistemas 21', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 4, columna: 'C' }, disponible: true, esHibrido: false },
+  { id: 'l29', nombre: 'Apoyo docente', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 4, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l30', nombre: 'Extensión UEAM', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 4, columna: 'E' }, disponible: true, esHibrido: false },
+  { id: 'l31', nombre: 'Compras', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 4, columna: 'F' }, disponible: true, esHibrido: false },
+  { id: 'l32', nombre: 'Baños nuevos funcionarios', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 4, columna: 'G' }, disponible: true, esHibrido: false },
+  { id: 'l33', nombre: 'Archivo', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 5, columna: 'A' }, disponible: true, esHibrido: false },
+  { id: 'l34', nombre: 'Sala comisiones', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 5, columna: 'B' }, disponible: true, esHibrido: false },
+  { id: 'l35', nombre: 'Comisiones reguladora', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 5, columna: 'C' }, disponible: true, esHibrido: false },
+  { id: 'l36', nombre: 'Pasaje sala comisiones', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 5, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l37', nombre: 'Consejo y suministros', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 5, columna: 'E' }, disponible: true, esHibrido: false },
+  { id: 'l38', nombre: 'Suministros', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 5, columna: 'F' }, disponible: true, esHibrido: false },
+  { id: 'l39', nombre: 'Dirección TAS', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 5, columna: 'G' }, disponible: true, esHibrido: false },
+  { id: 'l40', nombre: 'Personal TAS', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 5, columna: 'H' }, disponible: true, esHibrido: false },
+  { id: 'l41', nombre: 'Concursos', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 5, columna: 'I' }, disponible: true, esHibrido: false },
+  { id: 'l42', nombre: 'CECEA', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 5, columna: 'J' }, disponible: true, esHibrido: false },
+  { id: 'l43', nombre: 'Rendiciones', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 6, columna: 'A' }, disponible: true, esHibrido: false },
+  { id: 'l44', nombre: 'Contaduría', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 6, columna: 'B' }, disponible: true, esHibrido: false },
+  { id: 'l45', nombre: 'Sueldos', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 6, columna: 'C' }, disponible: true, esHibrido: false },
+  { id: 'l46', nombre: 'Gastos', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 6, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l47', nombre: 'Convenios', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 6, columna: 'E' }, disponible: true, esHibrido: false },
+  { id: 'l48', nombre: 'Personal docente', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 6, columna: 'F' }, disponible: true, esHibrido: false },
+  { id: 'l49', nombre: 'Reja ventana investigadores', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 6, columna: 'G' }, disponible: true, esHibrido: false },
+  { id: 'l50', nombre: 'Bajo escalera patio EIP', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta izquierda', fila: 6, columna: 'H' }, disponible: true, esHibrido: false },
+  { id: 'l51', nombre: 'Entrada facultad', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 1, columna: 'C' }, disponible: true, esHibrido: false },
+  { id: 'l52', nombre: 'Entrada eduardo acevedo', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 1, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l53', nombre: 'Portón MSP', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 1, columna: 'E' }, disponible: true, esHibrido: false },
+  { id: 'l54', nombre: 'Azotea', tipo: 'Área Común', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 1, columna: 'F' }, disponible: true, esHibrido: false },
+  { id: 'l55', nombre: 'Buhardilla', tipo: 'Área Común', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 1, columna: 'G' }, disponible: true, esHibrido: false },
+  { id: 'l56', nombre: 'Patio cantina', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 1, columna: 'H' }, disponible: true, esHibrido: false },
+  { id: 'l57', nombre: 'Cortina aulario', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 2, columna: 'C' }, disponible: true, esHibrido: false },
+  { id: 'l58', nombre: 'Porta rollos baños iesta', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 2, columna: 'E' }, disponible: true, esHibrido: false },
+  { id: 'l59', nombre: 'Bicicletas', tipo: 'Espacio Común', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 2, columna: 'F' }, disponible: true, esHibrido: false },
+  { id: 'l60', nombre: 'Patio reja invesigadores', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 2, columna: 'G' }, disponible: true, esHibrido: false },
+  { id: 'l61', nombre: 'Reja exterior lactancia', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 2, columna: 'H' }, disponible: true, esHibrido: false },
+  { id: 'l62', nombre: 'Reja exterior eduardo acevedo jaula', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 3, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l63', nombre: 'Salida patio 11-12d', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 3, columna: 'E' }, disponible: true, esHibrido: false },
+  { id: 'l64', nombre: 'Patio bicicletas', tipo: 'Espacio Común', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 3, columna: 'F' }, disponible: true, esHibrido: false },
+  { id: 'l65', nombre: 'Baños salón 5', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 3, columna: 'G' }, disponible: true, esHibrido: false },
+  { id: 'l66', nombre: 'Tableros', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 3, columna: 'H' }, disponible: true, esHibrido: false },
+  { id: 'l67', nombre: 'Descanso cooperativa', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 3, columna: 'I' }, disponible: true, esHibrido: false },
+  { id: 'l68', nombre: 'Lactancia manojo', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 4, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l69', nombre: 'Lactancia vestuarios', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 4, columna: 'E' }, disponible: true, esHibrido: false },
+  { id: 'l70', nombre: 'Baño Hall cantina', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 4, columna: 'F' }, disponible: true, esHibrido: false },
+  { id: 'l71', nombre: 'Duchas vestuarios subsuelo', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 4, columna: 'G' }, disponible: true, esHibrido: false },
+  { id: 'l72', nombre: 'Baños subsuelo', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 4, columna: 'H' }, disponible: true, esHibrido: false },
+  { id: 'l73', nombre: 'Porta rollo', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 4, columna: 'I' }, disponible: true, esHibrido: false },
+  { id: 'l74', nombre: 'Baño PA informática', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 5, columna: 'B' }, disponible: true, esHibrido: false },
+  { id: 'l75', nombre: 'Baños IESTA', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 5, columna: 'C' }, disponible: true, esHibrido: false },
+  { id: 'l76', nombre: 'Baños AM', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 5, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l77', nombre: 'Baño salón 23 privado', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 5, columna: 'E' }, disponible: true, esHibrido: false },
+  { id: 'l78', nombre: 'Baño salón 23 lisiado', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 5, columna: 'F' }, disponible: true, esHibrido: false },
+  { id: 'l79', nombre: 'Baño salón 23 hombres', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 5, columna: 'G' }, disponible: true, esHibrido: false },
+  { id: 'l80', nombre: 'Baño salón 23 damas', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 5, columna: 'H' }, disponible: true, esHibrido: false },
+  { id: 'l81', nombre: 'Baño salón 6', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 6, columna: 'B' }, disponible: true, esHibrido: false },
+  { id: 'l82', nombre: 'Baño salón 7', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 6, columna: 'C' }, disponible: true, esHibrido: false },
+  { id: 'l83', nombre: 'Baño salón 8', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 6, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l84', nombre: 'Baños vigilancia', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 6, columna: 'E' }, disponible: true, esHibrido: false },
+  { id: 'l85', nombre: 'Baños decanato hombres', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 6, columna: 'F' }, disponible: true, esHibrido: false },
+  { id: 'l86', nombre: 'Baños decanato damas', tipo: 'Baño', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Puerta derecha', fila: 6, columna: 'G' }, disponible: true, esHibrido: false },
+  { id: 'l87', nombre: 'Accesos EIP manojo', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral izquierdo' }, disponible: true, esHibrido: false },
+  { id: 'l88', nombre: 'Oficinas y secretaría EIP 205-201', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral izquierdo' }, disponible: true, esHibrido: false },
+  { id: 'l89', nombre: 'Oficinas EIP 301-315', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral izquierdo' }, disponible: true, esHibrido: false },
+  { id: 'l90', nombre: 'Oficinas EIP 302-316', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral izquierdo' }, disponible: true, esHibrido: false },
+  { id: 'l91', nombre: 'Matemáticas', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral derecho' }, disponible: true, esHibrido: false },
+  { id: 'l92', nombre: 'CGU', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral derecho' }, disponible: true, esHibrido: false },
+  { id: 'l93', nombre: 'Recreación sala 1', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral derecho' }, disponible: true, esHibrido: false },
+  { id: 'l94', nombre: 'Recreación entrada', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral derecho' }, disponible: true, esHibrido: false },
+  { id: 'l95', nombre: 'Recreación sala 2', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral derecho' }, disponible: true, esHibrido: false },
+  { id: 'l96', nombre: 'Recreación sala 3', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Lateral derecho' }, disponible: true, esHibrido: false },
+  { id: 'l97', nombre: 'Affur', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 1, columna: 'A' }, disponible: true, esHibrido: false },
+  { id: 'l98', nombre: 'Ascensor américa', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 1, columna: 'B' }, disponible: true, esHibrido: false },
+  { id: 'l99', nombre: 'Traba ascensor EIP', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 1, columna: 'C' }, disponible: true, esHibrido: false },
+  { id: 'l100', nombre: 'Pulsadores Isai', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 1, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l101', nombre: 'Bomba de agua patio', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 1, columna: 'E' }, disponible: true, esHibrido: false },
+  { id: 'l102', nombre: 'Bomba de incendio', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 1, columna: 'F' }, disponible: true, esHibrido: false },
+  { id: 'l103', nombre: 'Contadores ose jackson', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 1, columna: 'G' }, disponible: true, esHibrido: false },
+  { id: 'l104', nombre: 'Medidor de ute', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 1, columna: 'H' }, disponible: true, esHibrido: false },
+  { id: 'l105', nombre: 'Depósito garrafas', tipo: 'Depósito', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 1, columna: 'I' }, disponible: true, esHibrido: false },
+  { id: 'l106', nombre: 'Camioneta', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 1, columna: 'J' }, disponible: true, esHibrido: false },
+  { id: 'l107', nombre: 'Mueble objetos perdidos', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 1, columna: 'Q' }, disponible: true, esHibrido: false },
+  { id: 'l108', nombre: 'Investigadores entrada oficinas', tipo: 'Acceso', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 2, columna: 'A' }, disponible: true, esHibrido: false },
+  { id: 'l109', nombre: 'Investigadores baños', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 2, columna: 'B' }, disponible: true, esHibrido: false },
+  { id: 'l110', nombre: 'Investigadores of 1', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 2, columna: 'C' }, disponible: true, esHibrido: false },
+  { id: 'l111', nombre: 'Investigadores of 2', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 2, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l112', nombre: 'Investigadores of 3', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 2, columna: 'E' }, disponible: true, esHibrido: false },
+  { id: 'l113', nombre: 'Investigadores of 4', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 2, columna: 'F' }, disponible: true, esHibrido: false },
+  { id: 'l114', nombre: 'Investigadores of 5', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 2, columna: 'G' }, disponible: true, esHibrido: false },
+  { id: 'l115', nombre: 'Investigadores of 6', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 2, columna: 'H' }, disponible: true, esHibrido: false },
+  { id: 'l116', nombre: 'Investigadores of 7', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 2, columna: 'I' }, disponible: true, esHibrido: false },
+  { id: 'l117', nombre: 'Investigadores of 8', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 2, columna: 'J' }, disponible: true, esHibrido: false },
+  { id: 'l118', nombre: 'Investigadores of 9', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 2, columna: 'Q' }, disponible: true, esHibrido: false },
+  { id: 'l119', nombre: 'Investigadores of 10', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 2, columna: 'K' }, disponible: true, esHibrido: false },
+  { id: 'l120', nombre: 'Sala de navegación entrada', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 3, columna: 'A' }, disponible: true, esHibrido: false },
+  { id: 'l121', nombre: 'Sala de navegación box 1', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 3, columna: 'B' }, disponible: true, esHibrido: false },
+  { id: 'l122', nombre: 'Sala de navegación box 2', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 3, columna: 'C' }, disponible: true, esHibrido: false },
+  { id: 'l123', nombre: 'Sala de navegación box 3', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 3, columna: 'D' }, disponible: true, esHibrido: false },
+  { id: 'l124', nombre: 'Sala de navegación box 4', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 3, columna: 'E' }, disponible: true, esHibrido: false },
+  { id: 'l125', nombre: 'Sala de navegación box 5', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 3, columna: 'F' }, disponible: true, esHibrido: false },
+  { id: 'l126', nombre: 'Bloomberg', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 3, columna: 'G' }, disponible: true, esHibrido: false },
+  { id: 'l127', nombre: 'Informática', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 3, columna: 'H' }, disponible: true, esHibrido: false },
+  { id: 'l128', nombre: 'UPC', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 3, columna: 'I' }, disponible: true, esHibrido: false },
+  { id: 'l129', nombre: 'UAE', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 3, columna: 'J' }, disponible: true, esHibrido: false },
+  { id: 'l130', nombre: 'Multimedia', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 3, columna: 'Q' }, disponible: true, esHibrido: false },
+  { id: 'l131', nombre: 'Lockers pruebas sala docente', tipo: 'Sala', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 3, columna: 'K' }, disponible: true, esHibrido: false },
+  { id: 'l132', nombre: 'Salónes 1,2,3,5', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 4 }, disponible: true, esHibrido: false },
+  { id: 'l133', nombre: 'Salón 4', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 4 }, disponible: true, esHibrido: true },
+  { id: 'l134', nombre: 'Salón 6', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 4 }, disponible: true, esHibrido: true },
+  { id: 'l135', nombre: 'Salón 7', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 4 }, disponible: true, esHibrido: true },
+  { id: 'l136', nombre: 'Salón 8', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 4 }, disponible: true, esHibrido: true },
+  { id: 'l137', nombre: 'Salón 9', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 4 }, disponible: true, esHibrido: true },
+  { id: 'l138', nombre: 'Salón 10', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 4 }, disponible: true, esHibrido: false },
+  { id: 'l139', nombre: 'Salón 11-12', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 4 }, disponible: true, esHibrido: false },
+  { id: 'l140', nombre: 'Salones 14,15,16', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 4 }, disponible: true, esHibrido: true },
+  { id: 'l141', nombre: 'Salón 18', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 4 }, disponible: true, esHibrido: false },
+  { id: 'l142', nombre: 'salón 19', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 4 }, disponible: true, esHibrido: false },
+  { id: 'l143', nombre: 'Salón 20', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 4 }, disponible: true, esHibrido: false },
+  { id: 'l144', nombre: 'Salo1-nes 21-25', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 4 }, disponible: true, esHibrido: true },
+  { id: 'l145', nombre: 'Equipos AM', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: false },
+  { id: 'l146', nombre: 'Equipos VIP', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: false },
+  { id: 'l147', nombre: 'Equipos AM', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: false },
+  { id: 'l148', nombre: 'Equipos 2', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: false },
+  { id: 'l149', nombre: 'Equipos 3', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: false },
+  { id: 'l150', nombre: 'Equipos 5', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: false },
+  { id: 'l151', nombre: 'Equipos 6', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: true },
+  { id: 'l152', nombre: 'Equipos 7', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: true },
+  { id: 'l153', nombre: 'Equipos 8', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: true },
+  { id: 'l154', nombre: 'Equipos 10', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: false },
+  { id: 'l155', nombre: 'Equipos 11', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: false },
+  { id: 'l156', nombre: 'Equipos 12', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: false },
+  { id: 'l157', nombre: 'Equipos 14', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: true },
+  { id: 'l158', nombre: 'Equipos 15', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: true },
+  { id: 'l159', nombre: 'Equipos 16', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: true },
+  { id: 'l160', nombre: 'Equipos 18', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: false },
+  { id: 'l161', nombre: 'Equipos 19', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: false },
+  { id: 'l162', nombre: 'Equipos 20', tipo: 'Salón', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: false },
+  { id: 'l163', nombre: 'Equipos 21', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: false },
+  { id: 'l164', nombre: 'Equipos 22', tipo: 'Otro', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: false },
+  { id: 'l165', nombre: 'Equipos 23', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: true },
+  { id: 'l166', nombre: 'Equipos 24', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: true },
+  { id: 'l167', nombre: 'Equipos 25', tipo: 'Salón Híbrido', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 5 }, disponible: true, esHibrido: true },
+  { id: 'l168', nombre: 'Iesta sala 17', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 6 }, disponible: true, esHibrido: false },
+  { id: 'l169', nombre: 'Iesta sala 18', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 6 }, disponible: true, esHibrido: false },
+  { id: 'l170', nombre: 'Iesta sala 19', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 6 }, disponible: true, esHibrido: false },
+  { id: 'l171', nombre: 'Iesta sala 20 20.a-20.b-20.c', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 6 }, disponible: true, esHibrido: false },
+  { id: 'l172', nombre: 'Iesta sala 21 21.a-21.b-21.c', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 6 }, disponible: true, esHibrido: false },
+  { id: 'l173', nombre: 'Iesta sala 22', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 6 }, disponible: true, esHibrido: false },
+  { id: 'l174', nombre: 'Iesta sala 23-23.a-23.b-23.c', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 6 }, disponible: true, esHibrido: false },
+  { id: 'l175', nombre: 'Iesta sala 24', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 6 }, disponible: true, esHibrido: false },
+  { id: 'l176', nombre: 'Iesta sala 25', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 6 }, disponible: true, esHibrido: false },
+  { id: 'l177', nombre: 'Iesta sala 27', tipo: 'Oficina', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 6 }, disponible: true, esHibrido: false },
+  { id: 'l178', nombre: 'Depósito de máquinas', tipo: 'Depósito', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 6 }, disponible: true, esHibrido: false },
 ];
 
-// Edificios disponibles
-export const edificios = ['Central', 'Anexo', 'Biblioteca'];
+export const edificios = ['Central', 'EIP'];  // Already alphabetical
 
-// Tipos de lugares
 export const tiposLugar: TipoLugar[] = [
-  'Salón',
-  'Salón Híbrido',
-  'Oficina',
-  'Sala',
-  'Depósito',
-  'Baño',
-  'Área Común',
-  'Biblioteca',
-  'Auditorio'
+  'Acceso', 'Área Común', 'Baño', 'Biblioteca', 'Depósito',
+  'Espacio Común', 'Guardería', 'Oficina', 'Otro', 'Recreación',
+  'Sala', 'Salón', 'Salón Híbrido', 'Taller'
 ];
 
-// Tipos de usuario
-export const tiposUsuario: TipoUsuario[] = [
-  'Docente',
-  'Alumno',
-  'Personal TAS',
-  'Empresa'
-];
+export const tiposUsuario: TipoUsuario[] = ['Alumno', 'Docente', 'Empresa', 'Personal TAS'];
 
-// Zonas del tablero
 export const zonasTablero: ZonaTablero[] = [
-  'Puerta derecha',
-  'Puerta izquierda',
-  'Fondo',
-  'Lateral derecho',
-  'Lateral izquierdo'
+  'Fondo', 'Lateral derecho', 'Lateral izquierdo', 'Puerta derecha', 'Puerta izquierda'
 ];
 
-// Helper: Formatear ubicación
 export function formatearUbicacion(ubicacion: Lugar['ubicacion']): string {
   const zonaCorta = ubicacion.zona
     .replace('Puerta derecha', 'Puerta der.')
     .replace('Puerta izquierda', 'Puerta izq.')
     .replace('Lateral derecho', 'Lateral der.')
     .replace('Lateral izquierdo', 'Lateral izq.');
-  
-  if (ubicacion.fila && ubicacion.columna) {
-    return `${zonaCorta}, ${ubicacion.columna}${ubicacion.fila}`;
+  const fila = ubicacion.fila;
+  const columna = ubicacion.columna;
+  if (fila && columna) {
+    return `${zonaCorta}, ${columna}${fila}`;
+  }
+  if (fila) {
+    return `${zonaCorta}, Fila ${fila}`;
   }
   return zonaCorta;
 }
 
-// Helper: Normalizar texto para búsqueda (insensible a acentos)
 export function normalizarTexto(texto: string): string {
-  return texto
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
+  return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
 
-// Helper: Obtener turno actual
+/**
+ * Comparador de orden natural: ordena textos alfabéticamente pero trata
+ * secuencias numéricas como números (ej: "Salón 2" < "Salón 10" < "Salón 25").
+ * Usar con Array.sort(): items.sort((a, b) => ordenNatural(a.nombre, b.nombre))
+ */
+export function ordenNatural(a: string, b: string): number {
+  const na = normalizarTexto(a);
+  const nb = normalizarTexto(b);
+  const re = /(\d+)|(\D+)/g;
+  const partsA = na.match(re) || [];
+  const partsB = nb.match(re) || [];
+  const len = Math.min(partsA.length, partsB.length);
+  for (let i = 0; i < len; i++) {
+    const pa = partsA[i];
+    const pb = partsB[i];
+    const numA = Number(pa);
+    const numB = Number(pb);
+    if (!isNaN(numA) && !isNaN(numB)) {
+      if (numA !== numB) return numA - numB;
+    } else {
+      const cmp = pa.localeCompare(pb);
+      if (cmp !== 0) return cmp;
+    }
+  }
+  return partsA.length - partsB.length;
+}
+
 export function obtenerTurnoActual(): Turno {
   const hora = new Date().getHours();
   if (hora >= 6 && hora < 14) return 'Matutino';
@@ -239,13 +374,11 @@ export function obtenerTurnoActual(): Turno {
   return 'Nocturno';
 }
 
-// Helper: Obtener vigilantes del turno actual
 export function obtenerVigilantesActuales(): Vigilante[] {
   const turno = obtenerTurnoActual();
   return vigilantes.filter(v => v.turno === turno);
 }
 
-// Helper: Color por tipo de lugar
 export function getColorTipoLugar(tipo: TipoLugar): string {
   const colores: Record<TipoLugar, string> = {
     'Salón': 'bg-salon-comun',
@@ -256,102 +389,21 @@ export function getColorTipoLugar(tipo: TipoLugar): string {
     'Baño': 'bg-info',
     'Área Común': 'bg-areaComun',
     'Biblioteca': 'bg-biblioteca',
-    'Auditorio': 'bg-accent'
+    'Taller': 'bg-orange-500',
+    'Recreación': 'bg-lime-500',
+    'Guardería': 'bg-pink-500',
+    'Acceso': 'bg-gray-500',
+    'Espacio Común': 'bg-purple-500',
+    'Otro': 'bg-slate-400'
   };
   return colores[tipo] || 'bg-muted';
 }
 
-// ============= GESTIÓN DE USUARIOS REGISTRADOS =============
-const STORAGE_KEY = 'fcea_usuarios_registrados';
-
-export function getUsuariosRegistrados(): UsuarioRegistrado[] {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-}
-
-export function guardarUsuario(usuario: Omit<UsuarioRegistrado, 'id' | 'fechaRegistro'>): UsuarioRegistrado {
-  const usuarios = getUsuariosRegistrados();
-  
-  // Verificar si ya existe por celular
-  if (usuario.celular) {
-    const celularNorm = usuario.celular.replace(/\D/g, '');
-    if (celularNorm) {
-      const existente = usuarios.find(u => u.celular && u.celular.replace(/\D/g, '') === celularNorm);
-      if (existente) {
-        return existente;
-      }
-    }
-  }
-  
-  // Verificar si ya existe por email
-  if (usuario.email) {
-    const existente = usuarios.find(u => u.email && u.email.toLowerCase() === usuario.email!.toLowerCase());
-    if (existente) {
-      return existente;
-    }
-  }
-  
-  const nuevoUsuario: UsuarioRegistrado = {
-    ...usuario,
-    id: `u${Date.now()}`,
-    fechaRegistro: new Date().toISOString()
-  };
-  
-  usuarios.push(nuevoUsuario);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(usuarios));
-  
-  return nuevoUsuario;
-}
-
-export function buscarUsuarioPorCelular(celular: string): UsuarioRegistrado | undefined {
-  const usuarios = getUsuariosRegistrados();
-  const celularNormalizado = celular.replace(/\D/g, '');
-  return usuarios.find(u => u.celular.replace(/\D/g, '') === celularNormalizado);
-}
-
-export function buscarUsuariosPorTexto(texto: string): UsuarioRegistrado[] {
-  if (!texto.trim()) return [];
-  
-  const usuarios = getUsuariosRegistrados();
-  const textoNormalizado = normalizarTexto(texto);
-  const celularBusqueda = texto.replace(/\D/g, '');
-  
-  return usuarios.filter(u => {
-    const nombreMatch = normalizarTexto(u.nombre).includes(textoNormalizado);
-    const celularMatch = u.celular && u.celular.replace(/\D/g, '').includes(celularBusqueda);
-    const emailMatch = u.email && normalizarTexto(u.email).includes(textoNormalizado);
-    return nombreMatch || celularMatch || emailMatch;
-  });
-}
-
-export function actualizarUsuario(id: string, datos: Partial<Omit<UsuarioRegistrado, 'id' | 'fechaRegistro'>>): UsuarioRegistrado | null {
-  const usuarios = getUsuariosRegistrados();
-  const idx = usuarios.findIndex(u => u.id === id);
-  if (idx === -1) return null;
-  usuarios[idx] = { ...usuarios[idx], ...datos };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(usuarios));
-  return usuarios[idx];
-}
-
-export function eliminarUsuario(id: string): boolean {
-  const usuarios = getUsuariosRegistrados();
-  const filtered = usuarios.filter(u => u.id !== id);
-  if (filtered.length === usuarios.length) return false;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
-  return true;
-}
-
-// ============= GESTIÓN DE AUTORIZACIONES =============
-const AUTORIZACIONES_KEY = 'fcea_autorizaciones';
-const HISTORIAL_AUTORIZACIONES_KEY = 'fcea_historial_autorizaciones';
-
+// ============= AUTORIZACIONES =============
 export interface Autorizacion {
   id: string;
   personaNombre: string;
+  personaCI?: string; // Campo opcional para cédula de identidad
   lugarAutorizado: string;
   autorizadoPor: string;
   fechaAutorizacion: string;
@@ -368,116 +420,28 @@ export interface AutorizacionHistorial extends Autorizacion {
   fechaBaja: string;
 }
 
-export function getAutorizaciones(): Autorizacion[] {
-  try {
-    const data = localStorage.getItem(AUTORIZACIONES_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
+export function getAutorizaciones(): Autorizacion[] { return []; }
+export function getHistorialAutorizaciones(): AutorizacionHistorial[] { return []; }
+export function buscarAutorizacion(_persona: string, _lugar: string): Autorizacion[] { return []; }
+export function buscarAutorizacionEnVivo(_persona: string, _lugar: string): Autorizacion[] { 
+  // Nota: En una implementación real, esta función buscaría por nombre o CI
+  // _persona puede ser nombre o CI
+  return []; 
 }
+export function buscarHistorialAutorizaciones(_lugar: string): AutorizacionHistorial[] { return []; }
+export function guardarAutorizacion(_auth: Omit<Autorizacion, 'id' | 'fechaCreacion'>): Autorizacion {
+  throw new Error('Usar useAutorizaciones hook en su lugar');
+}
+export function actualizarAutorizacion(_id: string, _datos: any): Autorizacion | null { return null; }
+export function eliminarAutorizacion(_id: string): boolean { return false; }
+export function purgarAutorizacionesVencidas(): number { return 0; }
 
-export function getHistorialAutorizaciones(): AutorizacionHistorial[] {
-  try {
-    const data = localStorage.getItem(HISTORIAL_AUTORIZACIONES_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
+// ============= USUARIOS REGISTRADOS =============
+export function getUsuariosRegistrados(): UsuarioRegistrado[] { return []; }
+export function guardarUsuario(_u: Omit<UsuarioRegistrado, 'id' | 'fechaRegistro'>): UsuarioRegistrado {
+  throw new Error('Usar useUsuariosRegistrados hook en su lugar');
 }
-
-function moverAHistorial(auth: Autorizacion, motivo: 'vencida' | 'eliminada') {
-  const historial = getHistorialAutorizaciones();
-  const registro: AutorizacionHistorial = {
-    ...auth,
-    motivoBaja: motivo,
-    fechaBaja: new Date().toISOString(),
-  };
-  historial.push(registro);
-  localStorage.setItem(HISTORIAL_AUTORIZACIONES_KEY, JSON.stringify(historial));
-}
-
-/** Remove authorizations whose fechaHasta is in the past — moves them to history */
-export function purgarAutorizacionesVencidas(): number {
-  const auths = getAutorizaciones();
-  const hoy = new Date().toISOString().split('T')[0];
-  const vigentes: Autorizacion[] = [];
-  let eliminadas = 0;
-  for (const a of auths) {
-    if (a.fechaHasta && a.fechaHasta < hoy) {
-      moverAHistorial(a, 'vencida');
-      eliminadas++;
-    } else {
-      vigentes.push(a);
-    }
-  }
-  if (eliminadas > 0) {
-    localStorage.setItem(AUTORIZACIONES_KEY, JSON.stringify(vigentes));
-  }
-  return eliminadas;
-}
-
-/** Live search: returns authorizations matching partial name or place as user types */
-export function buscarAutorizacionEnVivo(persona: string, lugar: string): Autorizacion[] {
-  const auths = getAutorizaciones();
-  const pNorm = normalizarTexto(persona);
-  const lNorm = normalizarTexto(lugar);
-  return auths.filter(a => {
-    const matchPersona = !persona.trim() || normalizarTexto(a.personaNombre).includes(pNorm);
-    const matchLugar = !lugar.trim() || normalizarTexto(a.lugarAutorizado).includes(lNorm);
-    return matchPersona && matchLugar;
-  });
-}
-
-export function buscarHistorialAutorizaciones(lugar: string, fechaDesde?: string, fechaHasta?: string): AutorizacionHistorial[] {
-  const historial = getHistorialAutorizaciones();
-  const lNorm = normalizarTexto(lugar);
-  return historial.filter(a => {
-    if (lugar.trim() && !normalizarTexto(a.lugarAutorizado).includes(lNorm) && !normalizarTexto(a.personaNombre).includes(lNorm)) return false;
-    if (fechaDesde && a.fechaAutorizacion < fechaDesde) return false;
-    if (fechaHasta && a.fechaAutorizacion > fechaHasta) return false;
-    return true;
-  }).sort((a, b) => b.fechaBaja.localeCompare(a.fechaBaja));
-}
-
-export function guardarAutorizacion(auth: Omit<Autorizacion, 'id' | 'fechaCreacion'>): Autorizacion {
-  const auths = getAutorizaciones();
-  const nueva: Autorizacion = {
-    ...auth,
-    id: `auth${Date.now()}`,
-    fechaCreacion: new Date().toISOString(),
-  };
-  auths.push(nueva);
-  localStorage.setItem(AUTORIZACIONES_KEY, JSON.stringify(auths));
-  return nueva;
-}
-
-export function actualizarAutorizacion(id: string, datos: Partial<Omit<Autorizacion, 'id' | 'fechaCreacion'>>): Autorizacion | null {
-  const auths = getAutorizaciones();
-  const idx = auths.findIndex(a => a.id === id);
-  if (idx === -1) return null;
-  auths[idx] = { ...auths[idx], ...datos };
-  localStorage.setItem(AUTORIZACIONES_KEY, JSON.stringify(auths));
-  return auths[idx];
-}
-
-export function eliminarAutorizacion(id: string): boolean {
-  const auths = getAutorizaciones();
-  const auth = auths.find(a => a.id === id);
-  if (!auth) return false;
-  moverAHistorial(auth, 'eliminada');
-  const filtered = auths.filter(a => a.id !== id);
-  localStorage.setItem(AUTORIZACIONES_KEY, JSON.stringify(filtered));
-  return true;
-}
-
-export function buscarAutorizacion(persona: string, lugar: string): Autorizacion[] {
-  const auths = getAutorizaciones();
-  const pNorm = normalizarTexto(persona);
-  const lNorm = normalizarTexto(lugar);
-  return auths.filter(a => {
-    const matchPersona = !persona.trim() || normalizarTexto(a.personaNombre).includes(pNorm);
-    const matchLugar = !lugar.trim() || normalizarTexto(a.lugarAutorizado).includes(lNorm);
-    return matchPersona && matchLugar;
-  });
-}
+export function buscarUsuarioPorCelular(_celular: string): UsuarioRegistrado | undefined { return undefined; }
+export function buscarUsuariosPorTexto(_texto: string): UsuarioRegistrado[] { return []; }
+export function actualizarUsuario(_id: string, _datos: any): UsuarioRegistrado | null { return null; }
+export function eliminarUsuario(_id: string): boolean { return false; }

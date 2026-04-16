@@ -25,7 +25,7 @@ export function AutorizacionesTab() {
   // Form nueva/editar
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
-    personaNombre: '', lugarAutorizado: '', autorizadoPor: '',
+    personaNombre: '', personaCI: '', lugarAutorizado: '', autorizadoPor: '',
     fechaAutorizacion: '', fechaDesde: '', fechaHasta: '',
     horario: '', emailReferencia: '', observaciones: ''
   });
@@ -51,7 +51,7 @@ export function AutorizacionesTab() {
   const todasLasAutorizaciones = useMemo(() => getAutorizaciones(), [refreshKey]);
 
   const resetForm = () => {
-    setForm({ personaNombre: '', lugarAutorizado: '', autorizadoPor: '', fechaAutorizacion: '', fechaDesde: '', fechaHasta: '', horario: '', emailReferencia: '', observaciones: '' });
+    setForm({ personaNombre: '', personaCI: '', lugarAutorizado: '', autorizadoPor: '', fechaAutorizacion: '', fechaDesde: '', fechaHasta: '', horario: '', emailReferencia: '', observaciones: '' });
     setEditingId(null);
   };
 
@@ -59,6 +59,7 @@ export function AutorizacionesTab() {
     setEditingId(a.id);
     setForm({
       personaNombre: a.personaNombre,
+      personaCI: a.personaCI || '',
       lugarAutorizado: a.lugarAutorizado,
       autorizadoPor: a.autorizadoPor,
       fechaAutorizacion: a.fechaAutorizacion?.split('T')[0] || '',
@@ -78,6 +79,7 @@ export function AutorizacionesTab() {
     }
     const data = {
       personaNombre: form.personaNombre.trim(),
+      personaCI: form.personaCI.trim() || undefined,
       lugarAutorizado: form.lugarAutorizado.trim(),
       autorizadoPor: form.autorizadoPor.trim(),
       fechaAutorizacion: form.fechaAutorizacion || new Date().toISOString().split('T')[0],
@@ -136,9 +138,9 @@ export function AutorizacionesTab() {
           {/* Smart search fields */}
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
-              <Label className="text-xs">Nombre de la persona</Label>
+              <Label className="text-xs">Nombre o CI de la persona</Label>
               <Input
-                placeholder="Ej: María López"
+                placeholder="Ej: María López o 12345678"
                 value={busqPersona}
                 onChange={e => setBusqPersona(e.target.value)}
                 className="h-9"
@@ -199,9 +201,23 @@ export function AutorizacionesTab() {
         /* Formulario nueva/editar */
         <ScrollArea className="h-[320px] -mx-1 px-1">
           <div className="space-y-3 pr-2">
-            <div className="space-y-1">
-              <Label className="text-xs">Nombre de la persona *</Label>
-              <Input value={form.personaNombre} onChange={e => setForm(f => ({ ...f, personaNombre: e.target.value }))} placeholder="Ej: María López" className="h-9" />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">Nombre de la persona *</Label>
+                <Input value={form.personaNombre} onChange={e => setForm(f => ({ ...f, personaNombre: e.target.value }))} placeholder="Ej: María López" className="h-9" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">CI (opcional)</Label>
+                <div className="relative">
+                  <Input 
+                    value={form.personaCI} 
+                    onChange={e => setForm(f => ({ ...f, personaCI: e.target.value }))} 
+                    placeholder="Ej: 12345678" 
+                    className="h-9" 
+                  />
+                  <p className="text-[10px] text-muted-foreground absolute -bottom-4 left-0">Sin puntos ni guiones</p>
+                </div>
+              </div>
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Llave / Lugar autorizado *</Label>
@@ -262,7 +278,14 @@ function AutorizacionCard({ auth, onEdit, onDelete }: { auth: Autorizacion; onEd
     <div className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors space-y-1.5">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="font-medium truncate">{auth.personaNombre}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-medium truncate">{auth.personaNombre}</p>
+            {auth.personaCI && (
+              <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30">
+                CI: {auth.personaCI}
+              </Badge>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">
             <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30 mr-1.5">
               {auth.lugarAutorizado}

@@ -1,18 +1,7 @@
-import { useState, useCallback } from 'react';
-import { Vigilante, Turno, vigilantes as vigilantesIniciales, obtenerTurnoActual } from '@/data/fceaData';
-import { VIGILANTES_STORAGE_KEY } from '@/types/configuracion';
+﻿import { useState, useCallback, useEffect } from 'react';
+import { Vigilante, Turno, obtenerTurnoActual } from '@/data/fceaData';
+import pb from '@/lib/pocketbase';
 
-// Cargar vigilantes desde localStorage o usar los iniciales
-const cargarVigilantes = (): Vigilante[] => {
-  try {
-    const stored = localStorage.getItem(VIGILANTES_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : vigilantesIniciales;
-  } catch {
-    return vigilantesIniciales;
-  }
-};
-
-// Obtener turno anterior
 function obtenerTurnoAnterior(turnoActual: Turno): Turno {
   switch (turnoActual) {
     case 'Matutino': return 'Nocturno';
@@ -21,7 +10,6 @@ function obtenerTurnoAnterior(turnoActual: Turno): Turno {
   }
 }
 
-// Obtener hora de inicio del turno actual
 function obtenerHoraInicioTurno(turno: Turno): number {
   switch (turno) {
     case 'Matutino': return 6;
@@ -31,60 +19,68 @@ function obtenerHoraInicioTurno(turno: Turno): number {
 }
 
 export function useVigilantes() {
-  const [vigilantes, setVigilantes] = useState<Vigilante[]>(cargarVigilantes);
+  const [vigilantes, setVigilantes] = useState<Vigilante[]>([]);
 
-  // Guardar vigilantes en localStorage
-  const guardarVigilantes = useCallback((nuevosVigilantes: Vigilante[]) => {
-    localStorage.setItem(VIGILANTES_STORAGE_KEY, JSON.stringify(nuevosVigilantes));
+  const cargarVigilantes = useCallback(async () => {
+    try {
+      const records = await pb.collection('vigilante').getFullList({ sort: 'nombre' });
+      const lista: Vigilante[] = records.map((r: any) => ({
+        id: r.id,
+        nombre: r.nombre,
+        turno: r.turno as Turno,
+        esJefe: r.es_jefe ?? false,
+      }));
+      setVigilantes(lista);
+    } catch (e) {
+      console.error('Error cargando vigilantes:', e);
+    }
   }, []);
 
-  // Agregar vigilante
-  const agregarVigilante = useCallback((nombre: string, turno: Turno, esJefe: boolean = false) => {
-    const nuevoVigilante: Vigilante = {
-      id: `v${Date.now()}`,
-      nombre,
-      turno,
-      esJefe
-    };
-    setVigilantes(prev => {
-      const updated = [...prev, nuevoVigilante];
-      guardarVigilantes(updated);
-      return updated;
-    });
-    return nuevoVigilante;
-  }, [guardarVigilantes]);
+  useEffect(() => { cargarVigilantes(); }, [cargarVigilantes]);
 
-  // Eliminar vigilante
-  const eliminarVigilante = useCallback((vigilanteId: string) => {
-    setVigilantes(prev => {
-      const updated = prev.filter(v => v.id !== vigilanteId);
-      guardarVigilantes(updated);
-      return updated;
-    });
-  }, [guardarVigilantes]);
+  const agregarVigilante = useCallback(async (nombre: string, turno: Turno, esJefe: boolean = false) => {
+    try {
+      const record = await pb.collection('vigilante').create({ nombre, turno, es_jefe: esJefe });
+      const nuevo: Vigilante = { id: record.id, nombre, turno, esJefe };
+      setVigilantes(prev => [...prev, nuevo]);
+      return nuevo;
+    } catch (e) {
+      console.error('Error agregando vigilante:', e);
+    }
+  }, []);
 
-  // Actualizar vigilante
-  const actualizarVigilante = useCallback((vigilanteId: string, datos: Partial<Omit<Vigilante, 'id'>>) => {
-    setVigilantes(prev => {
-      const updated = prev.map(v => 
-        v.id === vigilanteId ? { ...v, ...datos } : v
-      );
-      guardarVigilantes(updated);
-      return updated;
-    });
-  }, [guardarVigilantes]);
+  const eliminarVigilante = useCallback(async (vigilanteId: string) => {
+    try {
+      await pb.collection('vigilante').delete(vigilanteId);
+      setVigilantes(prev => prev.filter(v => v.id !== vigilanteId));
+    } catch (e) {
+      console.error('Error eliminando vigilante:', e);
+    }
+  }, []);
 
-  // Obtener vigilantes del turno actual + turno anterior en período de transición
+  const actualizarVigilante = useCallback(async (vigilanteId: string, datos: Partial<Omit<Vigilante, 'id'>>) => {
+    try {
+      await pb.collection('vigilante').update(vigilanteId, {
+        nombre: datos.nombre,
+        turno: datos.turno,
+        es_jefe: datos.esJefe,
+      });
+      setVigilantes(prev => prev.map(v => v.id === vigilanteId ? { ...v, ...datos } : v));
+    } catch (e) {
+      console.error('Error actualizando vigilante:', e);
+    }
+  }, []);
+
+  const obtenerVigilantesPorTurno = useCallback((turno: Turno) => {
+    return vigilantes.filter(v => v.turno === turno);
+  }, [vigilantes]);
+
   const obtenerVigilantesConTransicion = useCallback((transicionMinutos: number = 30) => {
     const ahora = new Date();
     const turnoActual = obtenerTurnoActual();
     const horaInicioTurno = obtenerHoraInicioTurno(turnoActual);
-    
-    // Calcular minutos desde inicio del turno
     const minutosHoy = ahora.getHours() * 60 + ahora.getMinutes();
     const minutosInicioTurno = horaInicioTurno * 60;
-    
-    // Manejar caso especial del turno nocturno (cruza medianoche)
     let minutosEnTurno: number;
     if (turnoActual === 'Nocturno') {
       if (ahora.getHours() >= 22) {
@@ -95,38 +91,18 @@ export function useVigilantes() {
     } else {
       minutosEnTurno = minutosHoy - minutosInicioTurno;
     }
-
-    // Vigilantes del turno actual (solo activos, sin licencia)
-    const vigilantesTurnoActual = vigilantes.filter(v => v.turno === turnoActual && (!v.estadoLicencia || v.estadoLicencia === 'activo'));
-    
-    // Si estamos en período de transición, incluir vigilantes del turno anterior
+    const vigilantesTurnoActual = vigilantes.filter(v => v.turno === turnoActual);
     if (minutosEnTurno < transicionMinutos) {
       const turnoAnterior = obtenerTurnoAnterior(turnoActual);
-      const vigilantesTurnoAnterior = vigilantes.filter(v => v.turno === turnoAnterior && (!v.estadoLicencia || v.estadoLicencia === 'activo'));
-      return {
-        actuales: vigilantesTurnoActual,
-        anteriores: vigilantesTurnoAnterior,
-        enTransicion: true
-      };
+      const vigilantesTurnoAnterior = vigilantes.filter(v => v.turno === turnoAnterior);
+      return { actuales: vigilantesTurnoActual, anteriores: vigilantesTurnoAnterior, enTransicion: true };
     }
-
-    return {
-      actuales: vigilantesTurnoActual,
-      anteriores: [],
-      enTransicion: false
-    };
+    return { actuales: vigilantesTurnoActual, anteriores: [], enTransicion: false };
   }, [vigilantes]);
 
-  // Obtener vigilantes por turno
-  const obtenerVigilantesPorTurno = useCallback((turno: Turno) => {
-    return vigilantes.filter(v => v.turno === turno);
-  }, [vigilantes]);
-
-  // Resetear a vigilantes por defecto
-  const resetearVigilantes = useCallback(() => {
-    localStorage.removeItem(VIGILANTES_STORAGE_KEY);
-    setVigilantes(vigilantesIniciales);
-  }, []);
+  const resetearVigilantes = useCallback(async () => {
+    await cargarVigilantes();
+  }, [cargarVigilantes]);
 
   return {
     vigilantes,
@@ -135,6 +111,6 @@ export function useVigilantes() {
     actualizarVigilante,
     obtenerVigilantesConTransicion,
     obtenerVigilantesPorTurno,
-    resetearVigilantes
+    resetearVigilantes,
   };
 }

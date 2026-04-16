@@ -2,11 +2,11 @@ import { Turno } from '@/data/fceaData';
 
 export interface RegistroActividad {
   id: string;
-  solicitudId: string;
-  tipo: 'entrega' | 'devolucion';
+  solicitudId?: string;
+  tipo: 'entrega' | 'devolucion' | 'objeto_registro' | 'objeto_devolucion';
   vigilante: string;
   turno: Turno;
-  timestamp: Date;
+  timestamp: Date | string;
   lugarNombre: string;
   usuarioNombre: string;
 }

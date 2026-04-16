@@ -4,12 +4,16 @@ const SONIDO_STORAGE_KEY = 'fcea_sonido_config';
 
 export interface SonidoConfig {
   volumen: number; // 0-1
-  muted: boolean;
+  muted: boolean; // Mantener para compatibilidad
+  mutedNuevaSolicitud: boolean; // Silenciar sonido de nuevas solicitudes
+  mutedEntregaDevolucion: boolean; // Silenciar sonido de entrega/devolución
 }
 
 const DEFAULT_CONFIG: SonidoConfig = {
   volumen: 0.5,
   muted: false,
+  mutedNuevaSolicitud: false,
+  mutedEntregaDevolucion: false,
 };
 
 // Frecuencias base para generar sonidos únicos por vigilante
@@ -138,11 +142,36 @@ export function useSonidos() {
   }, [config, guardarConfig]);
 
   const toggleMute = useCallback(() => {
-    guardarConfig({ ...config, muted: !config.muted });
+    const newMuted = !config.muted;
+    guardarConfig({ 
+      ...config, 
+      muted: newMuted,
+      // Sincronizar los estados específicos con el estado general
+      mutedNuevaSolicitud: newMuted,
+      mutedEntregaDevolucion: newMuted
+    });
+  }, [config, guardarConfig]);
+
+  // Nuevas funciones para toggle selectivo
+  const toggleMuteNuevaSolicitud = useCallback(() => {
+    guardarConfig({ ...config, mutedNuevaSolicitud: !config.mutedNuevaSolicitud });
+  }, [config, guardarConfig]);
+
+  const toggleMuteEntregaDevolucion = useCallback(() => {
+    guardarConfig({ ...config, mutedEntregaDevolucion: !config.mutedEntregaDevolucion });
   }, [config, guardarConfig]);
 
   const getVolumenEfectivo = useCallback(() => {
     return config.muted ? 0 : config.volumen;
+  }, [config]);
+
+  // Funciones específicas para obtener volumen según tipo de sonido
+  const getVolumenNuevaSolicitud = useCallback(() => {
+    return (config.muted || config.mutedNuevaSolicitud) ? 0 : config.volumen;
+  }, [config]);
+
+  const getVolumenEntregaDevolucion = useCallback(() => {
+    return (config.muted || config.mutedEntregaDevolucion) ? 0 : config.volumen;
   }, [config]);
 
   // Obtener frecuencia única para un vigilante basándose en su índice
@@ -157,30 +186,30 @@ export function useSonidos() {
   }, []);
 
   const sonarNuevaSolicitud = useCallback(() => {
-    const vol = getVolumenEfectivo();
+    const vol = getVolumenNuevaSolicitud();
     if (vol === 0) return;
     const ctx = ensureAudioContext();
     if (!ctx) return;
     reproducirNuevaSolicitud(ctx, vol);
-  }, [getVolumenEfectivo, ensureAudioContext]);
+  }, [getVolumenNuevaSolicitud, ensureAudioContext]);
 
   const sonarEntrega = useCallback((vigilanteNombre: string) => {
-    const vol = getVolumenEfectivo();
+    const vol = getVolumenEntregaDevolucion();
     if (vol === 0) return;
     const ctx = ensureAudioContext();
     if (!ctx) return;
     const freq = getFrecuenciaVigilante(vigilanteNombre);
     reproducirEntrega(ctx, freq, vol);
-  }, [getVolumenEfectivo, ensureAudioContext, getFrecuenciaVigilante]);
+  }, [getVolumenEntregaDevolucion, ensureAudioContext, getFrecuenciaVigilante]);
 
   const sonarDevolucion = useCallback((vigilanteNombre: string) => {
-    const vol = getVolumenEfectivo();
+    const vol = getVolumenEntregaDevolucion();
     if (vol === 0) return;
     const ctx = ensureAudioContext();
     if (!ctx) return;
     const freq = getFrecuenciaVigilante(vigilanteNombre);
     reproducirDevolucion(ctx, freq, vol);
-  }, [getVolumenEfectivo, ensureAudioContext, getFrecuenciaVigilante]);
+  }, [getVolumenEntregaDevolucion, ensureAudioContext, getFrecuenciaVigilante]);
 
   // Sonido de prueba
   const sonarPrueba = useCallback(() => {
@@ -194,6 +223,8 @@ export function useSonidos() {
     config,
     setVolumen,
     toggleMute,
+    toggleMuteNuevaSolicitud,
+    toggleMuteEntregaDevolucion,
     sonarNuevaSolicitud,
     sonarEntrega,
     sonarDevolucion,

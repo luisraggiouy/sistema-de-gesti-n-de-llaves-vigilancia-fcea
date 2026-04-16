@@ -4,6 +4,7 @@ import fceaLogo from '@/assets/fcea-logo.png';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useDeviceConfig } from '@/hooks/useDeviceConfig';
 import { obtenerTurnoActual, obtenerVigilantesActuales } from '@/data/fceaData';
 
 interface MonitorHeaderProps {
@@ -13,6 +14,7 @@ interface MonitorHeaderProps {
 }
 
 export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProps) {
+  const { shouldShowNavigationButtons } = useDeviceConfig();
   const turnoActual = obtenerTurnoActual();
   const vigilantes = obtenerVigilantesActuales();
   const jefe = vigilantes.find(v => v.esJefe);
@@ -101,28 +103,32 @@ export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProp
 
         {/* Fila 2: Botones de navegación y funcionalidades */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/50">
-          <Button 
-            asChild 
-            variant="outline" 
-            size="sm"
-            className="gap-2"
-          >
-            <Link to="/">
-              <Key className="w-4 h-4" />
-              Terminal Usuario
-            </Link>
-          </Button>
-          <Button 
-            asChild 
-            variant="outline" 
-            size="sm"
-            className="gap-2"
-          >
-            <Link to="/dashboard">
-              <BarChart3 className="w-4 h-4" />
-              Dashboard
-            </Link>
-          </Button>
+          {shouldShowNavigationButtons && (
+            <>
+              <Button 
+                asChild 
+                variant="outline" 
+                size="sm"
+                className="gap-2"
+              >
+                <Link to="/">
+                  <Key className="w-4 h-4" />
+                  Terminal Usuario
+                </Link>
+              </Button>
+              <Button 
+                asChild 
+                variant="outline" 
+                size="sm"
+                className="gap-2"
+              >
+                <Link to="/dashboard">
+                  <BarChart3 className="w-4 h-4" />
+                  Dashboard
+                </Link>
+              </Button>
+            </>
+          )}
           {children}
         </div>
       </div>

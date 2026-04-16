@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -7,15 +7,26 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Phone, Mail, User, Pencil, Trash2, X, Check, Building, ShieldCheck, History } from 'lucide-react';
+import { Search, Phone, Mail, User, Pencil, Trash2, X, Check, Building, ShieldCheck, History, RefreshCw } from 'lucide-react';
 import { 
-  getUsuariosRegistrados, normalizarTexto, UsuarioRegistrado, 
-  actualizarUsuario, eliminarUsuario, 
+  normalizarTexto, UsuarioRegistrado, 
   TipoUsuario, tiposUsuario, DepartamentoTAS, departamentosTAS 
 } from '@/data/fceaData';
 import { useToast } from '@/hooks/use-toast';
+import pb from '@/lib/pocketbase';
 import { AutorizacionesTab } from './AutorizacionesTab';
 import { HistorialAutorizacionesTab } from './HistorialAutorizacionesTab';
+
+const mapRecord = (r: any): UsuarioRegistrado => ({
+  id: r.id,
+  nombre: r.nombre,
+  celular: r.celular ?? '',
+  email: r.email || undefined,
+  tipo: r.tipo as TipoUsuario,
+  departamento: r.departamento || undefined,
+  nombreEmpresa: r.nombre_empresa || undefined,
+  fechaRegistro: r.created,
+});
 
 interface AgendaModalProps {
   open: boolean;
@@ -25,11 +36,29 @@ interface AgendaModalProps {
 export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
   const { toast } = useToast();
   const [busqueda, setBusqueda] = useState('');
-  const [refreshKey, setRefreshKey] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<UsuarioRegistrado>>({});
+  const [usuarios, setUsuarios] = useState<UsuarioRegistrado[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const usuarios = useMemo(() => getUsuariosRegistrados(), [open, refreshKey]);
+  // Fetch fresh data from PocketBase every time the modal opens
+  const fetchUsuarios = useCallback(async () => {
+    setLoading(true);
+    try {
+      const records = await pb.collection('usuarios_registrados').getFullList({ sort: 'nombre' });
+      setUsuarios(records.map(mapRecord));
+    } catch (e) {
+      console.error('Error cargando usuarios:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      fetchUsuarios();
+    }
+  }, [open, fetchUsuarios]);
 
   const resultados = useMemo(() => {
     if (!busqueda.trim()) return usuarios;
@@ -44,8 +73,6 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
     );
   }, [busqueda, usuarios]);
 
-  const refresh = useCallback(() => setRefreshKey(k => k + 1), []);
-
   const startEdit = (u: UsuarioRegistrado) => {
     setEditingId(u.id);
     setEditData({ nombre: u.nombre, celular: u.celular, email: u.email || '', tipo: u.tipo, departamento: u.departamento, nombreEmpresa: u.nombreEmpresa });
@@ -56,26 +83,36 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
     setEditData({});
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!editingId || !editData.nombre?.trim()) return;
-    actualizarUsuario(editingId, {
-      nombre: editData.nombre.trim(),
-      celular: editData.celular?.trim() || '',
-      email: editData.email?.trim() || undefined,
-      tipo: editData.tipo as TipoUsuario,
-      departamento: editData.tipo === 'Personal TAS' ? editData.departamento as DepartamentoTAS : undefined,
-      nombreEmpresa: editData.tipo === 'Empresa' ? editData.nombreEmpresa?.trim() : undefined,
-    });
-    toast({ title: "Usuario actualizado", description: `${editData.nombre} fue modificado correctamente` });
-    cancelEdit();
-    refresh();
+    try {
+      await pb.collection('usuarios_registrados').update(editingId, {
+        nombre: editData.nombre.trim(),
+        celular: editData.celular?.trim() || '',
+        email: editData.email?.trim() || '',
+        tipo: editData.tipo,
+        departamento: editData.tipo === 'Personal TAS' ? editData.departamento || '' : '',
+        nombre_empresa: editData.tipo === 'Empresa' ? editData.nombreEmpresa?.trim() || '' : '',
+      });
+      toast({ title: "Usuario actualizado", description: `${editData.nombre} fue modificado correctamente` });
+      cancelEdit();
+      await fetchUsuarios();
+    } catch (e) {
+      console.error('Error actualizando usuario:', e);
+      toast({ title: "Error", description: "No se pudo actualizar el usuario", variant: "destructive" });
+    }
   };
 
-  const handleDelete = (u: UsuarioRegistrado) => {
+  const handleDelete = async (u: UsuarioRegistrado) => {
     if (!confirm(`¿Eliminar a ${u.nombre}? Esta acción no se puede deshacer.`)) return;
-    eliminarUsuario(u.id);
-    toast({ title: "Usuario eliminado", description: `${u.nombre} fue eliminado de la agenda`, variant: "destructive" });
-    refresh();
+    try {
+      await pb.collection('usuarios_registrados').delete(u.id);
+      toast({ title: "Usuario eliminado", description: `${u.nombre} fue eliminado de la agenda`, variant: "destructive" });
+      await fetchUsuarios();
+    } catch (e) {
+      console.error('Error eliminando usuario:', e);
+      toast({ title: "Error", description: "No se pudo eliminar el usuario", variant: "destructive" });
+    }
   };
 
   const getBadgeColor = (tipo: string) => {
@@ -90,7 +127,7 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[85vh]">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="w-5 h-5" />

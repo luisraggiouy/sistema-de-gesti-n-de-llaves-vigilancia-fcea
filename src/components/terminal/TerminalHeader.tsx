@@ -1,9 +1,11 @@
 import { Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useDeviceConfig } from '@/hooks/useDeviceConfig';
 import fceaLogo from '@/assets/fcea-logo.png';
 
 export function TerminalHeader() {
+  const { shouldShowNavigationButtons } = useDeviceConfig();
   const ahora = new Date();
   const fecha = ahora.toLocaleDateString('es-UY', { 
     weekday: 'long', 
@@ -31,16 +33,18 @@ export function TerminalHeader() {
           </div>
         </div>
         <div className="flex items-center gap-6">
-          <Button 
-            asChild 
-            variant="secondary" 
-            className="gap-2"
-          >
-            <Link to="/monitor">
-              <Shield className="w-4 h-4" />
-              Monitor Vigilancia
-            </Link>
-          </Button>
+          {shouldShowNavigationButtons && (
+            <Button 
+              asChild 
+              variant="secondary" 
+              className="gap-2"
+            >
+              <Link to="/monitor">
+                <Shield className="w-4 h-4" />
+                Monitor Vigilancia
+              </Link>
+            </Button>
+          )}
           <div className="text-right">
             <p className="text-lg font-semibold">{hora}</p>
             <p className="text-primary-foreground/80 text-sm capitalize">{fecha}</p>

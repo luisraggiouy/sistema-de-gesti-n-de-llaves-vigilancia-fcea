@@ -9,7 +9,8 @@ import {
   edificios, 
   Lugar, 
   TipoLugar,
-  normalizarTexto
+  normalizarTexto,
+  ordenNatural
 } from '@/data/fceaData';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
 import { Search, Building2, Check, AlertTriangle, Lock, CheckSquare, ArrowRightLeft, User } from 'lucide-react';
@@ -19,18 +20,31 @@ interface KeySearchProps {
   selectedKeys: Lugar[];
   onToggleKey: (lugar: Lugar) => void;
   onExchangeRequest?: (lugar: Lugar, usuarioConLlave: { nombre: string; celular: string; tipo: string }) => void;
+  tipoUsuario?: string;
 }
 
-export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest }: KeySearchProps) {
+export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest, tipoUsuario }: KeySearchProps) {
   const { lugaresDisponibles, solicitudesEntregadas } = useSolicitudesContext();
   const [busqueda, setBusqueda] = useState('');
   const [filtroTipo, setFiltroTipo] = useState<TipoLugar | 'todos'>('todos');
   const [filtroEdificio, setFiltroEdificio] = useState<string>('todos');
 
+  const esDocente = tipoUsuario === 'Docente';
+
   const lugaresFiltrados = useMemo(() => {
     const busquedaNormalizada = normalizarTexto(busqueda);
     
-    return lugaresDisponibles.filter((lugar) => {
+    const filtrados = lugaresDisponibles.filter((lugar) => {
+      // Docentes: para salones, solo ven llaves de "Equipos" (laptop, mouse, control proyector)
+      // Pueden pedir cualquier otra llave (oficinas, salas, etc.)
+      if (esDocente) {
+        const esSalon = lugar.tipo === 'Salón' || lugar.tipo === 'Salón Híbrido';
+        if (esSalon) {
+          const nombreLower = normalizarTexto(lugar.nombre);
+          if (!nombreLower.includes('equipo')) return false;
+        }
+      }
+
       // Filtro de búsqueda (insensible a acentos)
       const nombreNormalizado = normalizarTexto(lugar.nombre);
       const tipoNormalizado = normalizarTexto(lugar.tipo);
@@ -46,12 +60,45 @@ export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest }: KeyS
       
       return coincideBusqueda && coincideTipo && coincideEdificio;
     });
-  }, [busqueda, filtroTipo, filtroEdificio, lugaresDisponibles]);
+
+    // Sort results: prioritize name starts with search term, then contains
+    if (busquedaNormalizada.length > 0) {
+      filtrados.sort((a, b) => {
+        const nombreA = normalizarTexto(a.nombre);
+        const nombreB = normalizarTexto(b.nombre);
+        const aStartsWith = nombreA.startsWith(busquedaNormalizada);
+        const bStartsWith = nombreB.startsWith(busquedaNormalizada);
+        
+        // First priority: name starts with search term
+        if (aStartsWith && !bStartsWith) return -1;
+        if (!aStartsWith && bStartsWith) return 1;
+        
+        // Second priority: name contains search term (vs only type matches)
+        const aNameContains = nombreA.includes(busquedaNormalizada);
+        const bNameContains = nombreB.includes(busquedaNormalizada);
+        if (aNameContains && !bNameContains) return -1;
+        if (!aNameContains && bNameContains) return 1;
+        
+        // Third priority: earlier position of match in name
+        const aIndex = nombreA.indexOf(busquedaNormalizada);
+        const bIndex = nombreB.indexOf(busquedaNormalizada);
+        if (aIndex !== bIndex) return aIndex - bIndex;
+        
+        // Finally: natural order
+        return ordenNatural(a.nombre, b.nombre);
+      });
+    } else {
+      // No search term: sort by natural order
+      filtrados.sort((a, b) => ordenNatural(a.nombre, b.nombre));
+    }
+
+    return filtrados;
+  }, [busqueda, filtroTipo, filtroEdificio, lugaresDisponibles, esDocente]);
 
   const isSelected = (lugarId: string) => selectedKeys.some(k => k.id === lugarId);
 
   const getTipoColor = (tipo: TipoLugar): string => {
-    const colores: Record<TipoLugar, string> = {
+    const colores: Partial<Record<TipoLugar, string>> = {
       'Salón': 'bg-blue-100 text-blue-800 border-blue-200',
       'Salón Híbrido': 'bg-rose-100 text-rose-800 border-rose-200',
       'Oficina': 'bg-emerald-100 text-emerald-800 border-emerald-200',
@@ -60,7 +107,11 @@ export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest }: KeyS
       'Baño': 'bg-cyan-100 text-cyan-800 border-cyan-200',
       'Área Común': 'bg-amber-100 text-amber-800 border-amber-200',
       'Biblioteca': 'bg-purple-100 text-purple-800 border-purple-200',
-      'Auditorio': 'bg-orange-100 text-orange-800 border-orange-200'
+      'Taller': 'bg-orange-100 text-orange-800 border-orange-200',
+      'Recreación': 'bg-lime-100 text-lime-800 border-lime-200',
+      'Acceso': 'bg-gray-100 text-gray-800 border-gray-200',
+      'Espacio Común': 'bg-indigo-100 text-indigo-800 border-indigo-200',
+      'Otro': 'bg-stone-100 text-stone-800 border-stone-200',
     };
     return colores[tipo] || 'bg-muted text-muted-foreground';
   };
@@ -79,6 +130,14 @@ export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest }: KeyS
           </Badge>
         )}
       </div>
+
+      {/* Info banner for docentes */}
+      {esDocente && (
+        <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+          <span>📋</span>
+          <span>Como docente, para salones solo se muestran las llaves de <strong>Equipos</strong> (laptop, mouse y control del proyector). Las demás llaves están disponibles normalmente.</span>
+        </div>
+      )}
 
       {/* Filtros */}
       <div className="space-y-3">

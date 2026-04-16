@@ -1,74 +1,92 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ObjetoOlvidado } from '@/types/objetoOlvidado';
-
-const STORAGE_KEY = 'fcea_objetos_olvidados';
+import pb from '@/lib/pocketbase';
 
 const normalizar = (texto: string): string =>
   texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-const cargarObjetos = (): ObjetoOlvidado[] => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return parsed.map((o: any) => ({
-        ...o,
-        fechaRegistro: new Date(o.fechaRegistro),
-        devolucion: o.devolucion ? {
-          ...o.devolucion,
-          fecha: new Date(o.devolucion.fecha),
-        } : undefined,
-      }));
-    }
-    return [];
-  } catch {
-    return [];
-  }
-};
-
-const guardarObjetos = (objetos: ObjetoOlvidado[]) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(objetos));
-};
+const mapRecord = (r: any): ObjetoOlvidado => ({
+  id: r.id,
+  descripcion: r.descripcion,
+  lugarEncontrado: r.lugar_encontrado ?? '',
+  registradoPor: r.registrado_por ?? '',
+  fechaRegistro: r.fecha_registro ? new Date(r.fecha_registro) : new Date(r.created),
+  estado: r.estado ?? 'custodia',
+  fotos: {
+    general: r.foto_general ?? '',
+    marca: r.foto_marca ?? '',
+    adicional: r.foto_adicional || undefined,
+  },
+  devolucion: r.devolucion_fecha
+    ? {
+        fecha: new Date(r.devolucion_fecha),
+        vigilanteEntrega: r.devolucion_vigilante ?? '',
+        nombreReceptor: r.devolucion_receptor ?? '',
+        cedulaReceptor: r.devolucion_cedula ?? '',
+      }
+    : undefined,
+});
 
 export function useObjetosOlvidados() {
-  const [objetos, setObjetos] = useState<ObjetoOlvidado[]>(cargarObjetos);
+  const [objetos, setObjetos] = useState<ObjetoOlvidado[]>([]);
 
-  const registrarObjeto = useCallback((objeto: Omit<ObjetoOlvidado, 'id' | 'estado' | 'fechaRegistro'>) => {
-    const nuevo: ObjetoOlvidado = {
-      ...objeto,
-      id: `obj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      fechaRegistro: new Date(),
-      estado: 'custodia',
-    };
-    setObjetos(prev => {
-      const updated = [nuevo, ...prev];
-      guardarObjetos(updated);
-      return updated;
-    });
-    return nuevo;
+  const cargar = useCallback(async () => {
+    try {
+      const records = await pb.collection('objetos_olvidados').getFullList({ sort: '-created' });
+      setObjetos(records.map(mapRecord));
+    } catch (e) {
+      console.error('Error cargando objetos olvidados:', e);
+    }
   }, []);
 
-  const devolverObjeto = useCallback((objetoId: string, datos: {
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
+
+  const registrarObjeto = useCallback(async (
+    objeto: Omit<ObjetoOlvidado, 'id' | 'estado' | 'fechaRegistro'>
+  ) => {
+    try {
+      const record = await pb.collection('objetos_olvidados').create({
+        descripcion: objeto.descripcion,
+        lugar_encontrado: objeto.lugarEncontrado ?? '',
+        registrado_por: objeto.registradoPor ?? '',
+        fecha_registro: new Date().toISOString(),
+        estado: 'custodia',
+        foto_general: objeto.fotos?.general ?? '',
+        foto_marca: objeto.fotos?.marca ?? '',
+        foto_adicional: objeto.fotos?.adicional ?? '',
+      });
+      const nuevo = mapRecord(record);
+      setObjetos(prev => [nuevo, ...prev]);
+      return nuevo;
+    } catch (e) {
+      console.error('Error registrando objeto:', e);
+    }
+  }, []);
+
+  const devolverObjeto = useCallback(async (objetoId: string, datos: {
     vigilanteEntrega: string;
     nombreReceptor: string;
     cedulaReceptor: string;
   }) => {
-    setObjetos(prev => {
-      const updated = prev.map(o =>
+    try {
+      const now = new Date().toISOString();
+      await pb.collection('objetos_olvidados').update(objetoId, {
+        estado: 'devuelto',
+        devolucion_fecha: now,
+        devolucion_vigilante: datos.vigilanteEntrega,
+        devolucion_receptor: datos.nombreReceptor,
+        devolucion_cedula: datos.cedulaReceptor,
+      });
+      setObjetos(prev => prev.map(o =>
         o.id === objetoId
-          ? {
-              ...o,
-              estado: 'devuelto' as const,
-              devolucion: {
-                fecha: new Date(),
-                ...datos,
-              },
-            }
+          ? { ...o, estado: 'devuelto' as const, devolucion: { fecha: new Date(now), ...datos } }
           : o
-      );
-      guardarObjetos(updated);
-      return updated;
-    });
+      ));
+    } catch (e) {
+      console.error('Error devolviendo objeto:', e);
+    }
   }, []);
 
   const buscarObjetos = useCallback((filtros: {
@@ -80,14 +98,10 @@ export function useObjetosOlvidados() {
   }) => {
     return objetos.filter(o => {
       if (filtros.texto) {
-        const textoNorm = normalizar(filtros.texto);
-        const descNorm = normalizar(o.descripcion);
-        if (!descNorm.includes(textoNorm)) return false;
+        if (!normalizar(o.descripcion).includes(normalizar(filtros.texto))) return false;
       }
       if (filtros.lugar) {
-        const lugarNorm = normalizar(filtros.lugar);
-        const objLugarNorm = normalizar(o.lugarEncontrado || '');
-        if (!objLugarNorm.includes(lugarNorm)) return false;
+        if (!normalizar(o.lugarEncontrado || '').includes(normalizar(filtros.lugar))) return false;
       }
       if (filtros.fechaDesde) {
         const desde = new Date(filtros.fechaDesde);

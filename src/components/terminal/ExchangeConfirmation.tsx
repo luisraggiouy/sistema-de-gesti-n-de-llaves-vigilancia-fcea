@@ -31,7 +31,14 @@ export function ExchangeConfirmation({
 }: ExchangeConfirmationProps) {
   const [accepted, setAccepted] = useState(false);
 
+  // Check if this is a self-exchange (same user exchanging with themselves)
+  const isSelfExchange = usuarioActual.nombre === usuarioConLlave.nombre;
+
   const handleConfirm = () => {
+    // Extra validation to prevent self-exchange
+    if (isSelfExchange) {
+      return; // Don't allow the exchange
+    }
     onConfirmar();
     setAccepted(false);
     onOpenChange(false);
@@ -81,6 +88,19 @@ export function ExchangeConfirmation({
             <span className="font-medium text-foreground">{usuarioActual.nombre}</span>
           </div>
 
+          {/* Error message for self-exchange */}
+          {isSelfExchange && (
+            <div className="flex items-start gap-3 p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
+              <AlertTriangle className="w-6 h-6 text-destructive flex-shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-semibold text-destructive">Intercambio no permitido</p>
+                <p className="text-sm text-muted-foreground">
+                  No puede intercambiar una llave consigo mismo. El usuario actual y el usuario con la llave deben ser diferentes.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Banner de advertencia */}
           <div className="flex items-start gap-3 p-4 bg-warning/10 border border-warning/30 rounded-lg">
             <ShieldAlert className="w-6 h-6 text-warning flex-shrink-0 mt-0.5" />
@@ -89,7 +109,7 @@ export function ExchangeConfirmation({
               <p className="text-sm text-muted-foreground">
                 Al confirmar el intercambio, <strong className="text-foreground">{usuarioActual.nombre}</strong> pasa a ser 
                 responsable de la llave <strong className="text-foreground">{lugar.nombre}</strong>. 
-                Usted debe solicitar la llave directamente al docente saliente.
+                Usted debe solicitar la llave directamente al usuario saliente.
               </p>
             </div>
           </div>
@@ -100,7 +120,7 @@ export function ExchangeConfirmation({
               type="checkbox"
               checked={accepted}
               onChange={(e) => setAccepted(e.target.checked)}
-              className="mt-1 h-4 w-4 rounded border-input accent-primary"
+              className="mt-1 h-8 w-8 rounded border-input accent-primary"
             />
             <span className="text-sm">
               Entiendo que la llave pasa a ser mi responsabilidad y me comprometo a devolverla al finalizar su uso.
@@ -114,7 +134,7 @@ export function ExchangeConfirmation({
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={!accepted}
+            disabled={!accepted || isSelfExchange}
             className="gap-2"
           >
             <ArrowRightLeft className="w-4 h-4" />

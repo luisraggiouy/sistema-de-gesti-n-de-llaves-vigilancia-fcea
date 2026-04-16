@@ -9,6 +9,8 @@ export interface SolicitudLlave {
     nombre: string;
     celular: string;
     tipo: TipoUsuario;
+    departamento?: string;
+    nombreEmpresa?: string;
   };
   terminal: string;
   horaSolicitud: Date;
@@ -23,8 +25,12 @@ export interface SolicitudLlave {
     nombre: string;
     celular: string;
     tipo: TipoUsuario;
+    departamento?: string;
+    nombreEmpresa?: string;
   };
   notas?: string;
+  turno?: string;
+  lugarId?: string;
 }
 
 export interface AccionUndo {

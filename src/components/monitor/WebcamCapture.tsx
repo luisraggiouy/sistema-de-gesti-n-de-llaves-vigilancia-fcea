@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Camera, RotateCcw, Check, X } from 'lucide-react';
+import { Camera, RotateCcw, X } from 'lucide-react';
 
 interface WebcamCaptureProps {
   label: string;
@@ -14,27 +13,10 @@ interface WebcamCaptureProps {
 export function WebcamCapture({ label, required = false, onCapture, capturedImage, onClear }: WebcamCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-
-  const startCamera = useCallback(async () => {
-    try {
-      setError(null);
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        setStreaming(true);
-      }
-    } catch (err) {
-      setError('No se pudo acceder a la cámara. Verifica los permisos.');
-      console.error('Error accessing camera:', err);
-    }
-  }, []);
 
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
@@ -59,6 +41,36 @@ export function WebcamCapture({ label, required = false, onCapture, capturedImag
   }, [onCapture, stopCamera]);
 
   useEffect(() => {
+    const card = cardRef.current;
+    if (!card) return;
+
+    const handler = async () => {
+      try {
+        setError(null);
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+        });
+        streamRef.current = stream;
+        // Esperamos al siguiente tick para que React actualice el DOM
+        setStreaming(true);
+        // Conectar el stream al video después de que React renderice
+        setTimeout(() => {
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.play().catch(console.error);
+          }
+        }, 100);
+      } catch (err) {
+        setError('No se pudo acceder a la cámara.');
+        console.error(err);
+      }
+    };
+
+    card.addEventListener('click', handler);
+    return () => card.removeEventListener('click', handler);
+  }, []);
+
+  useEffect(() => {
     return () => stopCamera();
   }, [stopCamera]);
 
@@ -69,14 +81,7 @@ export function WebcamCapture({ label, required = false, onCapture, capturedImag
           <span className="text-sm font-medium">
             {label} {required && <span className="text-destructive">*</span>}
           </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              onClear?.();
-            }}
-            className="gap-1 text-xs"
-          >
+          <Button variant="ghost" size="sm" onClick={() => onClear?.()} className="gap-1 text-xs">
             <RotateCcw className="w-3 h-3" />
             Retomar
           </Button>
@@ -94,34 +99,32 @@ export function WebcamCapture({ label, required = false, onCapture, capturedImag
         {label} {required && <span className="text-destructive">*</span>}
       </span>
       {streaming ? (
-        <div className="space-y-2">
-          <div className="rounded-lg overflow-hidden border border-primary relative">
-            <video ref={videoRef} className="w-full h-40 object-cover" autoPlay playsInline muted />
-            <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
-              <Button size="sm" onClick={takePhoto} className="gap-1">
-                <Camera className="w-4 h-4" />
-                Capturar
-              </Button>
-              <Button size="sm" variant="outline" onClick={stopCamera}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
+        <div className="rounded-lg overflow-hidden border border-primary relative">
+          <video ref={videoRef} className="w-full h-40 object-cover" autoPlay playsInline muted />
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
+            <Button size="sm" onClick={takePhoto} className="gap-1">
+              <Camera className="w-4 h-4" />
+              Capturar
+            </Button>
+            <Button size="sm" variant="outline" onClick={stopCamera}>
+              <X className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       ) : (
-        <Card
-          className="h-40 flex flex-col items-center justify-center cursor-pointer border-dashed border-2 hover:bg-accent/50 transition-colors"
-          onClick={startCamera}
+        <div
+          ref={cardRef}
+          className="h-40 flex flex-col items-center justify-center cursor-pointer border-dashed border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
         >
           {error ? (
-            <p className="text-destructive text-sm text-center px-4">{error}</p>
+            <p className="text-red-500 text-sm text-center px-4">{error}</p>
           ) : (
             <>
-              <Camera className="w-8 h-8 text-muted-foreground mb-2" />
-              <span className="text-sm text-muted-foreground">Toca para abrir cámara</span>
+              <Camera className="w-8 h-8 text-gray-400 mb-2" />
+              <span className="text-sm text-gray-500">Toca para abrir cámara</span>
             </>
           )}
-        </Card>
+        </div>
       )}
       <canvas ref={canvasRef} className="hidden" />
     </div>

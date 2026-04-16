@@ -1,0 +1,14 @@
+{
+  "options": {
+    "http": {
+      "cors": {
+        "enabled": true,
+        "allowOrigin": "*",
+        "allowMethods": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+        "allowHeaders": ["Content-Type", "Authorization"],
+        "exposeHeaders": [],
+        "maxAge": 86400
+      }
+    }
+  }
+}
