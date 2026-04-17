@@ -39,13 +39,7 @@ export default function TerminalUsuario() {
   const { llavesFrecuentes, registrarUso } = useHistorialLlaves(currentUser?.id ?? null, lugaresDisponibles);
   const isFormValid = currentUser && selectedKeys.length > 0;
   
-  // Refresh data automatically when connection is restored
-  // Refresh data automatically when connection is restored
-  useEffect(() => {
-    if (isConnected && lastUpdated === null) {
-      refrescarDatos();
-    }
-  }, [isConnected, lastUpdated, refrescarDatos]);
+  // La carga inicial ya se hace en SolicitudesContext (polling cada 3s)
 
   // Forzar recarga de llaves frecuentes cuando cambia el usuario
   useEffect(() => {

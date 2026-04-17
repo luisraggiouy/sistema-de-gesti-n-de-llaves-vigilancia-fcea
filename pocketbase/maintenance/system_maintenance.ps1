@@ -7,7 +7,7 @@ $backupDir = "..\pb_backups"
 $logDir = ".\logs"
 $dbPath = "..\pb_data\data.db"
 $maintenanceLog = "$logDir\maintenance.log"
-$maxBackups = 10  # Número máximo de backups a mantener
+$maxBackups = 52  # Número máximo de backups a mantener (52 semanas = 1 año de historial)
 $maxLogSize = 10MB  # Tamaño máximo del archivo de log antes de rotarlo
 
 # Crear directorios si no existen

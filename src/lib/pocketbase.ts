@@ -76,17 +76,24 @@ pb.beforeSend = (url, options) => {
     'Access-Control-Allow-Headers': 'Content-Type, Authorization'
   };
   
-  console.log('[PocketBase] Enviando solicitud con cabeceras CORS:', url);
-  
   return { url, options };
 };
 
+// Track consecutive failures to avoid false disconnection on wake from sleep
+let consecutiveFailures = 0;
+const MAX_FAILURES_BEFORE_DISCONNECT = 3;
+
 pb.afterSend = (response, data) => {
   if (!response.ok && (response.status === 0 || response.status >= 500)) {
-    // Connection issue detected
-    useConnectionStore.getState().setConnected(false);
-    startReconnectionAttempts();
+    consecutiveFailures++;
+    // Only mark as disconnected after 3 consecutive failures
+    // This prevents false "connection lost" when waking from sleep
+    if (consecutiveFailures >= MAX_FAILURES_BEFORE_DISCONNECT) {
+      useConnectionStore.getState().setConnected(false);
+      startReconnectionAttempts();
+    }
   } else {
+    consecutiveFailures = 0;
     useConnectionStore.getState().setConnected(true);
   }
   return data;

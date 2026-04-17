@@ -18,7 +18,7 @@ El sistema cuenta con un mecanismo de **respaldos automáticos** que garantiza q
 │                                                         │
 │   El sistema copia automáticamente toda la base de      │
 │   datos cada semana (domingos a las 8:00 AM) y guarda   │
-│   las últimas 10 copias comprimidas en una carpeta      │
+│   las últimas 52 copias comprimidas en una carpeta      │
 │   especial. Si algo falla, se puede restaurar desde     │
 │   cualquiera de esas copias.                            │
 │                                                         │
@@ -68,8 +68,8 @@ Cada domingo a las 8:00 AM, automáticamente:
   6️⃣  Verifica la integridad de la base de datos
       (comprueba que no haya datos corruptos)
 
-  7️⃣  Elimina las copias más antiguas si hay más de 10
-      (siempre mantiene las 10 más recientes)
+  7️⃣  Elimina las copias más antiguas si hay más de 52
+      (siempre mantiene las 52 más recientes = 1 año)
 
   8️⃣  Registra todo en un archivo de log
       (para que se pueda auditar qué pasó)
@@ -86,7 +86,7 @@ pocketbase\
 │   ├── backup_full_20260412_080000.db.zip    ← Respaldo del 12/04/2026
 │   ├── backup_full_20260405_080000.db.zip    ← Respaldo del 05/04/2026
 │   ├── backup_full_20260329_080000.db.zip    ← Respaldo del 29/03/2026
-│   └── ... (hasta 10 respaldos)
+│   └── ... (hasta 52 respaldos = 1 año)
 │
 └── maintenance\
     └── logs\
@@ -99,10 +99,10 @@ pocketbase\
 |----------|-------------------|
 | Base de datos activa | 10-100 MB (depende del uso) |
 | Cada respaldo comprimido | 3-30 MB |
-| 10 respaldos (máximo) | 30-300 MB |
-| **Total máximo** | **~400 MB** |
+| 52 respaldos (máximo = 1 año) | 156 MB - 1.5 GB |
+| **Total máximo** | **~1.6 GB** |
 
-> El sistema automáticamente borra los respaldos más antiguos cuando hay más de 10, por lo que el espacio nunca crece indefinidamente.
+> El sistema automáticamente borra los respaldos más antiguos cuando hay más de 52, por lo que el espacio nunca crece indefinidamente. Con 52 respaldos semanales se cubre un año completo de historial de recuperación.
 
 ---
 
@@ -226,7 +226,7 @@ Además del respaldo, el script de mantenimiento automático realiza:
 |-------------|----------|-----------|
 | **Espacio en disco** | Alerta si queda menos del 15% libre | Cada ejecución |
 | **Integridad de la base** | Verifica que no haya datos corruptos | Cada ejecución |
-| **Limpieza de respaldos** | Borra los más antiguos si hay más de 10 | Cada ejecución |
+| **Limpieza de respaldos** | Borra los más antiguos si hay más de 52 (1 año) | Cada ejecución |
 | **Rotación de logs** | Si el log supera 10 MB, lo archiva y crea uno nuevo | Cada ejecución |
 
 ---
@@ -286,7 +286,7 @@ R: Sí, todo está incluido en la base de datos.
         │                              ┌──────────────┐
         │                              │  Carpeta     │
         │                              │  pb_backups  │
-        │                              │  (10 copias) │
+        │                              │  (52 copias) │
         │                              └──────┬───────┘
         │                                      │
         │    Si el sistema falla:              │

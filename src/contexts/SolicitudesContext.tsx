@@ -65,16 +65,37 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
     accionesUndoRef.current = accionesUndo;
   }, [accionesUndo]);
   
-  // Monitor connection status and show toast notifications
+  // Monitor connection status - reconnect silently without spamming toasts
+  const wasConnectedRef = useRef(true);
+  const connectionLostTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
   useEffect(() => {
     if (!isConnected) {
-      toast({
-        title: "Conexión perdida",
-        description: "Intentando reconectar automáticamente...",
-        variant: "destructive",
-        duration: 5000,
-      });
+      // Only show toast if we were previously connected AND it's been more than 10 seconds
+      // This prevents toast spam when waking from sleep
+      if (wasConnectedRef.current && !connectionLostTimerRef.current) {
+        connectionLostTimerRef.current = setTimeout(() => {
+          // Only show if still disconnected after 10 seconds
+          if (!useConnectionStore.getState().isConnected) {
+            toast({
+              title: "Conexión perdida",
+              description: "Intentando reconectar automáticamente...",
+              variant: "destructive",
+              duration: 5000,
+            });
+          }
+          connectionLostTimerRef.current = null;
+        }, 10000);
+      }
+      wasConnectedRef.current = false;
       startReconnectionAttempts();
+    } else {
+      // Clear the timer if we reconnected before 10 seconds
+      if (connectionLostTimerRef.current) {
+        clearTimeout(connectionLostTimerRef.current);
+        connectionLostTimerRef.current = null;
+      }
+      wasConnectedRef.current = true;
     }
   }, [isConnected, toast]);
 
@@ -111,13 +132,8 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
       setLastUpdated(new Date());
     } catch (e) {
       console.error('Error cargando lugares:', e);
-      if (!isBackgroundRefreshRef.current) {
-        toast({
-          title: "Error al cargar lugares",
-          description: "No se pudieron cargar los datos de lugares",
-          variant: "destructive",
-        });
-      }
+      // No mostrar toast - las cargas automáticas fallan silenciosamente
+      // El usuario verá el indicador de "sin conexión" si persiste
     } finally {
       if (!isBackgroundRefreshRef.current) {
         setIsLoading(false);
@@ -186,13 +202,8 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
       setLastUpdated(new Date());
     } catch (e) {
       console.error('Error cargando solicitudes:', e);
-      if (!isBackgroundRefreshRef.current) {
-        toast({
-          title: "Error al cargar solicitudes",
-          description: "No se pudieron cargar los datos de solicitudes",
-          variant: "destructive",
-        });
-      }
+      // No mostrar toast - las cargas automáticas fallan silenciosamente
+      // El sistema reintenta cada 3 segundos y se recupera solo
     } finally {
       if (!isBackgroundRefreshRef.current) {
         setIsLoading(false);
@@ -231,15 +242,48 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
     cargarLugares();
     cargarSolicitudes();
     
+    // Track last successful poll time to detect sleep/wake
+    let lastPollTime = Date.now();
+    
     // Set up interval for background refresh
     const interval = setInterval(() => {
+      const now = Date.now();
+      const timeSinceLastPoll = now - lastPollTime;
+      lastPollTime = now;
+      
+      // If more than 30 seconds passed since last poll, the PC was likely sleeping
+      // In that case, do a silent full refresh instead of showing errors
+      if (timeSinceLastPoll > 30000) {
+        console.log('[Sistema] PC despertó de suspensión, reconectando silenciosamente...');
+        isBackgroundRefreshRef.current = true;
+        Promise.all([cargarLugares(), cargarSolicitudes()]).finally(() => {
+          isBackgroundRefreshRef.current = false;
+        });
+        return;
+      }
+      
       isBackgroundRefreshRef.current = true;
       cargarSolicitudes().finally(() => {
         isBackgroundRefreshRef.current = false;
       });
     }, 3000);
     
-    return () => clearInterval(interval);
+    // Also handle visibility change (tab becomes visible again)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[Sistema] Pestaña visible, refrescando datos silenciosamente...');
+        isBackgroundRefreshRef.current = true;
+        Promise.all([cargarLugares(), cargarSolicitudes()]).finally(() => {
+          isBackgroundRefreshRef.current = false;
+        });
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [cargarLugares, cargarSolicitudes]);
 
   const agregarSolicitud = useCallback(async (solicitud: Omit<SolicitudLlave, 'id'>) => {

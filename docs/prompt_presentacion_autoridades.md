@@ -102,7 +102,7 @@ Título: "Los datos nunca se pierden"
 Explicar el sistema de respaldos:
 - Cada domingo a las 8 AM, la computadora hace automáticamente una copia completa de toda la base de datos
 - La copia se comprime y se guarda en una carpeta especial
-- Se mantienen las últimas 10 copias (10 semanas de historial de respaldos)
+- Se mantienen las últimas 52 copias (1 año completo de historial de respaldos)
 - Si algo falla, se puede restaurar el sistema completo en minutos
 - Adicionalmente, se recomienda copiar los respaldos a un pendrive una vez al mes como medida extra
 
