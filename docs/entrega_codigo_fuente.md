@@ -116,9 +116,9 @@ tar -czf sistema_llaves_fcea_codigo_fuente_$(date +%Y%m%d).tar.gz .
 - Licencia: [A definir por las autoridades]
 
 **Desarrollador:**
-- **Nombre:** Luis Raggi
+- **Nombre:** Luis Raggio
 - **Usuario GitHub:** luisraggiouy
-- **Contacto:** [A completar]
+- **Contacto:** 099 600 873 luisraggiouy@gmail.com
 
 **Fecha de Desarrollo:**
 - **Inicio:** [Fecha de inicio]
@@ -161,7 +161,7 @@ tar -czf sistema_llaves_fcea_codigo_fuente_$(date +%Y%m%d).tar.gz .
 **Para consultas sobre el código fuente:**
 - **Repositorio GitHub:** https://github.com/luisraggiouy/sistema-de-gesti-n-de-llaves-vigilancia-fcea
 - **Issues/Problemas:** Usar el sistema de issues de GitHub
-- **Desarrollador:** [Contacto a completar]
+- **Desarrollador:** Luis Raggio
 
 ### 10. Verificación de Integridad
 
