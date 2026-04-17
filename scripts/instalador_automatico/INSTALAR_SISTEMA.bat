@@ -514,16 +514,20 @@ if "%MODO_INSTALACION%"=="PRODUCCION" (
         echo Creando estructura de base de datos para producción...
     )
 ) else (
-    :: Configuración para prueba - con datos de ejemplo
-    if exist "%SCRIPT_DIR%\packages\pocketbase\pb_data_prueba" (
-        xcopy /E /I /H /Y "%SCRIPT_DIR%\packages\pocketbase\pb_data_prueba" "%INSTALL_DIR%\pocketbase\pb_data" >nul
-    ) else if exist "%SCRIPT_DIR%\packages\pocketbase\pb_data" (
-        xcopy /E /I /H /Y "%SCRIPT_DIR%\packages\pocketbase\pb_data" "%INSTALL_DIR%\pocketbase\pb_data" >nul
-    ) else {
-        :: Si no hay datos de prueba, crear estructura mínima
-        mkdir "%INSTALL_DIR%\pocketbase\pb_data" 2>nul
-        echo Creando estructura de base de datos para pruebas...
-    }
+:: Configuración para prueba - con datos de ejemplo
+if exist "%SCRIPT_DIR%\packages\pocketbase\pb_data_prueba" (
+    echo Copiando datos de prueba (llaves y usuarios predefinidos)...
+    xcopy /E /I /H /Y "%SCRIPT_DIR%\packages\pocketbase\pb_data_prueba" "%INSTALL_DIR%\pocketbase\pb_data" >nul
+) else if exist "%SCRIPT_DIR%\packages\pocketbase\pb_data" (
+    echo Copiando datos de prueba actuales (llaves y usuarios predefinidos)...
+    xcopy /E /I /H /Y "%SCRIPT_DIR%\packages\pocketbase\pb_data" "%INSTALL_DIR%\pocketbase\pb_data" >nul
+) else {
+    :: Si no hay datos de prueba, crear estructura mínima
+    mkdir "%INSTALL_DIR%\pocketbase\pb_data" 2>nul
+    echo [ADVERTENCIA] No se encontraron datos de prueba (llaves y usuarios).
+    echo Creando estructura de base de datos mínima para pruebas...
+    echo Se recomienda incluir datos de prueba para una experiencia completa.
+}
 )
 
 :: Crear configuración de PocketBase
