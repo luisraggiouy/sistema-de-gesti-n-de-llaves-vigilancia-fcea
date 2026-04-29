@@ -1,0 +1,5 @@
+[autorun]
+open=INSTALAR_SISTEMA.bat
+icon=recursos\logo.ico
+label=Instalador Sistema Llaves FCEA
+action=Ejecutar Instalador Sistema de Gestión de Llaves FCEA

@@ -1,0 +1,327 @@
+# 📚 ÍNDICE COMPLETO DE DOCUMENTACIÓN
+## Sistema de Gestión de Llaves — FCEA
+
+**Última actualización:** Abril 2026  
+**Versión del sistema:** 1.0
+
+---
+
+## 📋 Resumen de Documentos
+
+Este índice organiza toda la documentación del sistema en categorías para facilitar su consulta.
+
+---
+
+## 🚀 INSTALACIÓN Y CONFIGURACIÓN INICIAL
+
+### 1. **INSTRUCCIONES_RAPIDAS_PENDRIVES.md** ⭐ EMPEZAR AQUÍ
+   - **Propósito**: Guía rápida para grabar los pendrives de instalación
+   - **Audiencia**: Personal de Sistemas
+   - **Cuándo usar**: Antes de instalar el sistema por primera vez
+   - **Contenido clave**:
+     - Cómo grabar pendrive instalador (16 GB)
+     - Cómo grabar pendrive de recuperación (8 GB)
+     - Configuración de hardware (táctil vs tradicional)
+     - Proceso de instalación paso a paso
+
+### 2. **preparacion_pendrives_instalacion.md**
+   - **Propósito**: Documentación completa del sistema de pendrives
+   - **Audiencia**: Personal de Sistemas
+   - **Cuándo usar**: Para entender en detalle el sistema de instalación
+   - **Contenido clave**:
+     - Características de ambos pendrives
+     - Diagramas de conexión física
+     - Proceso de instalación automática (10 pasos)
+     - Proceso de recuperación
+     - Checklists de verificación
+     - Solución de problemas
+
+### 3. **configuracion_produccion.md**
+   - **Propósito**: Configuración del sistema para ambiente de producción
+   - **Audiencia**: Personal de Sistemas
+   - **Cuándo usar**: Después de instalar, antes de poner en producción
+   - **Contenido clave**:
+     - Configuración de modo kiosk
+     - Configuración de pantallas múltiples
+     - Seguridad y permisos
+     - Optimización de rendimiento
+
+### 4. **teclado_tactil_configuracion.md**
+   - **Propósito**: Configuración del teclado virtual para pantallas táctiles
+   - **Audiencia**: Personal de Sistemas
+   - **Cuándo usar**: Si se usan pantallas táctiles
+   - **Contenido clave**:
+     - Habilitación del teclado táctil de Windows
+     - Configuración de diccionario personalizado
+     - Ajustes de sensibilidad
+     - Solución de problemas
+
+---
+
+## 👥 OPERACIÓN Y USO DIARIO
+
+### 5. **instructivo_acceso_dashboard.md** ⭐ PARA USUARIOS
+   - **Propósito**: Guía para acceder y usar el dashboard de estadísticas
+   - **Audiencia**: Vigilantes, Custodios, Administradores
+   - **Cuándo usar**: Para consultar estadísticas del sistema
+   - **Contenido clave**:
+     - Roles y permisos (Vigilantes SÍ pueden ver, NO pueden exportar)
+     - Cómo acceder al dashboard
+     - Cómo exportar reportes (solo Administrador/Custodio)
+     - Exportación a pendrive (modo kiosk)
+     - Cierre de sesión automático (5 minutos)
+
+### 6. **funcionalidad_administracion_custodio.md**
+   - **Propósito**: Funcionalidades del rol Administrador y Custodio
+   - **Audiencia**: Intendente (Administrador), Jefes de Apoyo y Turno (Custodios)
+   - **Cuándo usar**: Para entender qué puede hacer cada rol
+   - **Contenido clave**:
+     - Administrador: Intendente
+     - Custodios: Jefes de Apoyo y Jefes de Turno
+     - Permisos y funcionalidades de cada rol
+     - Exportación de datos
+     - Gestión de usuarios
+
+### 7. **estadisticas_avanzadas.md**
+   - **Propósito**: Guía de uso de estadísticas y reportes
+   - **Audiencia**: Administradores y Custodios
+   - **Cuándo usar**: Para análisis de datos del sistema
+   - **Contenido clave**:
+     - Tipos de gráficos disponibles
+     - Filtros y rangos de fechas
+     - Interpretación de estadísticas
+     - Exportación de reportes
+
+---
+
+## 🔧 MANTENIMIENTO Y SOPORTE
+
+### 8. **guia_mantenimiento_paso_a_paso.md** ⭐ IMPORTANTE
+   - **Propósito**: Procedimientos detallados de mantenimiento
+   - **Audiencia**: Personal de Sistemas, Jefes de Vigilancia
+   - **Cuándo usar**: Para mantenimiento mensual, trimestral y anual
+   - **Contenido clave**:
+     - Cómo salir del modo kiosk
+     - Mantenimiento mensual (6 pasos)
+     - Mantenimiento trimestral (5 pasos)
+     - Mantenimiento anual (3 pasos)
+     - Resolución de problemas comunes
+     - Checklists de mantenimiento
+
+### 9. **funcionamiento_respaldos_automaticos.md**
+   - **Propósito**: Sistema de respaldos automáticos
+   - **Audiencia**: Personal de Sistemas
+   - **Cuándo usar**: Para entender el sistema de respaldos
+   - **Contenido clave**:
+     - Respaldos semanales automáticos (Domingos 8 AM)
+     - Ubicación de respaldos
+     - Restauración desde respaldos
+     - Verificación de integridad
+
+### 10. **configuracion_mantenimiento_automatizado.md**
+   - **Propósito**: Configuración del mantenimiento automático
+   - **Audiencia**: Personal de Sistemas
+   - **Cuándo usar**: Durante la instalación o para reconfigurar
+   - **Contenido clave**:
+     - Tareas programadas de Windows
+     - Scripts de mantenimiento
+     - Logs y monitoreo
+     - Notificaciones
+
+### 11. **procedimiento_reinstalacion_sistema.md**
+   - **Propósito**: Reinstalación completa del sistema
+   - **Audiencia**: Personal de Sistemas
+   - **Cuándo usar**: Si el sistema falla completamente
+   - **Contenido clave**:
+     - Cuándo reinstalar vs recuperar
+     - Respaldo de datos antes de reinstalar
+     - Proceso de reinstalación
+     - Restauración de datos
+     - Contraseñas por defecto después de reinstalar
+
+---
+
+## 🔄 ACTUALIZACIONES Y MODIFICACIONES
+
+### 12. **plan_actualizaciones_mantenimiento.md**
+   - **Propósito**: Plan de actualizaciones del sistema
+   - **Audiencia**: Personal de Sistemas, Autoridades
+   - **Cuándo usar**: Para planificar actualizaciones
+   - **Contenido clave**:
+     - Calendario de actualizaciones
+     - Tipos de actualizaciones
+     - Proceso de actualización
+     - Rollback en caso de problemas
+
+### 13. **procedimiento_modificaciones_produccion.md**
+   - **Propósito**: Cómo hacer cambios en producción
+   - **Audiencia**: Personal de Sistemas
+   - **Cuándo usar**: Antes de hacer cualquier cambio en producción
+   - **Contenido clave**:
+     - Proceso de aprobación de cambios
+     - Respaldo antes de cambios
+     - Pruebas en ambiente de desarrollo
+     - Implementación en producción
+     - Documentación de cambios
+
+---
+
+## 🛠️ SOLUCIÓN DE PROBLEMAS
+
+### 14. **resolucion_error_cors.md**
+   - **Propósito**: Solución de errores CORS
+   - **Audiencia**: Personal de Sistemas
+   - **Cuándo usar**: Si aparecen errores CORS en el navegador
+   - **Contenido clave**:
+     - Qué es un error CORS
+     - Causas comunes
+     - Soluciones paso a paso
+     - Scripts de corrección automática
+
+---
+
+## 📱 COMPATIBILIDAD Y REQUISITOS
+
+### 15. **compatibilidad_navegadores.md**
+   - **Propósito**: Navegadores compatibles con el sistema
+   - **Audiencia**: Personal de Sistemas
+   - **Cuándo usar**: Durante la instalación o si hay problemas de compatibilidad
+   - **Contenido clave**:
+     - Navegadores soportados (Chrome recomendado)
+     - Versiones mínimas
+     - Configuraciones recomendadas
+     - Problemas conocidos por navegador
+
+---
+
+## 📄 DOCUMENTACIÓN TÉCNICA Y ADMINISTRATIVA
+
+### 16. **SRS_Sistema_Gestion_Llaves_FCEA.md**
+   - **Propósito**: Especificación de Requisitos del Software
+   - **Audiencia**: Desarrolladores, Personal de Sistemas, Autoridades
+   - **Cuándo usar**: Para entender la arquitectura completa del sistema
+   - **Contenido clave**:
+     - Requisitos funcionales
+     - Requisitos no funcionales
+     - Casos de uso
+     - Arquitectura del sistema
+     - Modelo de datos
+
+### 17. **entrega_codigo_fuente.md**
+   - **Propósito**: Documentación de entrega del código fuente
+   - **Audiencia**: Autoridades, Personal de Sistemas
+   - **Cuándo usar**: Para auditorías o transferencia de conocimiento
+   - **Contenido clave**:
+     - Estructura del proyecto
+     - Tecnologías utilizadas
+     - Repositorio de código
+     - Licencias
+     - Contactos
+
+### 18. **presentacion_autoridades.md**
+   - **Propósito**: Documento de presentación oficial
+   - **Audiencia**: Autoridades de FCEA
+   - **Cuándo usar**: Para presentaciones oficiales
+   - **Contenido clave**:
+     - Resumen ejecutivo del sistema
+     - Beneficios y características
+     - Costos y recursos
+     - Cronograma de implementación
+     - **Pie de página**: "Documento preparado para archivo y custodia autoridades de FCEA"
+
+---
+
+## 📊 RESUMEN POR AUDIENCIA
+
+### Para Personal de Sistemas:
+1. ⭐ **INSTRUCCIONES_RAPIDAS_PENDRIVES.md** (empezar aquí)
+2. preparacion_pendrives_instalacion.md
+3. configuracion_produccion.md
+4. guia_mantenimiento_paso_a_paso.md
+5. funcionamiento_respaldos_automaticos.md
+6. procedimiento_reinstalacion_sistema.md
+7. resolucion_error_cors.md
+8. compatibilidad_navegadores.md
+
+### Para Vigilantes:
+1. ⭐ **instructivo_acceso_dashboard.md** (pueden VER dashboard, NO exportar)
+
+### Para Custodios (Jefes de Apoyo y Turno):
+1. instructivo_acceso_dashboard.md (pueden ver Y exportar)
+2. funcionalidad_administracion_custodio.md
+3. estadisticas_avanzadas.md
+
+### Para Administrador (Intendente):
+1. Todos los documentos de Custodios
+2. funcionalidad_administracion_custodio.md (permisos completos)
+3. plan_actualizaciones_mantenimiento.md
+4. procedimiento_modificaciones_produccion.md
+
+### Para Autoridades:
+1. presentacion_autoridades.md
+2. SRS_Sistema_Gestion_Llaves_FCEA.md
+3. entrega_codigo_fuente.md
+
+---
+
+## 🔄 ACTUALIZACIONES RECIENTES (Abril 2026)
+
+### Cambios en la documentación:
+✅ **instructivo_acceso_dashboard.md**: Actualizado con nuevos roles y tiempos
+   - Vigilantes SÍ pueden ver dashboard (antes no podían)
+   - Administrador: Intendente
+   - Custodios: Jefes de Apoyo y Jefes de Turno
+   - Sesión se cierra automáticamente después de 5 minutos
+   - Exportación a pendrive en modo kiosk (instrucciones detalladas)
+
+✅ **presentacion_autoridades.md**: Pie de página actualizado
+   - Cambio: "Documento preparado para archivo y custodia autoridades de FCEA"
+
+✅ **funcionalidad_administracion_custodio.md**: Roles actualizados
+   - Administrador: Intendente
+   - Custodios: Jefes de Apoyo y Jefes de Turno
+   - Tiempo de sesión: 5 minutos
+
+✅ **procedimiento_reinstalacion_sistema.md**: Pie de página actualizado
+   - Contraseñas por defecto documentadas
+
+✅ **funcionamiento_respaldos_automaticos.md**: Pie de página actualizado
+
+✅ **guia_mantenimiento_paso_a_paso.md**: NUEVO DOCUMENTO
+   - Renombrado desde "analisis_estabilidad_sistema.md"
+   - Procedimientos paso a paso detallados
+   - Instrucciones para salir del modo kiosk
+   - Mantenimiento mensual, trimestral y anual
+
+✅ **preparacion_pendrives_instalacion.md**: NUEVO DOCUMENTO
+   - Sistema completo de instalación con pendrives
+   - Soporte para pantallas táctiles y monitores tradicionales
+   - Instalador automático con menú interactivo
+
+✅ **INSTRUCCIONES_RAPIDAS_PENDRIVES.md**: NUEVO DOCUMENTO
+   - Guía rápida para grabar pendrives
+   - Configuración de hardware
+   - Checklists de instalación
+
+❌ **preparacion_pendrive_instalador.md**: ELIMINADO (duplicado obsoleto)
+
+---
+
+## 📞 Soporte y Contacto
+
+Para consultas sobre la documentación:
+- Revisar este índice primero
+- Consultar el documento específico según la necesidad
+- Contactar a Personal de Sistemas si persisten dudas
+
+---
+
+## 🔐 Control de Versiones
+
+Todos los documentos están versionados en GitHub:
+- Repositorio: https://github.com/luisraggiouy/sistema-de-gesti-n-de-llaves-vigilancia-fcea
+- Última actualización: Commit 53c2a0a (Abril 2026)
+
+---
+
+*Documento preparado para archivo y custodia autoridades de FCEA.*
