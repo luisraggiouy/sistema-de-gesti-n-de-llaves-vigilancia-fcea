@@ -14,7 +14,17 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ##  INSTALACIÓN Y CONFIGURACIÓN INICIAL
 
-### 1. **INSTRUCCIONES_RAPIDAS_PENDRIVES.md**  EMPEZAR AQUÍ
+### 0. **instructivo_instalacion_paso_a_paso.md** ⭐ NUEVO - EMPEZAR AQUÍ
+   - **Propósito**: Guía ultra-simplificada para instalar el sistema
+   - **Cuándo usar**: Primera instalación del sistema
+   - **Contenido clave**:
+     - Explicado paso a paso como para un niño
+     - Instalación con pendrive autorun (doble clic y listo)
+     - Recuperación del sistema
+     - Solución de problemas comunes
+     - **Recomendado para**: Personal sin conocimientos técnicos
+
+### 1. **INSTRUCCIONES_RAPIDAS_PENDRIVES.md**  REFERENCIA RÁPIDA
    - **Propósito**: Guía rápida para grabar los pendrives de instalación
    - **Cuándo usar**: Antes de instalar el sistema por primera vez
    - **Contenido clave**:

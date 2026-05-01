@@ -24,8 +24,8 @@ export function TerminalHeader() {
         <p className="text-lg font-bold tracking-wide">
           ¡BIENVENIDOS!
         </p>
-        <p className="text-primary-foreground/80 text-lg">
-          Software realizado 100% por Sección Vigilancia FCEA
+        <p className="text-primary-foreground/80 text-xl font-medium">
+          Software diseñado y desarrollado 100% por Sección Vigilancia de FCEA
         </p>
       </div>
       <div className="max-w-4xl mx-auto flex items-center justify-between">
