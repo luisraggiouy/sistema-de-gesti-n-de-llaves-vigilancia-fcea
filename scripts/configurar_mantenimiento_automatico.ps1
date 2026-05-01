@@ -149,7 +149,45 @@ try {
 }
 
 Write-Host ""
-Write-Host "[5/5] Ejecutando prueba de la tarea..." -ForegroundColor Yellow
+Write-Host "[5/6] Configurando watchdog de PocketBase (cada 2 minutos)..." -ForegroundColor Yellow
+
+$WatchdogScript = Join-Path $ProjectRoot "scripts\watchdog_pocketbase.ps1"
+$WatchdogTaskName = "Watchdog PocketBase Sistema Llaves FCEA"
+
+# Eliminar tarea existente si existe
+$ExistingWatchdogTask = Get-ScheduledTask -TaskName $WatchdogTaskName -ErrorAction SilentlyContinue
+if ($ExistingWatchdogTask) {
+    Unregister-ScheduledTask -TaskName $WatchdogTaskName -Confirm:$false
+}
+
+# Crear acción para watchdog
+$WatchdogAction = New-ScheduledTaskAction `
+    -Execute "powershell.exe" `
+    -Argument "-ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -File `"$WatchdogScript`"" `
+    -WorkingDirectory (Split-Path -Parent $WatchdogScript)
+
+# Trigger cada 2 minutos
+$WatchdogTrigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 2) -RepetitionDuration ([TimeSpan]::MaxValue)
+
+# Registrar tarea de watchdog
+try {
+    Register-ScheduledTask `
+        -TaskName $WatchdogTaskName `
+        -Action $WatchdogAction `
+        -Trigger $WatchdogTrigger `
+        -Settings $Settings `
+        -Principal $Principal `
+        -Description "Monitorea PocketBase cada 2 minutos y lo reinicia automáticamente si se cae. Garantiza disponibilidad 24/7 del sistema." `
+        -ErrorAction Stop | Out-Null
+    
+    Write-Host "  ✓ Watchdog de PocketBase configurado (cada 2 minutos)" -ForegroundColor Green
+} catch {
+    Write-Host "  ADVERTENCIA: No se pudo crear el watchdog" -ForegroundColor Yellow
+    Write-Host "  $($_.Exception.Message)" -ForegroundColor Yellow
+}
+
+Write-Host ""
+Write-Host "[6/6] Ejecutando prueba de la tarea..." -ForegroundColor Yellow
 
 try {
     Start-ScheduledTask -TaskName $TaskName -ErrorAction Stop
@@ -178,20 +216,33 @@ Write-Host "  ✓ CONFIGURACIÓN COMPLETADA EXITOSAMENTE" -ForegroundColor Green
 Write-Host "============================================================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "Detalles de la configuración:" -ForegroundColor Cyan
-Write-Host "  • Tarea: $TaskName" -ForegroundColor White
-Write-Host "  • Frecuencia: Todos los domingos a las 8:00 AM" -ForegroundColor White
-Write-Host "  • Script: $MaintenanceScript" -ForegroundColor White
-Write-Host "  • Logs: $LogsDir" -ForegroundColor White
-Write-Host "  • Backups: $BackupsDir" -ForegroundColor White
+Write-Host ""
+Write-Host "  Tarea 1: Mantenimiento Semanal" -ForegroundColor White
+Write-Host "  • Frecuencia: Todos los domingos a las 8:00 AM" -ForegroundColor Gray
+Write-Host "  • Script: system_maintenance.ps1" -ForegroundColor Gray
+Write-Host ""
+Write-Host "  Tarea 2: Verificación de Salud Diaria" -ForegroundColor White
+Write-Host "  • Frecuencia: Todos los días a las 7:00 AM" -ForegroundColor Gray
+Write-Host "  • Script: check_system_health.ps1" -ForegroundColor Gray
+Write-Host ""
+Write-Host "  Tarea 3: Watchdog de PocketBase" -ForegroundColor White
+Write-Host "  • Frecuencia: Cada 2 minutos (24/7)" -ForegroundColor Gray
+Write-Host "  • Script: watchdog_pocketbase.ps1" -ForegroundColor Gray
+Write-Host ""
+Write-Host "  Directorios:" -ForegroundColor White
+Write-Host "  • Logs: $LogsDir" -ForegroundColor Gray
+Write-Host "  • Backups: $BackupsDir" -ForegroundColor Gray
 Write-Host ""
 Write-Host "Próxima ejecución programada:" -ForegroundColor Cyan
 $NextRun = (Get-ScheduledTask -TaskName $TaskName).Triggers[0].StartBoundary
 Write-Host "  $NextRun" -ForegroundColor White
 Write-Host ""
-Write-Host "Para verificar el estado de la tarea:" -ForegroundColor Yellow
+Write-Host "Para verificar el estado de las tareas:" -ForegroundColor Yellow
 Write-Host "  1. Abra el Programador de tareas de Windows (taskschd.msc)" -ForegroundColor White
-Write-Host "  2. Busque '$TaskName'" -ForegroundColor White
+Write-Host "  2. Busque las 3 tareas creadas" -ForegroundColor White
 Write-Host "  3. Revise el historial de ejecuciones" -ForegroundColor White
+Write-Host ""
+Write-Host "IMPORTANTE: El Watchdog garantiza que PocketBase NUNCA esté caído más de 2 minutos" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Presione cualquier tecla para salir..." -ForegroundColor Gray
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")

@@ -33,9 +33,7 @@ echo [2/4] Comprobando servidor PocketBase...
 tasklist /FI "IMAGENAME eq pocketbase.exe" | find /i "pocketbase.exe" > nul
 if %ERRORLEVEL% NEQ 0 (
   echo PocketBase no esta en ejecucion, iniciando...
-  start "PocketBase Server" cmd /c "cd pocketbase && pocketbase.exe serve"
-  echo Esperando 3 segundos para que arranque PocketBase...
-  timeout /t 3 /nobreak > nul
+  call scripts\iniciar_pocketbase.bat
 ) else (
   echo PocketBase ya esta en ejecucion.
 )
