@@ -6,7 +6,7 @@
 
 ## Navegadores Compatibles
 
-### ✅ **Totalmente Compatibles (Recomendados)**
+###  **Totalmente Compatibles (Recomendados)**
 
 #### **Google Chrome** (Versión 90+)
 - **Compatibilidad:** 100%
@@ -33,7 +33,7 @@
 - **Nota:** Puede requerir permisos adicionales para sonidos
 - **Recomendado para:** Monitor de vigilancia y terminales
 
-### ⚠️ **Parcialmente Compatibles**
+###  **Parcialmente Compatibles**
 
 #### **Safari** (Versión 14+)
 - **Compatibilidad:** 85%
@@ -54,7 +54,7 @@
 - **Sonidos:** Funciona bien
 - **Recomendado para:** Todas las terminales y monitor
 
-### ❌ **No Compatibles**
+###  **No Compatibles**
 
 #### **Internet Explorer** (Cualquier versión)
 - **Compatibilidad:** 0%
@@ -340,8 +340,8 @@ function logBrowserUsage() {
 
 ```
 Problemas de compatibilidad:
-- Personal TAS: [TELÉFONO] (horario laboral)
-- Soporte Técnico: [TELÉFONO] (problemas críticos)
+- Personal TAS: [Sistemas] (horario laboral)
+- Soporte Técnico: [099600873] (problemas críticos)
 
 Información a proporcionar:
 - Navegador y versión exacta
