@@ -22,7 +22,6 @@ Complejidad: [Simple / Media / Compleja]
 Tiempo estimado: [Horas de desarrollo]
 Riesgos: [Identificar posibles problemas]
 Impacto: [Qué partes del sistema se ven afectadas]
-Costo estimado: [Si requiere soporte externo]
 Recomendación: [Aprobar / Rechazar / Modificar]
 ```
 
@@ -575,30 +574,69 @@ Descripción:
 - Funcionalidad obsoleta X
 ```
 
-### 14. Costos de Modificaciones
+### 14. Conocimientos Técnicos Requeridos para Modificaciones
 
-#### Estimación de Costos por Tipo
+#### Importante: No se requiere personal experto
 
-**Modificaciones Tipo A (Configuración):**
-- Personal TAS: 0.5-1 hora
-- Costo: $20-40
+El sistema fue diseñado para poder ser modificado por **cualquier persona con conocimientos básicos de programación**, no es necesario un desarrollador experto. Un estudiante de ingeniería en sistemas, una persona amateur con interés en tecnología, o incluso una **inteligencia artificial (IA)** pueden realizar modificaciones.
 
-**Modificaciones Tipo B (Interfaz):**
-- Soporte Técnico: 2-8 horas
-- Costo: $100-400
+#### Tecnologías del Sistema — Lo que hay que conocer
 
-**Modificaciones Tipo C (Funcionalidad):**
-- Desarrollo especializado: 20-160 horas
-- Costo: $1000-8000
+| Tecnología | Nivel Requerido | Descripción |
+|------------|-----------------|-------------|
+| **TypeScript / JavaScript** | Básico | Lenguaje principal del sistema. Es JavaScript con tipos. Si se sabe JavaScript, TypeScript se aprende en minutos |
+| **React** | Básico | Biblioteca para interfaces de usuario. Se usa creando "componentes" (funciones que devuelven HTML). Concepto simple: cada parte visual es una función |
+| **HTML / CSS** | Básico | Lenguajes de maquetado y estilos. Se usan dentro de los componentes React |
+| **TailwindCSS** | Básico | Framework de estilos CSS. Se escriben clases predefinidas directamente en el HTML. Ej: `className="bg-blue-500 p-4 rounded"` |
+| **Git / GitHub** | Básico | Control de versiones. Solo se necesita saber: clonar (`git clone`), commit (`git commit`), push (`git push`), pull (`git pull`) |
+| **Node.js / npm** | Básico | Entorno de ejecución JavaScript y gestor de paquetes. Solo se necesita ejecutar `npm install` y `npm run dev` |
+| **PocketBase** | Básico | Base de datos y backend. Se administra desde una interfaz web visual, no requiere SQL |
+| **Vite** | Básico | Herramienta de build que empaqueta el código. Se usa con `npm run build` |
 
-#### Presupuesto Anual Recomendado
+#### Lo Único Realmente Necesario
 
-```
-Modificaciones menores: $500-1000
-Modificaciones mayores: $2000-5000
-Emergencias/Hotfixes: $500-1000
-Total recomendado: $3000-7000/año
-```
+Para hacer modificaciones al sistema solo se necesita:
+
+1. **Saber usar una computadora** (nivel usuario)
+2. **Conocer JavaScript/TypeScript a nivel básico** (variables, funciones, objetos, arrays, if/else)
+3. **Entender qué es un componente React** (una función que retorna HTML/JSX)
+4. **Saber copiar, pegar y adaptar código** siguiendo ejemplos existentes
+5. **Poder leer código existente** y entender qué hace
+
+#### ¿Quién Puede Hacer Modificaciones?
+
+| Perfil de la Persona | ¿Puede hacer cambios? | Tipo de Cambios |
+|----------------------|----------------------|-----------------|
+| **Estudiante de Ing. en Sistemas** (cualquier año) | Sí | Todo tipo de cambios (A, B y C) |
+| **Persona amateur con interés en tecnología** | Sí | Cambios Tipo A y B. Con ayuda de IA, también Tipo C |
+| **Inteligencia Artificial** (ChatGPT, Claude, Cline, etc.) | Sí | Todo tipo de cambios guiada por una persona |
+| **Desarrollador profesional** | Sí | Todo tipo de cambios |
+| **Persona sin conocimientos de programación** | Con ayuda | Solo cambios de configuración (Tipo A) usando interfaz visual de PocketBase |
+
+#### Uso de Inteligencia Artificial para Modificaciones
+
+El sistema fue desarrollado usando IA (Cline + OpenRouter + VS Code). Cualquier persona puede seguir el mismo método:
+
+1. **Abrir el código en VS Code con extensión Cline**
+2. **Describir el cambio deseado en lenguaje natural** (español)
+3. **La IA analiza el código, propone los cambios y los implementa**
+4. **Revisar y probar los cambios antes de desplegar**
+
+Esto permite que cualquier persona, incluso sin experiencia programando, pueda modificar el sistema con ayuda de IA. Solo necesita saber expresar en español lo que quiere cambiar.
+
+#### Recursos de Aprendizaje Recomendados
+
+Si la persona asignada quiere capacitarse, estos recursos gratuitos son suficientes:
+
+| Tema | Recurso | Tiempo Estimado |
+|------|---------|-----------------|
+| JavaScript Básico | freeCodeCamp o YouTube | 1-2 semanas |
+| TypeScript Básico | Documentación oficial de TypeScript | 2-3 días |
+| React Básico | Tutorial oficial de React (react.dev) | 1 semana |
+| TailwindCSS | Documentación oficial de TailwindCSS | 1-2 días |
+| Git Básico | Tutorial interactivo de GitHub | 1 día |
+
+Con 3-4 semanas de aprendizaje, cualquier persona puede hacer modificaciones tipo A y B. Con ayuda de IA, incluso tipo C.
 
 ### 15. Mejores Prácticas
 
@@ -616,10 +654,10 @@ Total recomendado: $3000-7000/año
 5. **Mantener plan de rollback** listo
 
 #### Para las Autoridades:
-1. **Aprobar presupuesto** para mantenimiento
-2. **Designar responsable** de solicitudes de cambios
-3. **Establecer prioridades** claras
-4. **Revisar cambios** antes de implementación
+1. **Designar responsable** de solicitudes de cambios
+2. **Establecer prioridades** claras
+3. **Revisar cambios** antes de implementación
+4. **Asegurar respaldo institucional** del código y datos
 
 ---
 
