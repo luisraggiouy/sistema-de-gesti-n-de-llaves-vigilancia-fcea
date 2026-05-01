@@ -60,13 +60,16 @@ cd sistema-de-gesti-n-de-llaves-vigilancia-fcea
 # Instalar dependencias
 npm install
 
-# Iniciar en modo desarrollo
-npm run dev
+# Iniciar el sistema completo (recomendado)
+# Esto inicia PocketBase + Frontend + Watchdog automáticamente
+iniciar_sistema.bat
 
-# En otra terminal, iniciar PocketBase
-cd pocketbase
-pocketbase serve
+# O manualmente:
+npm run dev                    # Terminal 1: Frontend
+cd pocketbase && pocketbase serve  # Terminal 2: Backend
 ```
+
+**Nota**: `iniciar_sistema.bat` ahora incluye un **watchdog automático** que reinicia PocketBase si se cae.
 
 ---
 
