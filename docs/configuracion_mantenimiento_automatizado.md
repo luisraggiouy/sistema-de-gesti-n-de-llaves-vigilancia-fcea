@@ -1,18 +1,56 @@
 # Configuración del Mantenimiento Automatizado
 
-Este documento proporciona instrucciones para configurar el script de mantenimiento automatizado que se ejecutará todos los domingos a las 8:00 AM, como se ha solicitado. El script realiza tareas esenciales como copias de seguridad, verificación de integridad de la base de datos y optimización del sistema.
+Este documento proporciona instrucciones para configurar el mantenimiento automatizado del sistema. Incluye:
+- **Mantenimiento semanal**: Backups, verificación de integridad (Domingos 8:00 AM)
+- **Verificación de salud diaria**: Monitoreo del sistema (Diario 7:00 AM)
+- **Alertas en Monitor de Vigilancia**: Notificaciones automáticas de problemas
+
+El sistema realiza tareas esenciales como copias de seguridad, verificación de integridad de la base de datos, optimización y monitoreo de salud.
 
 ## Estructura del Sistema de Mantenimiento
 
 El sistema de mantenimiento consiste en:
 
-1. **Script PowerShell** (`pocketbase/maintenance/system_maintenance.ps1`) - Realiza tareas de mantenimiento con diferentes frecuencias (semanal, mensual, trimestral, anual)
-2. **Directorio de respaldos** (`pocketbase/pb_backups`) - Almacena copias de seguridad de la base de datos
-3. **Directorio de logs** (`pocketbase/maintenance/logs`) - Almacena registros de todas las operaciones de mantenimiento
+1. **Script de mantenimiento** (`pocketbase/maintenance/system_maintenance.ps1`) - Realiza backups, verificación de integridad y optimización
+2. **Script de verificación de salud** (`pocketbase/maintenance/check_system_health.ps1`) - Monitorea el estado del sistema diariamente
+3. **Componente de alertas** (`src/components/monitor/SystemHealthAlerts.tsx`) - Muestra alertas en el Monitor de Vigilancia
+4. **Directorio de respaldos** (`pocketbase/pb_backups`) - Almacena copias de seguridad de la base de datos
+5. **Directorio de logs** (`pocketbase/maintenance/logs`) - Almacena registros de todas las operaciones
+6. **Archivo de estado** (`public/system_health.json`) - Estado de salud del sistema en tiempo real
 
-## Configuración de la Tarea Programada en Windows
+## Configuración Automática (Recomendada) ⭐
 
-Siga estos pasos para configurar la ejecución automática del script cada domingo a las 8:00 AM:
+### Método Rápido: Script de Configuración Automática
+
+El sistema incluye un script que configura automáticamente todas las tareas programadas en 5 minutos:
+
+1. **Abrir PowerShell como Administrador**:
+   - Presione `Win + X`
+   - Seleccione "Windows PowerShell (Administrador)" o "Terminal (Administrador)"
+
+2. **Navegar al directorio del sistema**:
+   ```powershell
+   cd C:\sistema-llaves-fcea
+   ```
+
+3. **Ejecutar el script de configuración**:
+   ```powershell
+   .\scripts\configurar_mantenimiento_automatico.ps1
+   ```
+
+4. **El script configurará automáticamente**:
+   - ✅ Tarea de mantenimiento semanal (Domingos 8:00 AM)
+   - ✅ Tarea de verificación de salud diaria (Diario 7:00 AM)
+   - ✅ Ejecutará una prueba para verificar que funciona
+   - ✅ Mostrará el resultado en pantalla
+
+5. **¡Listo!** El mantenimiento está configurado y funcionando.
+
+---
+
+## Configuración Manual (Alternativa)
+
+Si prefiere configurar manualmente o el script automático falla, siga estos pasos:
 
 ### 1. Preparación previa
 
@@ -87,20 +125,92 @@ En la ventana de propiedades de la tarea:
 
 ## Verificación de la Configuración
 
-Para asegurarse de que la tarea se ejecutará correctamente:
+### Verificar Tareas Programadas
 
-1. En el Programador de tareas, localice la tarea "Mantenimiento Sistema Llaves FCEA" en la lista
-2. Haga clic derecho sobre ella y seleccione **Ejecutar**
-3. Verifique el archivo de registro generado en `pocketbase/maintenance/logs/maintenance.log`
-4. Confirme que no haya errores y que todas las tareas se hayan completado correctamente
+1. Abra el Programador de tareas de Windows (`taskschd.msc`)
+2. Busque las siguientes tareas:
+   - **"Mantenimiento Sistema Llaves FCEA"** - Debe ejecutarse domingos a las 8:00 AM
+   - **"Verificación Salud Sistema Llaves FCEA"** - Debe ejecutarse diariamente a las 7:00 AM
 
-## Comprobación regular
+### Probar Manualmente
 
-Aunque el sistema está automatizado, se recomienda comprobar periódicamente:
+Para probar que el sistema funciona:
 
-1. El archivo de registro (`maintenance.log`) en busca de posibles advertencias o errores
-2. El directorio de copias de seguridad (`pb_backups`) para asegurarse de que los respaldos se estén generando correctamente
-3. El espacio libre en disco para asegurarse de que hay espacio suficiente para futuras copias de seguridad 
+1. **Ejecutar mantenimiento manualmente**:
+   ```powershell
+   cd C:\sistema-llaves-fcea\pocketbase\maintenance
+   .\system_maintenance.ps1
+   ```
+
+2. **Ejecutar verificación de salud**:
+   ```powershell
+   cd C:\sistema-llaves-fcea\pocketbase\maintenance
+   .\check_system_health.ps1
+   ```
+
+3. **Verificar logs**:
+   - Mantenimiento: `pocketbase/maintenance/logs/maintenance.log`
+   - Salud: `pocketbase/maintenance/logs/health_check.log`
+
+4. **Verificar alertas en Monitor**:
+   - Abra el Monitor de Vigilancia
+   - Si hay problemas, verá alertas en la parte superior
+   - Las alertas se actualizan cada 5 minutos automáticamente
+
+## Sistema de Alertas en Monitor de Vigilancia
+
+### Cómo Funciona
+
+1. **Verificación Diaria**: Cada día a las 7:00 AM, el sistema verifica:
+   - Espacio en disco disponible
+   - Fecha del último backup
+   - Tamaño de la base de datos
+   - Errores en logs de mantenimiento
+   - Estado del servicio PocketBase
+   - Actualización del pendrive de recuperación
+
+2. **Generación de Alertas**: Si detecta problemas, genera un archivo JSON con:
+   - Nivel de alerta (crítico, advertencia, info)
+   - Descripción del problema
+   - Acción recomendada
+   - Métricas del sistema
+
+3. **Visualización**: El Monitor de Vigilancia lee este archivo cada 5 minutos y muestra:
+   - 🔴 **Alertas Críticas**: Requieren acción inmediata
+   - 🟡 **Advertencias**: Requieren atención pronto
+   - 📊 **Métricas**: Estado general del sistema
+
+### Tipos de Alertas
+
+| Alerta | Nivel | Cuándo Aparece | Acción Requerida |
+|--------|-------|----------------|------------------|
+| Espacio en disco crítico | 🔴 Crítico | < 10% libre | Liberar espacio inmediatamente |
+| Espacio en disco bajo | 🟡 Advertencia | < 20% libre | Planificar limpieza |
+| Backup desactualizado | 🔴 Crítico | > 14 días | Verificar tarea programada |
+| Backup atrasado | 🟡 Advertencia | > 8 días | Revisar configuración |
+| Base de datos grande | 🟡 Advertencia | > 500 MB | Considerar archivado |
+| Errores en logs | 🟡 Advertencia | Errores recientes | Revisar logs |
+| Pendrive desactualizado | 🟡 Advertencia | > 90 días | Actualizar pendrive |
+| PocketBase caído | 🔴 Crítico | Servicio no responde | Reiniciar sistema |
+
+## Comprobación Regular
+
+Con el sistema de alertas automatizado, la comprobación manual se reduce al mínimo:
+
+### Vigilantes (Diario)
+- Revisar el Monitor de Vigilancia al inicio del turno
+- Si hay alertas críticas (🔴), contactar a Personal de Sistemas inmediatamente
+- Si hay advertencias (🟡), reportar en el cambio de turno
+
+### Personal de Sistemas (Bajo Demanda)
+- Solo actuar cuando el sistema muestre alertas
+- Seguir las acciones recomendadas en cada alerta
+- Documentar las acciones tomadas
+
+### Mantenimiento Anual (Una vez al año)
+- Archivar datos históricos del año anterior
+- Verificación completa del sistema
+- Actualizar documentación si es necesario
 
 ## Solución de problemas comunes
 

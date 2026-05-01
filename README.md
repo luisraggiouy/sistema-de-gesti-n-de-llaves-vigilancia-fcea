@@ -18,7 +18,9 @@ Sistema integral de gestión de llaves para el servicio de vigilancia de FCEA, d
 - ✅ **Dashboard de Estadísticas**: Análisis y reportes del sistema
 - ✅ **Gestión de Objetos Perdidos**: Registro y seguimiento
 - ✅ **Sistema de Autorizaciones**: Control de ingresos y búsquedas
-- ✅ **Respaldos Automáticos**: Semanales (Domingos 8 AM)
+- ✅ **Respaldos Automáticos**: Semanales (Domingos 8 AM) con configuración automática
+- ✅ **Sistema de Alertas**: Monitoreo de salud del sistema en tiempo real
+- ✅ **Mantenimiento Automatizado**: Verificación diaria y mantenimiento semanal
 - ✅ **Modo Kiosk**: Operación segura en producción
 - ✅ **Soporte Multi-Pantalla**: 3 pantallas simultáneas
 - ✅ **Instalación Automática**: Pendrive instalador con menú interactivo
@@ -191,15 +193,22 @@ sistema-de-gesti-n-de-llaves-vigilancia-fcea/
 
 ## 🔄 Mantenimiento
 
-### Automático
+### Automático (Configuración en 5 minutos)
 - **Respaldos semanales**: Domingos a las 8:00 AM
+- **Verificación de salud**: Diaria a las 7:00 AM
+- **Alertas en Monitor**: Notificaciones automáticas de problemas
 - **Verificación de integridad**: Automática
 - **Limpieza de respaldos antiguos**: Mantiene 52 copias (1 año)
 
-### Manual
-- **Mensual**: Verificar logs, espacio en disco, actualizar pendrive de recuperación
-- **Trimestral**: Optimización de base de datos, limpieza de archivos temporales
-- **Anual**: Archivado de datos históricos, verificación completa
+### Manual (Reducido al mínimo)
+- **Anual**: Archivado de datos históricos únicamente
+- **Bajo demanda**: Solo cuando el sistema muestre alertas críticas
+
+### Sistema de Alertas Inteligente
+El Monitor de Vigilancia muestra automáticamente:
+- 🔴 **Alertas Críticas**: Espacio en disco bajo, backups fallidos, servicios caídos
+- 🟡 **Advertencias**: Pendrive desactualizado, base de datos grande, errores en logs
+- 📊 **Métricas**: Espacio disco, último backup, tamaño BD, último mantenimiento
 
 Ver: [guia_mantenimiento_paso_a_paso.md](docs/guia_mantenimiento_paso_a_paso.md)
 

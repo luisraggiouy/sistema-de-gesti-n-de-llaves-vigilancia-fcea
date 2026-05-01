@@ -9,6 +9,7 @@ import { KeyHistorySearch } from '@/components/monitor/KeyHistorySearch';
 import { AgendaModal } from '@/components/monitor/AgendaModal';
 import { ObjetosOlvidadosModal } from '@/components/monitor/ObjetosOlvidadosModal';
 import { RegistroObjetoModal } from '@/components/monitor/RegistroObjetoModal';
+import { SystemHealthAlerts } from '@/components/monitor/SystemHealthAlerts';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
 import { useVigilantes } from '@/hooks/useVigilantes';
 import { useConfiguracion } from '@/hooks/useConfiguracion';
@@ -204,6 +205,9 @@ export default function MonitorVigilancia() {
       />
 
       <main className="max-w-7xl mx-auto py-6 px-4 space-y-8">
+        {/* Alertas de Salud del Sistema */}
+        <SystemHealthAlerts />
+
         <section>
           <div className="flex items-center gap-3 mb-4">
             <ClipboardList className="w-6 h-6 text-primary" />

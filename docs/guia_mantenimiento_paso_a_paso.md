@@ -78,166 +78,94 @@ El sistema utiliza React para la interfaz de usuario, que maneja eficientemente 
 
 Para mantener el sistema funcionando de manera óptima con el volumen descrito:
 
-### Mantenimiento Semanal (Automático)
-- ✅ **Copias de seguridad automáticas** - Se ejecutan los domingos a las 8:00 AM
-- ✅ **Verificación de integridad de la base de datos** - Automática
+### Mantenimiento Automático
+
+#### Semanal (Domingos 8:00 AM)
+- ✅ **Copias de seguridad automáticas**
+- ✅ **Verificación de integridad de la base de datos**
 - ✅ **Limpieza de respaldos antiguos** - Mantiene 52 copias (1 año)
+- ✅ **Optimización de base de datos** (vacuum)
 
-> 📌 **Nota**: Este mantenimiento es automático. Ver documento "funcionamiento_respaldos_automaticos.md" para más detalles.
+#### Diario (7:00 AM)
+- ✅ **Verificación de salud del sistema**
+- ✅ **Monitoreo de espacio en disco**
+- ✅ **Verificación de backups**
+- ✅ **Detección de errores en logs**
+- ✅ **Generación de alertas automáticas**
 
-### Mantenimiento Mensual (Manual)
+> 📌 **Nota**: Todo el mantenimiento es automático. Ver documento "configuracion_mantenimiento_automatizado.md" para configuración inicial.
 
-#### 🔧 PROCEDIMIENTO PASO A PASO
+### Sistema de Alertas en Monitor de Vigilancia
 
-**Tiempo estimado**: 15-20 minutos  
-**Responsable**: Personal de Sistemas o Jefe de Vigilancia capacitado  
-**Frecuencia**: Primer domingo de cada mes
+El sistema muestra automáticamente alertas cuando detecta problemas:
 
----
+- 🔴 **Críticas**: Espacio disco < 10%, backup > 14 días, PocketBase caído
+- 🟡 **Advertencias**: Espacio disco < 20%, backup > 8 días, pendrive > 90 días
+- 📊 **Métricas**: Estado general del sistema visible en todo momento
 
-#### PASO 1: Salir del Modo Kiosk
+**Los vigilantes solo deben**: Revisar el Monitor al inicio del turno y reportar alertas críticas a Personal de Sistemas.
 
-El navegador está configurado en modo kiosk para evitar que los usuarios accedan a otras funciones. Para realizar mantenimiento, debe salir temporalmente:
+### Mantenimiento Manual (Solo Anual)
 
-```
-OPCIÓN A - Usando teclado:
-1. Presione Alt + F4 para cerrar el navegador en modo kiosk
-2. Si no funciona, presione Ctrl + Alt + Supr
-3. Seleccione "Administrador de tareas"
-4. Busque "Google Chrome" o "chrome.exe"
-5. Clic derecho → "Finalizar tarea"
+> 🎯 **IMPORTANTE**: Con el sistema de alertas automatizado, ya NO es necesario realizar mantenimiento mensual ni trimestral manual. El sistema se auto-mantiene y solo muestra alertas cuando requiere atención.
 
-OPCIÓN B - Desde Windows:
-1. Presione la tecla Windows (⊞) para abrir el menú Inicio
-2. Si el modo kiosk lo bloquea, presione Ctrl + Alt + Supr
-3. Seleccione "Cerrar sesión" o "Cambiar usuario"
-4. Inicie sesión nuevamente como administrador
-```
-
-> ⚠️ **IMPORTANTE**: Después del mantenimiento, debe reiniciar el sistema en modo kiosk ejecutando `iniciar_sistema.bat`
+**Si el Monitor muestra alertas**, siga las acciones recomendadas en cada alerta. De lo contrario, no se requiere intervención.
 
 ---
 
-#### PASO 2: Verificar Logs de Errores
+### Mantenimiento Bajo Demanda (Solo cuando hay alertas)
 
-```
-1. Abra el Explorador de Archivos (⊞ + E)
+**Responsable**: Personal de Sistemas  
+**Cuándo**: Solo cuando el Monitor de Vigilancia muestre alertas críticas o advertencias
 
-2. Navegue a: C:\sistema-llaves-fcea\pocketbase\maintenance\logs\
+#### Respuesta a Alertas Críticas (🔴)
 
-3. Abra el archivo "maintenance.log" con el Bloc de notas
-
-4. Revise las últimas entradas buscando:
-   ❌ [ERROR] - Errores críticos
-   ⚠️ [WARNING] - Advertencias
-   ✅ [INFO] - Información normal
-
-5. Si encuentra errores:
-   - Anote la fecha y hora
-   - Copie el mensaje de error completo
-   - Consulte la sección "Resolución de Problemas" más abajo
-```
-
-**Ejemplo de log saludable**:
-```
-[2026-04-13 08:00:01] [INFO] === Inicio del mantenimiento programado ===
-[2026-04-13 08:00:01] [INFO] Espacio en disco: 45.23 GB libre de 120 GB (37.69%)
-[2026-04-13 08:00:03] [INFO] Backup full completado exitosamente
-[2026-04-13 08:00:05] [INFO] Verificación de integridad: OK
-```
-
----
-
-#### PASO 3: Verificar Espacio en Disco
-
+**Alerta: "Espacio en disco crítico"**
 ```
 1. Abra "Este equipo" (⊞ + E)
+2. Vaya a C:\sistema-llaves-fcea\pocketbase\pb_backups\
+3. Copie los respaldos más antiguos a un pendrive externo
+4. Elimine los respaldos copiados (mantenga últimos 12)
+5. Vacíe la Papelera de reciclaje
+```
 
-2. Observe el disco C:
-   - Verde: Más del 20% libre → ✅ OK
-   - Amarillo: 10-20% libre → ⚠️ Atención
-   - Rojo: Menos del 10% libre → ❌ Acción requerida
+**Alerta: "Backup desactualizado"**
+```
+1. Abra PowerShell como Administrador
+2. cd C:\sistema-llaves-fcea\pocketbase\maintenance
+3. .\system_maintenance.ps1
+4. Verifique que se creó el backup en pb_backups\
+```
 
-3. Si el espacio es bajo:
-   - Vaya a C:\sistema-llaves-fcea\pocketbase\pb_backups\
-   - Copie los respaldos más antiguos a un pendrive externo
-   - Elimine los respaldos copiados (mantenga al menos los últimos 12)
+**Alerta: "PocketBase no está ejecutándose"**
+```
+1. Abra el Administrador de tareas
+2. Busque "pocketbase.exe" - si no está, continúe
+3. cd C:\sistema-llaves-fcea
+4. Ejecute: iniciar_sistema.bat
+```
+
+#### Respuesta a Advertencias (🟡)
+
+**Alerta: "Pendrive de recuperación desactualizado"**
+```
+1. Conecte el pendrive de recuperación
+2. cd C:\sistema-llaves-fcea
+3. scripts\preparar_pendrive_recuperacion.bat
+4. Etiquete con la fecha actual
+```
+
+**Alerta: "Errores en logs"**
+```
+1. Abra: C:\sistema-llaves-fcea\pocketbase\maintenance\logs\maintenance.log
+2. Revise los errores recientes
+3. Si no comprende el error, contacte soporte técnico
+4. Documente las acciones tomadas
 ```
 
 ---
 
-#### PASO 4: Actualizar Pendrive de Recuperación
-
-```
-1. Conecte el pendrive de recuperación al puerto USB
-
-2. Abra el Símbolo del sistema como Administrador:
-   - Presione ⊞ (tecla Windows)
-   - Escriba "cmd"
-   - Clic derecho en "Símbolo del sistema"
-   - Seleccione "Ejecutar como administrador"
-
-3. Ejecute los siguientes comandos:
-   cd C:\sistema-llaves-fcea
-   scripts\preparar_pendrive_recuperacion.bat
-
-4. Siga las instrucciones en pantalla
-
-5. Cuando termine, etiquete el pendrive con la fecha:
-   "RECUPERACIÓN SISTEMA LLAVES - Actualizado: [FECHA]"
-
-6. Guarde el pendrive en lugar seguro
-```
-
----
-
-#### PASO 5: Verificar Rendimiento del Sistema
-
-```
-1. Abra el Administrador de tareas (Ctrl + Shift + Esc)
-
-2. Vaya a la pestaña "Rendimiento"
-
-3. Verifique:
-   CPU: Debe estar por debajo del 50% en reposo
-   Memoria: Debe tener al menos 1 GB libre
-   Disco: Uso debe ser bajo (< 10%) cuando no hay operaciones
-
-4. Si los valores son altos:
-   - Reinicie la computadora
-   - Vuelva a verificar
-   - Si persiste, consulte con Personal de Sistemas
-```
-
----
-
-#### PASO 6: Reiniciar el Sistema en Modo Kiosk
-
-```
-1. Cierre todas las ventanas abiertas
-
-2. Navegue a: C:\sistema-llaves-fcea\
-
-3. Haga doble clic en "iniciar_sistema.bat"
-
-4. Espere 30 segundos a que el sistema arranque
-
-5. Verifique que el navegador se abra en modo kiosk
-   (pantalla completa, sin barra de direcciones)
-
-6. Pruebe que el sistema funciona:
-   - Acceda a la Terminal de Usuario
-   - Acceda al Monitor de Vigilancia
-   - Verifique que los datos se cargan correctamente
-```
-
----
-
-### Mantenimiento Trimestral (Manual)
-
-**Tiempo estimado**: 30-45 minutos  
-**Responsable**: Personal de Sistemas  
-**Frecuencia**: Cada 3 meses
+### Mantenimiento Anual (Manual) - Una vez al año
 
 #### 🔧 PROCEDIMIENTO PASO A PASO
 
@@ -486,26 +414,28 @@ SOLUCIÓN:
 
 ## Checklist de Mantenimiento
 
-### ✅ Mensual
-- [ ] Verificar logs de errores
-- [ ] Verificar espacio en disco (>20% libre)
-- [ ] Actualizar pendrive de recuperación
-- [ ] Verificar rendimiento del sistema
-- [ ] Probar que el sistema funciona correctamente
+### ✅ Automático (Sin intervención)
+- [x] Backups semanales (Domingos 8:00 AM)
+- [x] Verificación de salud diaria (7:00 AM)
+- [x] Optimización de base de datos (vacuum)
+- [x] Limpieza de backups antiguos
+- [x] Monitoreo de espacio en disco
+- [x] Detección de errores en logs
+- [x] Alertas en Monitor de Vigilancia
 
-### ✅ Trimestral
-- [ ] Todo lo mensual +
-- [ ] Análisis de rendimiento de consultas
-- [ ] Optimización de base de datos (vacuum)
-- [ ] Limpieza de archivos temporales
-- [ ] Verificar actualizaciones de seguridad de Windows
+### ✅ Bajo Demanda (Solo cuando hay alertas)
+- [ ] Liberar espacio en disco (si alerta crítica)
+- [ ] Ejecutar backup manual (si backup desactualizado)
+- [ ] Actualizar pendrive recuperación (si advertencia)
+- [ ] Revisar logs de errores (si advertencia)
+- [ ] Reiniciar servicios (si PocketBase caído)
 
-### ✅ Anual
-- [ ] Todo lo trimestral +
+### ✅ Anual (Una vez al año)
 - [ ] Archivar datos históricos del año anterior
 - [ ] Verificación completa de integridad
 - [ ] Evaluar necesidad de actualizar dependencias
 - [ ] Revisar y actualizar documentación
+- [ ] Actualizar pendrive de recuperación con datos archivados
 
 ## Conclusión
 

@@ -60,53 +60,73 @@
 
 ## Calendario de Mantenimiento
 
-### Mantenimiento Diario (Automático)
+### Mantenimiento Automático (Sin intervención)
+
+#### Diario (7:00 AM)
 ```bash
-# Ejecutado automáticamente por el sistema
-- Backup de base de datos (2:00 AM)
-- Verificación de conectividad (cada 5 minutos)
+# Ejecutado automáticamente por check_system_health.ps1
+- Verificación de salud del sistema
+- Monitoreo de espacio en disco
+- Verificación de backups
+- Detección de errores en logs
+- Verificación de servicios críticos
+- Generación de alertas automáticas
+- Actualización de métricas en Monitor de Vigilancia
+```
+
+#### Semanal (Domingos 8:00 AM)
+```bash
+# Ejecutado automáticamente por system_maintenance.ps1
+- Backup completo de base de datos
+- Verificación de integridad de la base de datos
+- Optimización de base de datos (vacuum)
+- Limpieza de respaldos antiguos (mantiene 52 copias)
 - Limpieza de logs antiguos
 - Verificación de espacio en disco
 ```
 
-### Mantenimiento Semanal (Manual)
+### Sistema de Alertas Inteligente
+
+El Monitor de Vigilancia muestra automáticamente alertas cuando se detectan problemas:
+
+- 🔴 **Críticas**: Espacio disco < 10%, backup > 14 días, PocketBase caído
+- 🟡 **Advertencias**: Espacio disco < 20%, backup > 8 días, pendrive > 90 días, errores en logs
+- 📊 **Métricas**: Estado general visible en tiempo real
+
+**Responsabilidad de Vigilantes**: Revisar Monitor al inicio del turno y reportar alertas críticas a Personal de Sistemas.
+
+### Mantenimiento Bajo Demanda (Solo cuando hay alertas)
 ```bash
-# Domingos - Personal TAS
-- Verificar logs de errores
-- Comprobar backups automáticos
-- Revisar rendimiento del sistema
-- Verificar conectividad de todos los dispositivos
+# Personal TAS - Solo cuando el Monitor muestre alertas
+- Liberar espacio en disco (si alerta crítica)
+- Ejecutar backup manual (si backup desactualizado)
+- Actualizar pendrive recuperación (si advertencia)
+- Revisar logs de errores (si advertencia)
+- Reiniciar servicios (si PocketBase caído)
 ```
 
-### Mantenimiento Mensual (Manual)
-```bash
-# Primer viernes de cada mes - Personal TAS
-- Revisar actualizaciones de dependencias
-- Verificar integridad de backups
-- Comprobar espacio de almacenamiento
-- Revisar configuración de red
-- Actualizar documentación si es necesario
-```
+> 📌 **IMPORTANTE**: Con el sistema de alertas automatizado, ya NO es necesario realizar mantenimiento mensual ni trimestral manual de rutina. El sistema se auto-mantiene y solo requiere atención cuando muestra alertas.
 
-### Mantenimiento Trimestral (Planificado)
+### Mantenimiento Anual (Manual)
 ```bash
-# Cada 3 meses - Personal TAS + Soporte Técnico
-- Actualizar dependencias de software
+# Una vez al año - Personal TAS
+- Archivar datos históricos del año anterior
+- Verificación completa de integridad
+- Evaluar necesidad de actualizar dependencias
 - Revisar y actualizar documentación
-- Capacitación de personal si es necesario
-- Evaluación de rendimiento del sistema
-- Planificación de mejoras
+- Actualizar pendrive de recuperación con datos archivados
 ```
 
-### Mantenimiento Semestral (Planificado)
+### Actualizaciones de Software (Según necesidad)
 ```bash
-# Cada 6 meses - Soporte Técnico
-- Actualización mayor de PocketBase
-- Revisión completa de seguridad
-- Optimización de base de datos
+# Cuando haya actualizaciones críticas de seguridad
+- Actualización de dependencias de software
+- Actualización de PocketBase (si hay vulnerabilidades)
 - Actualización de drivers y sistema operativo
 - Evaluación de hardware
 ```
+
+> 💡 **Nota**: Las actualizaciones de software solo se realizan cuando hay vulnerabilidades de seguridad conocidas o cuando el sistema muestra problemas de rendimiento.
 
 ## Procedimientos de Actualización
 
