@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useDeviceConfig } from '@/hooks/useDeviceConfig';
 import { obtenerTurnoActual, obtenerVigilantesActuales } from '@/data/fceaData';
+import { SystemHealthIndicator } from './SystemHealthIndicator';
 
 interface MonitorHeaderProps {
   pendientes: number;
@@ -91,12 +92,13 @@ export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProp
               </div>
             </div>
 
-            <div className="text-right">
-              <p className="text-xl font-mono font-bold flex items-center gap-2">
+            <div className="text-right space-y-1">
+              <p className="text-xl font-mono font-bold flex items-center gap-2 justify-end">
                 <Clock className="w-5 h-5 text-muted-foreground" />
                 {hora}
               </p>
               <p className="text-sm text-muted-foreground capitalize">{fecha}</p>
+              <SystemHealthIndicator />
             </div>
           </div>
         </div>

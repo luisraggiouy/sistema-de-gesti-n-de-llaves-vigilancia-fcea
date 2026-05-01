@@ -1,0 +1,15 @@
+﻿{
+    "timestamp":  "2026-05-01T19:47:32",
+    "metrics":  {
+                    "diskSpacePercent":  82.92,
+                    "lastBackupDaysAgo":  0,
+                    "lastMaintenanceDaysAgo":  0,
+                    "databaseSizeMB":  0.71,
+                    "diskSpaceFreeGB":  393.71,
+                    "pendriveDaysOutdated":  0
+                },
+    "overallStatus":  "healthy",
+    "alerts":  [
+
+               ]
+}
