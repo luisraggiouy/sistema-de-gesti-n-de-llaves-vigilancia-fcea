@@ -6,17 +6,16 @@
 
 ---
 
-## 📋 Resumen de Documentos
+##  Resumen de Documentos
 
 Este índice organiza toda la documentación del sistema en categorías para facilitar su consulta.
 
 ---
 
-## 🚀 INSTALACIÓN Y CONFIGURACIÓN INICIAL
+##  INSTALACIÓN Y CONFIGURACIÓN INICIAL
 
-### 1. **INSTRUCCIONES_RAPIDAS_PENDRIVES.md** ⭐ EMPEZAR AQUÍ
+### 1. **INSTRUCCIONES_RAPIDAS_PENDRIVES.md**  EMPEZAR AQUÍ
    - **Propósito**: Guía rápida para grabar los pendrives de instalación
-   - **Audiencia**: Personal de Sistemas
    - **Cuándo usar**: Antes de instalar el sistema por primera vez
    - **Contenido clave**:
      - Cómo grabar pendrive instalador (16 GB)
@@ -26,7 +25,6 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ### 2. **preparacion_pendrives_instalacion.md**
    - **Propósito**: Documentación completa del sistema de pendrives
-   - **Audiencia**: Personal de Sistemas
    - **Cuándo usar**: Para entender en detalle el sistema de instalación
    - **Contenido clave**:
      - Características de ambos pendrives
@@ -38,7 +36,6 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ### 3. **configuracion_produccion.md**
    - **Propósito**: Configuración del sistema para ambiente de producción
-   - **Audiencia**: Personal de Sistemas
    - **Cuándo usar**: Después de instalar, antes de poner en producción
    - **Contenido clave**:
      - Configuración de modo kiosk
@@ -48,7 +45,6 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ### 4. **teclado_tactil_configuracion.md**
    - **Propósito**: Configuración del teclado virtual para pantallas táctiles
-   - **Audiencia**: Personal de Sistemas
    - **Cuándo usar**: Si se usan pantallas táctiles
    - **Contenido clave**:
      - Habilitación del teclado táctil de Windows
@@ -58,9 +54,9 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ---
 
-## 👥 OPERACIÓN Y USO DIARIO
+##  OPERACIÓN Y USO DIARIO
 
-### 5. **instructivo_acceso_dashboard.md** ⭐ PARA USUARIOS
+### 5. **instructivo_acceso_dashboard.md**  PARA USUARIOS
    - **Propósito**: Guía para acceder y usar el dashboard de estadísticas
    - **Audiencia**: Vigilantes, Custodios, Administradores
    - **Cuándo usar**: Para consultar estadísticas del sistema
@@ -94,11 +90,11 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ---
 
-## 🔧 MANTENIMIENTO Y SOPORTE
+##  MANTENIMIENTO Y SOPORTE
 
-### 8. **guia_mantenimiento_paso_a_paso.md** ⭐ IMPORTANTE
+### 8. **guia_mantenimiento_paso_a_paso.md**  IMPORTANTE
    - **Propósito**: Procedimientos detallados de mantenimiento
-   - **Audiencia**: Personal de Sistemas, Jefes de Vigilancia
+   - **Audiencia**: Encargado designado, Jefes de Vigilancia, Sistemas 
    - **Cuándo usar**: Para mantenimiento mensual, trimestral y anual
    - **Contenido clave**:
      - Cómo salir del modo kiosk
@@ -110,7 +106,6 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ### 9. **funcionamiento_respaldos_automaticos.md**
    - **Propósito**: Sistema de respaldos automáticos
-   - **Audiencia**: Personal de Sistemas
    - **Cuándo usar**: Para entender el sistema de respaldos
    - **Contenido clave**:
      - Respaldos semanales automáticos (Domingos 8 AM)
@@ -120,7 +115,6 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ### 10. **configuracion_mantenimiento_automatizado.md**
    - **Propósito**: Configuración del mantenimiento automático
-   - **Audiencia**: Personal de Sistemas
    - **Cuándo usar**: Durante la instalación o para reconfigurar
    - **Contenido clave**:
      - Tareas programadas de Windows
@@ -130,7 +124,6 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ### 11. **procedimiento_reinstalacion_sistema.md**
    - **Propósito**: Reinstalación completa del sistema
-   - **Audiencia**: Personal de Sistemas
    - **Cuándo usar**: Si el sistema falla completamente
    - **Contenido clave**:
      - Cuándo reinstalar vs recuperar
@@ -141,11 +134,11 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ---
 
-## 🔄 ACTUALIZACIONES Y MODIFICACIONES
+##  ACTUALIZACIONES Y MODIFICACIONES
 
 ### 12. **plan_actualizaciones_mantenimiento.md**
    - **Propósito**: Plan de actualizaciones del sistema
-   - **Audiencia**: Personal de Sistemas, Autoridades
+   - **Audiencia**: Sistemas, Autoridades, quien se designe
    - **Cuándo usar**: Para planificar actualizaciones
    - **Contenido clave**:
      - Calendario de actualizaciones
@@ -155,7 +148,6 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ### 13. **procedimiento_modificaciones_produccion.md**
    - **Propósito**: Cómo hacer cambios en producción
-   - **Audiencia**: Personal de Sistemas
    - **Cuándo usar**: Antes de hacer cualquier cambio en producción
    - **Contenido clave**:
      - Proceso de aprobación de cambios
@@ -166,11 +158,10 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ---
 
-## 🛠️ SOLUCIÓN DE PROBLEMAS
+##  SOLUCIÓN DE PROBLEMAS
 
 ### 14. **resolucion_error_cors.md**
    - **Propósito**: Solución de errores CORS
-   - **Audiencia**: Personal de Sistemas
    - **Cuándo usar**: Si aparecen errores CORS en el navegador
    - **Contenido clave**:
      - Qué es un error CORS
@@ -180,11 +171,10 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ---
 
-## 📱 COMPATIBILIDAD Y REQUISITOS
+## COMPATIBILIDAD Y REQUISITOS
 
 ### 15. **compatibilidad_navegadores.md**
    - **Propósito**: Navegadores compatibles con el sistema
-   - **Audiencia**: Personal de Sistemas
    - **Cuándo usar**: Durante la instalación o si hay problemas de compatibilidad
    - **Contenido clave**:
      - Navegadores soportados (Chrome recomendado)
@@ -194,7 +184,7 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ---
 
-## 📄 DOCUMENTACIÓN TÉCNICA Y ADMINISTRATIVA
+##  DOCUMENTACIÓN TÉCNICA Y ADMINISTRATIVA
 
 ### 16. **SRS_Sistema_Gestion_Llaves_FCEA.md**
    - **Propósito**: Especificación de Requisitos del Software
@@ -209,7 +199,7 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ### 17. **entrega_codigo_fuente.md**
    - **Propósito**: Documentación de entrega del código fuente
-   - **Audiencia**: Autoridades, Personal de Sistemas
+   - **Audiencia**: Autoridades
    - **Cuándo usar**: Para auditorías o transferencia de conocimiento
    - **Contenido clave**:
      - Estructura del proyecto
@@ -231,10 +221,10 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ---
 
-## 📊 RESUMEN POR AUDIENCIA
+## RESUMEN POR AUDIENCIA
 
-### Para Personal de Sistemas:
-1. ⭐ **INSTRUCCIONES_RAPIDAS_PENDRIVES.md** (empezar aquí)
+### Para Personal de Sistemas o personal idóneo designado:
+1.  **INSTRUCCIONES_RAPIDAS_PENDRIVES.md** (empezar aquí)
 2. preparacion_pendrives_instalacion.md
 3. configuracion_produccion.md
 4. guia_mantenimiento_paso_a_paso.md
@@ -244,7 +234,7 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 8. compatibilidad_navegadores.md
 
 ### Para Vigilantes:
-1. ⭐ **instructivo_acceso_dashboard.md** (pueden VER dashboard, NO exportar)
+1.  **instructivo_acceso_dashboard.md** (pueden VER dashboard, NO exportar)
 
 ### Para Custodios (Jefes de Apoyo y Turno):
 1. instructivo_acceso_dashboard.md (pueden ver Y exportar)
@@ -264,61 +254,20 @@ Este índice organiza toda la documentación del sistema en categorías para fac
 
 ---
 
-## 🔄 ACTUALIZACIONES RECIENTES (Abril 2026)
 
-### Cambios en la documentación:
-✅ **instructivo_acceso_dashboard.md**: Actualizado con nuevos roles y tiempos
-   - Vigilantes SÍ pueden ver dashboard (antes no podían)
-   - Administrador: Intendente
-   - Custodios: Jefes de Apoyo y Jefes de Turno
-   - Sesión se cierra automáticamente después de 5 minutos
-   - Exportación a pendrive en modo kiosk (instrucciones detalladas)
 
-✅ **presentacion_autoridades.md**: Pie de página actualizado
-   - Cambio: "Documento preparado para archivo y custodia autoridades de FCEA"
-
-✅ **funcionalidad_administracion_custodio.md**: Roles actualizados
-   - Administrador: Intendente
-   - Custodios: Jefes de Apoyo y Jefes de Turno
-   - Tiempo de sesión: 5 minutos
-
-✅ **procedimiento_reinstalacion_sistema.md**: Pie de página actualizado
-   - Contraseñas por defecto documentadas
-
-✅ **funcionamiento_respaldos_automaticos.md**: Pie de página actualizado
-
-✅ **guia_mantenimiento_paso_a_paso.md**: NUEVO DOCUMENTO
-   - Renombrado desde "analisis_estabilidad_sistema.md"
-   - Procedimientos paso a paso detallados
-   - Instrucciones para salir del modo kiosk
-   - Mantenimiento mensual, trimestral y anual
-
-✅ **preparacion_pendrives_instalacion.md**: NUEVO DOCUMENTO
-   - Sistema completo de instalación con pendrives
-   - Soporte para pantallas táctiles y monitores tradicionales
-   - Instalador automático con menú interactivo
-
-✅ **INSTRUCCIONES_RAPIDAS_PENDRIVES.md**: NUEVO DOCUMENTO
-   - Guía rápida para grabar pendrives
-   - Configuración de hardware
-   - Checklists de instalación
-
-❌ **preparacion_pendrive_instalador.md**: ELIMINADO (duplicado obsoleto)
-
----
-
-## 📞 Soporte y Contacto
+##  Soporte y Contacto
 
 Para consultas sobre la documentación:
 - Revisar este índice primero
 - Consultar el documento específico según la necesidad
-- Contactar a Personal de Sistemas si persisten dudas
+- Autor Luis Raggio 099600873 luisraggiouy@gmail.com
 
 ---
 
-## 🔐 Control de Versiones
+##  Control de Versiones
 
-Todos los documentos están versionados en GitHub:
+Todos los documentos están versionados en GitHub, y se hace entrega de copia en pendrive a autoridades de FCEA:
 - Repositorio: https://github.com/luisraggiouy/sistema-de-gesti-n-de-llaves-vigilancia-fcea
 - Última actualización: Commit 53c2a0a (Abril 2026)
 
