@@ -46,7 +46,13 @@ if not exist "pocketbase\pb_data" (
 )
 
 echo.
-echo [4/4] Iniciando servidor de desarrollo...
+echo [4/5] Iniciando watchdog de PocketBase...
+echo Iniciando monitor en segundo plano...
+start "Watchdog PocketBase" powershell.exe -ExecutionPolicy Bypass -WindowStyle Minimized -File "%~dp0watchdog_loop.ps1"
+echo Watchdog iniciado (ventana minimizada).
+
+echo.
+echo [5/5] Iniciando servidor de desarrollo...
 echo Ejecutando npm run dev en una nueva ventana...
 start "Frontend Server" cmd /c "npm run dev"
 
@@ -54,6 +60,8 @@ echo.
 echo ===================================
 echo SISTEMA INICIADO CORRECTAMENTE
 echo ===================================
+echo.
+echo WATCHDOG ACTIVO: PocketBase se reiniciara automaticamente si se cae.
 echo.
 echo El sistema ahora deberia funcionar. Abra su navegador en:
 echo   http://localhost:8080/
