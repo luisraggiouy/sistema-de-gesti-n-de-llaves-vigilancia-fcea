@@ -1,9 +1,9 @@
-# 🚀 INSTRUCCIONES RÁPIDAS: Cómo Grabar los Pendrives
+#  INSTRUCCIONES RÁPIDAS: Cómo Grabar los Pendrives
 ## Sistema de Gestión de Llaves — FCEA
 
 ---
 
-## 📋 Resumen Ultra Rápido
+##  Resumen Ultra Rápido
 
 Necesitas **2 pendrives diferentes**:
 
@@ -14,7 +14,7 @@ Necesitas **2 pendrives diferentes**:
 
 ---
 
-## 🔧 PENDRIVE 1: INSTALADOR (16 GB)
+##  PENDRIVE 1: INSTALADOR (16 GB)
 
 ### Paso 1: Formatear el pendrive
 ```
@@ -51,7 +51,7 @@ Pegar etiqueta física:
 └─────────────────────────────────┘
 ```
 
-### ✅ Verificar que contiene:
+###  Verificar que contiene:
 ```
 INSTALADOR_LLAVES_FCEA\
 ├── INSTALAR_SISTEMA.bat          ← Archivo principal
@@ -64,7 +64,7 @@ INSTALADOR_LLAVES_FCEA\
 
 ---
 
-## 💾 PENDRIVE 2: RECUPERACIÓN (8 GB)
+##  PENDRIVE 2: RECUPERACIÓN (8 GB)
 
 ### Paso 1: Formatear el pendrive
 ```
@@ -100,7 +100,7 @@ Pegar etiqueta física:
 └─────────────────────────────────┘
 ```
 
-### ✅ Verificar que contiene:
+###  Verificar que contiene:
 ```
 RECUPERACION_LLAVES_FCEA\
 ├── RESTAURAR_SISTEMA.bat          ← Archivo principal
@@ -114,15 +114,15 @@ RECUPERACION_LLAVES_FCEA\
 
 ---
 
-## 🖥️ CONFIGURACIÓN DE HARDWARE
+##  CONFIGURACIÓN DE HARDWARE
 
 ### Opción A: Pantallas Táctiles (Producción Final)
 
 #### Hardware necesario:
-- ✅ 1 Mini PC con Windows 10/11
-- ✅ 3 Pantallas táctiles (21-24")
-- ✅ 3 Cables HDMI/DisplayPort
-- ✅ 1 Pendrive INSTALADOR
+-  1 Mini PC con Windows 10/11
+-  3 Pantallas táctiles (21-24")
+-  3 Cables HDMI/DisplayPort
+-  1 Pendrive INSTALADOR
 
 #### Conexión física:
 ```
@@ -156,13 +156,13 @@ Mini PC → Salida 1 → Pantalla Táctil 1 (Monitor Vigilancia)
 ### Opción B: Monitores Tradicionales (Etapa de Prueba)
 
 #### Hardware necesario:
-- ✅ 1 Mini PC con Windows 10/11
-- ✅ 3 Monitores estándar
-- ✅ 3 Cables HDMI/DisplayPort
-- ✅ 3 Teclados USB
-- ✅ 3 Mouses USB
-- ✅ 1 Hub USB (si el Mini PC no tiene suficientes puertos)
-- ✅ 1 Pendrive INSTALADOR
+-  1 Mini PC con Windows 10/11
+-  3 Monitores estándar
+-  3 Cables HDMI/DisplayPort
+-  3 Teclados USB
+-  3 Mouses USB
+-  1 Hub USB (si el Mini PC no tiene suficientes puertos)
+-  1 Pendrive INSTALADOR
 
 #### Conexión física:
 ```
@@ -209,9 +209,9 @@ Mini PC → Salida 1 → Monitor 1 (Monitor Vigilancia)
 
 ---
 
-## 🔄 Migración de Tradicional a Táctil
+##  Migración de Tradicional a Táctil
 
-Si empiezas con monitores tradicionales y luego quieres migrar a táctiles:
+Migrar a táctiles:
 
 ```
 1. Apagar el sistema
@@ -228,7 +228,7 @@ Si empiezas con monitores tradicionales y luego quieres migrar a táctiles:
 
 ---
 
-## 📝 Checklist de Instalación
+##  Checklist de Instalación
 
 ### Antes de empezar:
 - [ ] Mini PC con Windows 10/11 instalado y actualizado
@@ -257,7 +257,7 @@ Si empiezas con monitores tradicionales y luego quieres migrar a táctiles:
 
 ---
 
-## ⚡ Solución Rápida de Problemas
+##  Solución Rápida de Problemas
 
 ### El instalador no arranca
 ```
@@ -289,12 +289,12 @@ Si empiezas con monitores tradicionales y luego quieres migrar a táctiles:
 
 ---
 
-## 📞 Contacto
+## Contacto
 
 Para problemas durante la instalación:
 - Revisar log: C:\Users\[USUARIO]\AppData\Local\Temp\instalacion_llaves_fcea.log
 - Consultar: docs\preparacion_pendrives_instalacion.md
-- Contactar: Personal de Sistemas
+- Contactar: Luis Raggio 099600873 luisraggiouy@gmail.com
 
 ---
 
