@@ -50,8 +50,8 @@ if (-not $process) {
     # Crear la acción (ejecutar el comando PowerShell)
     $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -WindowStyle Hidden -Command `"$watchdogCommand`""
     
-    # Crear el trigger (cada 2 minutos, para siempre)
-    $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 2) -RepetitionDuration ([TimeSpan]::MaxValue)
+    # Crear el trigger (cada 2 minutos, indefinidamente)
+    $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 2)
     
     # Crear el principal (ejecutar como SYSTEM)
     $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
