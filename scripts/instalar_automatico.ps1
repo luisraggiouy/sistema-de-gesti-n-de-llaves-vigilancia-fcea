@@ -285,24 +285,41 @@ function Initialize-Database {
 
 # Función para configurar mantenimiento automático
 function Configure-AutomaticMaintenance {
-    Write-Log "Configurando mantenimiento automático..."
+    Write-Log "Configurando sistema de mantenimiento automatizado (3 tareas)..."
     
     try {
-        # Crear tarea programada para respaldos semanales
-        $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -File `"$DestinationPath\pocketbase\maintenance\system_maintenance.ps1`""
-        $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 8:00AM
         $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
         $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
         
-        # Verificar si la tarea ya existe
-        $existingTask = Get-ScheduledTask -TaskName "Mantenimiento Sistema Llaves FCEA" -ErrorAction SilentlyContinue
-        if ($existingTask) {
-            Unregister-ScheduledTask -TaskName "Mantenimiento Sistema Llaves FCEA" -Confirm:$false
-        }
+        # Tarea 1: Mantenimiento semanal
+        Write-Log "  Configurando tarea 1/3: Mantenimiento semanal..."
+        $action1 = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -File `"$DestinationPath\pocketbase\maintenance\system_maintenance.ps1`""
+        $trigger1 = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 8:00AM
+        $task1 = Get-ScheduledTask -TaskName "Mantenimiento Sistema Llaves FCEA" -ErrorAction SilentlyContinue
+        if ($task1) { Unregister-ScheduledTask -TaskName "Mantenimiento Sistema Llaves FCEA" -Confirm:$false }
+        Register-ScheduledTask -TaskName "Mantenimiento Sistema Llaves FCEA" -Action $action1 -Trigger $trigger1 -Principal $principal -Settings $settings -Description "Respaldo semanal automático" | Out-Null
+        Write-Log "  ✓ Tarea 1/3 configurada" "SUCCESS"
         
-        Register-ScheduledTask -TaskName "Mantenimiento Sistema Llaves FCEA" -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Description "Respaldo automático semanal del Sistema de Llaves FCEA" | Out-Null
+        # Tarea 2: Verificación de salud diaria
+        Write-Log "  Configurando tarea 2/3: Verificación de salud..."
+        $action2 = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -File `"$DestinationPath\pocketbase\maintenance\check_system_health.ps1`""
+        $trigger2 = New-ScheduledTaskTrigger -Daily -At 7:00AM
+        $task2 = Get-ScheduledTask -TaskName "Verificación Salud Sistema Llaves FCEA" -ErrorAction SilentlyContinue
+        if ($task2) { Unregister-ScheduledTask -TaskName "Verificación Salud Sistema Llaves FCEA" -Confirm:$false }
+        Register-ScheduledTask -TaskName "Verificación Salud Sistema Llaves FCEA" -Action $action2 -Trigger $trigger2 -Principal $principal -Settings $settings -Description "Verificación diaria de salud del sistema" | Out-Null
+        Write-Log "  ✓ Tarea 2/3 configurada" "SUCCESS"
         
-        Write-Log "✓ Mantenimiento automático configurado (Domingos 8:00 AM)" "SUCCESS"
+        # Tarea 3: Watchdog de PocketBase (cada 2 minutos)
+        Write-Log "  Configurando tarea 3/3: Watchdog de PocketBase..."
+        $action3 = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -File `"$DestinationPath\scripts\watchdog_pocketbase.ps1`""
+        $trigger3 = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 2) -RepetitionDuration ([TimeSpan]::MaxValue)
+        $task3 = Get-ScheduledTask -TaskName "Watchdog PocketBase Sistema Llaves FCEA" -ErrorAction SilentlyContinue
+        if ($task3) { Unregister-ScheduledTask -TaskName "Watchdog PocketBase Sistema Llaves FCEA" -Confirm:$false }
+        Register-ScheduledTask -TaskName "Watchdog PocketBase Sistema Llaves FCEA" -Action $action3 -Trigger $trigger3 -Principal $principal -Settings $settings -Description "Monitorea y reinicia PocketBase automáticamente cada 2 minutos" | Out-Null
+        Write-Log "  ✓ Tarea 3/3 configurada: Watchdog (protección 24/7)" "SUCCESS"
+        
+        Write-Host ""
+        Write-Log "✓ Sistema de mantenimiento automatizado configurado exitosamente" "SUCCESS"
         return $true
     } catch {
         Write-Log "✗ Error al configurar mantenimiento automático: $_" "ERROR"
