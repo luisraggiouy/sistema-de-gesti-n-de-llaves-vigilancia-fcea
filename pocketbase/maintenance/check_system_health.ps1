@@ -65,6 +65,7 @@ try {
             message = "Solo queda $FreeSpacePercent% de espacio libre ($FreeSpaceGB GB). Acción inmediata requerida."
             action = "Liberar espacio eliminando backups antiguos o archivos temporales"
             icon = "alert-circle"
+            documentation = "docs/guia_mantenimiento_paso_a_paso.md"
         }
         $HealthStatus.overallStatus = "critical"
         Write-Log "CRÍTICO: Espacio en disco muy bajo" "ERROR"
@@ -76,6 +77,7 @@ try {
             message = "Queda $FreeSpacePercent% de espacio libre ($FreeSpaceGB GB). Considere liberar espacio pronto."
             action = "Revisar y limpiar backups antiguos"
             icon = "alert-triangle"
+            documentation = "docs/guia_mantenimiento_paso_a_paso.md"
         }
         if ($HealthStatus.overallStatus -eq "healthy") {
             $HealthStatus.overallStatus = "warning"
@@ -110,6 +112,7 @@ try {
                     message = "El último backup fue hace $DaysSinceBackup días. Sistema de backups puede estar fallando."
                     action = "Verificar tarea programada de mantenimiento y ejecutar backup manual"
                     icon = "database"
+                    documentation = "docs/funcionamiento_respaldos_automaticos.md"
                 }
                 $HealthStatus.overallStatus = "critical"
                 Write-Log "CRÍTICO: Backup muy desactualizado" "ERROR"
@@ -121,6 +124,7 @@ try {
                     message = "El último backup fue hace $DaysSinceBackup días. Debería ejecutarse semanalmente."
                     action = "Verificar que la tarea programada esté activa"
                     icon = "database"
+                    documentation = "docs/funcionamiento_respaldos_automaticos.md"
                 }
                 if ($HealthStatus.overallStatus -eq "healthy") {
                     $HealthStatus.overallStatus = "warning"
@@ -134,6 +138,7 @@ try {
                 message = "No se encontraron backups del sistema. Datos en riesgo."
                 action = "Ejecutar inmediatamente: scripts\configurar_mantenimiento_automatico.ps1"
                 icon = "database"
+                documentation = "docs/configuracion_mantenimiento_automatizado.md"
             }
             $HealthStatus.overallStatus = "critical"
             Write-Log "CRÍTICO: No hay backups" "ERROR"
@@ -164,6 +169,7 @@ try {
                 message = "La base de datos tiene $DbSizeMB MB. Considere archivar datos históricos."
                 action = "Ejecutar mantenimiento anual: archivar datos antiguos"
                 icon = "hard-drive"
+                documentation = "docs/guia_mantenimiento_paso_a_paso.md"
             }
             if ($HealthStatus.overallStatus -eq "healthy") {
                 $HealthStatus.overallStatus = "warning"
@@ -194,6 +200,7 @@ try {
                 message = "Se encontraron $ErrorCount errores recientes en los logs de mantenimiento."
                 action = "Revisar archivo: pocketbase\maintenance\logs\maintenance.log"
                 icon = "file-text"
+                documentation = "docs/guia_mantenimiento_paso_a_paso.md"
             }
             if ($HealthStatus.overallStatus -eq "healthy") {
                 $HealthStatus.overallStatus = "warning"
@@ -247,6 +254,7 @@ try {
                         message = "El pendrive no se actualiza hace $DaysSinceUpdate días. Actualice mensualmente."
                         action = "Ejecutar: scripts\preparar_pendrive_recuperacion.bat"
                         icon = "usb"
+                        documentation = "docs/preparacion_pendrives_instalacion.md"
                     }
                     if ($HealthStatus.overallStatus -eq "healthy") {
                         $HealthStatus.overallStatus = "warning"
@@ -280,6 +288,7 @@ try {
             message = "El servicio de base de datos no está activo. El sistema no funcionará."
             action = "Reiniciar el sistema ejecutando: iniciar_sistema.bat"
             icon = "x-circle"
+            documentation = "docs/procedimiento_reinstalacion_sistema.md"
         }
         $HealthStatus.overallStatus = "critical"
         Write-Log "CRÍTICO: PocketBase no está corriendo" "ERROR"

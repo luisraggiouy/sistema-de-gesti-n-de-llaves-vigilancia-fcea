@@ -32,6 +32,7 @@ interface SystemAlert {
   message: string;
   action: string;
   icon: string;
+  documentation?: string; // Documento de referencia para solucionar
 }
 
 interface SystemHealth {
@@ -87,9 +88,12 @@ export function SystemHealthAlerts() {
     return null; // No mostrar nada mientras carga
   }
 
-  if (!healthData || healthData.alerts.length === 0) {
-    return null; // No mostrar si no hay alertas
+  if (!healthData) {
+    return null; // No mostrar si no hay datos
   }
+
+  // SIEMPRE mostrar el indicador, incluso si no hay alertas
+  const hasAlerts = healthData.alerts.length > 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -184,6 +188,11 @@ export function SystemHealthAlerts() {
                   <p className="text-sm font-medium bg-red-100 dark:bg-red-900/20 p-2 rounded">
                     <strong>Acción requerida:</strong> {alert.action}
                   </p>
+                  {alert.documentation && (
+                    <p className="text-xs bg-blue-50 border border-blue-200 p-2 rounded text-blue-800">
+                      📖 <strong>Consultar:</strong> <code className="bg-blue-100 px-1 py-0.5 rounded">{alert.documentation}</code>
+                    </p>
+                  )}
                 </AlertDescription>
               </Alert>
             );
@@ -201,6 +210,11 @@ export function SystemHealthAlerts() {
                   <p className="text-sm font-medium bg-yellow-100 p-2 rounded text-yellow-800">
                     <strong>Recomendación:</strong> {alert.action}
                   </p>
+                  {alert.documentation && (
+                    <p className="text-xs bg-blue-50 border border-blue-200 p-2 rounded text-blue-800">
+                      📖 <strong>Consultar:</strong> <code className="bg-blue-100 px-1 py-0.5 rounded">{alert.documentation}</code>
+                    </p>
+                  )}
                 </AlertDescription>
               </Alert>
             );
