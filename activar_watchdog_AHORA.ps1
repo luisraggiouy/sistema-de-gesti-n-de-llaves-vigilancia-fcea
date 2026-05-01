@@ -1,30 +1,23 @@
 # ============================================================================
-# Activar Watchdog AHORA - Script Directo
+# Activar Watchdog AHORA - Script Directo con Auto-Elevación
 # ============================================================================
-# Ejecutar como: Click derecho → Ejecutar con PowerShell
+# Ejecutar como: Doble clic en el archivo
 # ============================================================================
+
+# Auto-elevarse a administrador si no lo está
+$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+$isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+if (-not $isAdmin) {
+    Write-Host "Solicitando permisos de administrador..." -ForegroundColor Yellow
+    Start-Process powershell.exe -ArgumentList "-ExecutionPolicy Bypass -NoProfile -File `"$PSCommandPath`"" -Verb RunAs
+    exit
+}
 
 Write-Host "============================================================================" -ForegroundColor Cyan
 Write-Host "  ACTIVANDO WATCHDOG - SISTEMA DE LLAVES FCEA" -ForegroundColor Cyan
 Write-Host "============================================================================" -ForegroundColor Cyan
 Write-Host ""
-
-# Verificar permisos de administrador
-$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-$isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-
-if (-not $isAdmin) {
-    Write-Host "ERROR: Este script requiere permisos de administrador" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "Por favor:" -ForegroundColor Yellow
-    Write-Host "  1. Cierre esta ventana" -ForegroundColor White
-    Write-Host "  2. Haga clic derecho en activar_watchdog_AHORA.ps1" -ForegroundColor White
-    Write-Host "  3. Seleccione 'Ejecutar con PowerShell'" -ForegroundColor White
-    Write-Host "  4. Cuando pregunte, clic en SI" -ForegroundColor White
-    Write-Host ""
-    Read-Host "Presione Enter para salir"
-    exit 1
-}
 
 Write-Host "[1/3] Creando tarea programada del watchdog..." -ForegroundColor Yellow
 Write-Host ""
