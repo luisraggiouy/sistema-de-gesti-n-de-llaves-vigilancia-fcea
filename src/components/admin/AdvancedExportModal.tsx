@@ -99,8 +99,8 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
       return;
     }
 
-    // Si es custodio, verificar USB
-    if (isCustodian && !usbStatus.connected) {
+    // TODOS (custodios Y administradores) requieren USB conectado
+    if (!usbStatus.connected) {
       toast({
         title: "No hay USB conectado",
         description: "Por favor conecte un dispositivo USB para continuar con la exportación",
@@ -155,48 +155,31 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
       const formattedTime = now.toTimeString().split(' ')[0].replace(/:/g, '-');
       const fileName = `Dashboard_FCEA_${startDate}_${endDate}_${formattedDate}_${formattedTime}`;
 
-      // Exportar a Excel
+      // Exportar a Excel - TODOS exportan directo a USB
       await exportToExcel(exportData, fileName, {
         includeStats: exportOptions.includeStats,
         includeUsers: exportOptions.includeUsers,
         includeKeys: exportOptions.includeKeys,
         dateRange: { start: startDate, end: endDate },
-        directToUsb: isCustodian && usbStatus.connected, // Si es custodio y hay USB, exportar directamente al USB
-        usbPath: isCustodian && usbStatus.connected ? usbStatus.drives[0].mountPoint : undefined
+        directToUsb: usbStatus.connected, // TODOS exportan directo a USB si está conectado
+        usbPath: usbStatus.connected ? usbStatus.drives[0].mountPoint : undefined
       });
 
-      let exportMessage = "Los datos han sido exportados a Excel.";
-      if (isCustodian && usbStatus.connected) {
-        exportMessage = "Los datos han sido exportados directamente a su dispositivo USB.";
-      } else {
-        exportMessage = "Los datos han sido exportados a Excel. El archivo se ha descargado automáticamente.";
-      }
-
+      // TODOS exportan a USB - Mensaje unificado
       toast({
         title: "Exportación exitosa",
-        description: exportMessage,
+        description: "Los datos han sido exportados directamente a su dispositivo USB.",
         duration: 5000
       });
 
-      // Si no es custodio o no hay USB, mostrar instrucciones para pendrive
-      if (!isCustodian || !usbStatus.connected) {
-        setTimeout(() => {
-          toast({
-            title: "💾 Copia a Pendrive",
-            description: "Puede encontrar el archivo en su carpeta de Descargas. Cópielo a su pendrive para llevarlo.",
-            duration: 8000
-          });
-        }, 2000);
-      } else {
-        // Si es custodio y hay USB, mostrar confirmación
-        setTimeout(() => {
-          toast({
-            title: "✅ Pendrive Listo",
-            description: "Puede retirar el pendrive de forma segura. Los datos ya están guardados.",
-            duration: 8000
-          });
-        }, 2000);
-      }
+      // Mostrar confirmación de que puede retirar el pendrive
+      setTimeout(() => {
+        toast({
+          title: "✅ Pendrive Listo",
+          description: "Puede retirar el pendrive de forma segura. Los datos ya están guardados.",
+          duration: 8000
+        });
+      }, 2000);
 
       onOpenChange(false);
 
@@ -270,28 +253,26 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Estado del USB para custodios */}
-          {isCustodian && (
-            <Alert className={usbStatus.connected ? "bg-green-50 border-green-200 text-green-800" : "bg-amber-50 border-amber-200 text-amber-800"}>
-              <div className="flex items-center gap-2">
-                {usbStatus.connected ? (
-                  <>
-                    <Check className="h-4 w-4 text-green-600" />
-                    <AlertDescription className="text-green-700 font-medium">
-                      Dispositivo USB detectado: {usbStatus.drives[0]?.label || "Pendrive"}
-                    </AlertDescription>
-                  </>
-                ) : (
-                  <>
-                    <X className="h-4 w-4 text-amber-600" />
-                    <AlertDescription className="text-amber-700 font-medium">
-                      No se detecta ningún dispositivo USB. Por favor, conecte un pendrive.
-                    </AlertDescription>
-                  </>
-                )}
-              </div>
-            </Alert>
-          )}
+          {/* Estado del USB - PARA TODOS (custodios Y administradores) */}
+          <Alert className={usbStatus.connected ? "bg-green-50 border-green-200 text-green-800" : "bg-amber-50 border-amber-200 text-amber-800"}>
+            <div className="flex items-center gap-2">
+              {usbStatus.connected ? (
+                <>
+                  <Check className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-700 font-medium">
+                    ✅ Dispositivo USB detectado: {usbStatus.drives[0]?.label || "Pendrive"} - Listo para exportar
+                  </AlertDescription>
+                </>
+              ) : (
+                <>
+                  <X className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-amber-700 font-medium">
+                    ⚠️ No se detecta ningún dispositivo USB. Por favor, conecte un pendrive para continuar.
+                  </AlertDescription>
+                </>
+              )}
+            </div>
+          </Alert>
 
           {/* Selección de fechas */}
           <Card>
@@ -416,46 +397,35 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
             </CardContent>
           </Card>
 
-          {/* Instrucciones para pendrive */}
+          {/* Instrucciones para pendrive - UNIFICADAS PARA TODOS */}
           <Alert>
             <Usb className="h-4 w-4" />
             <AlertDescription>
-              {isCustodian ? (
-                <div>
-                  <strong>👑 Modo Custodio:</strong>{' '}
-                  {usbStatus.connected 
-                    ? "La información se guardará automáticamente en su pendrive. No desconecte el dispositivo durante la exportación."
-                    : "Conecte un pendrive para guardar la información directamente."}
-                </div>
-              ) : (
-                <div>
-                  <strong>💾 Para llevar en pendrive:</strong> El archivo se descargará en su carpeta de Descargas. 
-                  Luego puede copiarlo a un pendrive para llevarlo y abrirlo en cualquier computadora con Excel.
-                </div>
-              )}
+              <div>
+                <strong>📀 Exportación Directa a Pendrive:</strong>{' '}
+                {usbStatus.connected 
+                  ? "La información se guardará automáticamente en su pendrive. No desconecte el dispositivo durante la exportación."
+                  : "Conecte un pendrive común (sin software especial) para guardar la información directamente. Compatible con modo kiosk."}
+              </div>
             </AlertDescription>
           </Alert>
 
-          {/* Botones de acción */}
+          {/* Botones de acción - TODOS requieren USB */}
           <div className="flex gap-3 pt-4">
             <Button 
               onClick={handleExport} 
-              disabled={isExporting || (isCustodian && !usbStatus.connected)}
-              className={`flex-1 ${isCustodian ? (usbStatus.connected ? 'bg-green-600 hover:bg-green-700' : '') : ''}`}
+              disabled={isExporting || !usbStatus.connected}
+              className={`flex-1 ${usbStatus.connected ? 'bg-green-600 hover:bg-green-700' : ''}`}
             >
               {isExporting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                  Exportando...
+                  Exportando a USB...
                 </>
               ) : (
                 <>
-                  {isCustodian ? (
-                    <Usb className="w-4 h-4 mr-2" />
-                  ) : (
-                    <Download className="w-4 h-4 mr-2" />
-                  )}
-                  {isCustodian ? 'Exportar a USB' : 'Exportar a Excel'}
+                  <Usb className="w-4 h-4 mr-2" />
+                  Exportar a USB
                 </>
               )}
             </Button>
