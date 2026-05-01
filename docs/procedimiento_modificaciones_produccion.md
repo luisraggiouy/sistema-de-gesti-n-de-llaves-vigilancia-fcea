@@ -578,7 +578,7 @@ Descripción:
 
 #### Importante: No se requiere personal experto
 
-El sistema fue diseñado para poder ser modificado por **cualquier persona con conocimientos básicos de programación**, no es necesario un desarrollador experto. Un estudiante de ingeniería en sistemas, una persona amateur con interés en tecnología, o incluso una **inteligencia artificial (IA)** pueden realizar modificaciones.
+El sistema fue diseñado para poder ser modificado por **cualquier persona con conocimientos básicos de programación**, no es necesario un desarrollador experto. Un estudiante de ingeniería en sistemas, una persona amateur con interés en tecnología, o incluso una inteligencia artificial, pueden realizar modificaciones.
 
 #### Tecnologías del Sistema — Lo que hay que conocer
 
@@ -609,34 +609,10 @@ Para hacer modificaciones al sistema solo se necesita:
 |----------------------|----------------------|-----------------|
 | **Estudiante de Ing. en Sistemas** (cualquier año) | Sí | Todo tipo de cambios (A, B y C) |
 | **Persona amateur con interés en tecnología** | Sí | Cambios Tipo A y B. Con ayuda de IA, también Tipo C |
-| **Inteligencia Artificial** (ChatGPT, Claude, Cline, etc.) | Sí | Todo tipo de cambios guiada por una persona |
+| **Inteligencia Artificial** (ChatGPT, Claude, Grok, etc.) | Sí | Todo tipo de cambios guiada por una persona |
 | **Desarrollador profesional** | Sí | Todo tipo de cambios |
 | **Persona sin conocimientos de programación** | Con ayuda | Solo cambios de configuración (Tipo A) usando interfaz visual de PocketBase |
 
-#### Uso de Inteligencia Artificial para Modificaciones
-
-El sistema fue desarrollado usando IA (Cline + OpenRouter + VS Code). Cualquier persona puede seguir el mismo método:
-
-1. **Abrir el código en VS Code con extensión Cline**
-2. **Describir el cambio deseado en lenguaje natural** (español)
-3. **La IA analiza el código, propone los cambios y los implementa**
-4. **Revisar y probar los cambios antes de desplegar**
-
-Esto permite que cualquier persona, incluso sin experiencia programando, pueda modificar el sistema con ayuda de IA. Solo necesita saber expresar en español lo que quiere cambiar.
-
-#### Recursos de Aprendizaje Recomendados
-
-Si la persona asignada quiere capacitarse, estos recursos gratuitos son suficientes:
-
-| Tema | Recurso | Tiempo Estimado |
-|------|---------|-----------------|
-| JavaScript Básico | freeCodeCamp o YouTube | 1-2 semanas |
-| TypeScript Básico | Documentación oficial de TypeScript | 2-3 días |
-| React Básico | Tutorial oficial de React (react.dev) | 1 semana |
-| TailwindCSS | Documentación oficial de TailwindCSS | 1-2 días |
-| Git Básico | Tutorial interactivo de GitHub | 1 día |
-
-Con 3-4 semanas de aprendizaje, cualquier persona puede hacer modificaciones tipo A y B. Con ayuda de IA, incluso tipo C.
 
 ### 15. Mejores Prácticas
 
