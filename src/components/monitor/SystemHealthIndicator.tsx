@@ -1,23 +1,52 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle, AlertTriangle, AlertCircle } from 'lucide-react';
+import { CheckCircle, AlertTriangle, AlertCircle, Database, HardDrive, FileText, Usb, XCircle } from 'lucide-react';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+
+interface SystemMetrics {
+  diskSpacePercent: number;
+  diskSpaceFreeGB: number;
+  lastBackupDaysAgo: number;
+  databaseSizeMB: number;
+  lastMaintenanceDaysAgo: number;
+  pendriveDaysOutdated: number;
+}
+
+interface SystemAlert {
+  level: 'critical' | 'warning' | 'info';
+  title: string;
+  message: string;
+  action: string;
+  icon: string;
+  documentation?: string;
+}
 
 interface SystemHealth {
   timestamp: string;
   overallStatus: 'healthy' | 'warning' | 'critical';
-  alerts: Array<{
-    level: string;
-    title: string;
-  }>;
+  alerts: SystemAlert[];
+  metrics: SystemMetrics;
 }
+
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  'alert-circle': AlertCircle,
+  'alert-triangle': AlertTriangle,
+  'database': Database,
+  'hard-drive': HardDrive,
+  'file-text': FileText,
+  'usb': Usb,
+  'x-circle': XCircle,
+};
 
 export function SystemHealthIndicator() {
   const [healthData, setHealthData] = useState<SystemHealth | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   const fetchHealthData = async () => {
     try {
@@ -33,7 +62,7 @@ export function SystemHealthIndicator() {
 
   useEffect(() => {
     fetchHealthData();
-    const interval = setInterval(fetchHealthData, 5 * 60 * 1000); // Cada 5 minutos
+    const interval = setInterval(fetchHealthData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -53,34 +82,141 @@ export function SystemHealthIndicator() {
   const getStatusText = () => {
     switch (healthData.overallStatus) {
       case 'critical':
-        return 'Sistema: Crítico';
+        return 'Crítico';
       case 'warning':
-        return 'Sistema: Advertencia';
+        return 'Advertencia';
       default:
-        return 'Sistema: OK';
+        return 'OK';
     }
   };
 
-  const getTooltipContent = () => {
-    if (healthData.alerts.length === 0) {
-      return 'Sistema funcionando correctamente';
-    }
-    return `${healthData.alerts.length} alerta${healthData.alerts.length > 1 ? 's' : ''} - Ver Monitor para detalles`;
-  };
+  const criticalAlerts = healthData.alerts.filter(a => a.level === 'critical');
+  const warningAlerts = healthData.alerts.filter(a => a.level === 'warning');
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="flex items-center gap-1.5 text-xs cursor-help">
-            {getStatusIcon()}
-            <span className="text-muted-foreground">{getStatusText()}</span>
+    <>
+      <button
+        onClick={() => setIsOpen(true)}
+        className="flex items-center gap-1.5 text-xs cursor-pointer hover:opacity-80 transition-opacity"
+        title="Ver detalles del sistema"
+      >
+        {getStatusIcon()}
+        <span className="text-muted-foreground">Sistema: {getStatusText()}</span>
+        {healthData.alerts.length > 0 && (
+          <Badge variant="destructive" className="ml-1 h-4 px-1 text-[10px]">
+            {healthData.alerts.length}
+          </Badge>
+        )}
+      </button>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {getStatusIcon()}
+              Estado del Sistema: {getStatusText()}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Alertas Críticas */}
+            {criticalAlerts.map((alert, index) => {
+              const IconComponent = iconMap[alert.icon] || AlertCircle;
+              return (
+                <Alert key={`critical-${index}`} variant="destructive">
+                  <IconComponent className="h-4 w-4" />
+                  <AlertTitle className="font-semibold">{alert.title}</AlertTitle>
+                  <AlertDescription className="mt-2 space-y-2">
+                    <p>{alert.message}</p>
+                    <p className="text-sm font-medium bg-red-100 dark:bg-red-900/20 p-2 rounded">
+                      <strong>Acción requerida:</strong> {alert.action}
+                    </p>
+                    {alert.documentation && (
+                      <p className="text-xs bg-blue-50 border border-blue-200 p-2 rounded text-blue-800">
+                        📖 <strong>Consultar:</strong> <code className="bg-blue-100 px-1 py-0.5 rounded">{alert.documentation}</code>
+                      </p>
+                    )}
+                  </AlertDescription>
+                </Alert>
+              );
+            })}
+
+            {/* Alertas de Advertencia */}
+            {warningAlerts.map((alert, index) => {
+              const IconComponent = iconMap[alert.icon] || AlertTriangle;
+              return (
+                <Alert key={`warning-${index}`} className="border-yellow-300 bg-yellow-50">
+                  <IconComponent className="h-4 w-4 text-yellow-600" />
+                  <AlertTitle className="font-semibold text-yellow-800">{alert.title}</AlertTitle>
+                  <AlertDescription className="mt-2 space-y-2">
+                    <p className="text-yellow-700">{alert.message}</p>
+                    <p className="text-sm font-medium bg-yellow-100 p-2 rounded text-yellow-800">
+                      <strong>Recomendación:</strong> {alert.action}
+                    </p>
+                    {alert.documentation && (
+                      <p className="text-xs bg-blue-50 border border-blue-200 p-2 rounded text-blue-800">
+                        📖 <strong>Consultar:</strong> <code className="bg-blue-100 px-1 py-0.5 rounded">{alert.documentation}</code>
+                      </p>
+                    )}
+                  </AlertDescription>
+                </Alert>
+              );
+            })}
+
+            {/* Mensaje cuando no hay alertas */}
+            {healthData.alerts.length === 0 && (
+              <Alert className="border-green-300 bg-green-50">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <AlertTitle className="font-semibold text-green-800">Sistema Saludable</AlertTitle>
+                <AlertDescription className="text-green-700">
+                  Todos los sistemas funcionando correctamente. No se requiere ninguna acción.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Métricas del Sistema */}
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+              <h4 className="font-semibold text-sm mb-3 text-gray-700">Métricas del Sistema</h4>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-gray-600">Espacio en disco</p>
+                  <p className="font-semibold">
+                    {healthData.metrics.diskSpacePercent.toFixed(1)}% libre
+                    <span className="text-xs text-gray-500 ml-1">
+                      ({healthData.metrics.diskSpaceFreeGB} GB)
+                    </span>
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Último backup</p>
+                  <p className="font-semibold">
+                    Hace {healthData.metrics.lastBackupDaysAgo} día{healthData.metrics.lastBackupDaysAgo !== 1 ? 's' : ''}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Base de datos</p>
+                  <p className="font-semibold">{healthData.metrics.databaseSizeMB} MB</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Último mantenimiento</p>
+                  <p className="font-semibold">
+                    Hace {healthData.metrics.lastMaintenanceDaysAgo} día{healthData.metrics.lastMaintenanceDaysAgo !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Información de contacto */}
+            {healthData.alerts.length > 0 && (
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>¿Necesita ayuda?</strong> Contacte a Personal de Sistemas de FCEA para resolver estos problemas.
+                </p>
+              </div>
+            )}
           </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{getTooltipContent()}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
