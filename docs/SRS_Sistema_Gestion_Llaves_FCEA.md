@@ -3,7 +3,7 @@
 
 **Version:** 4.0  
 **Fecha:** Abril 2026  
-**Elaborado por:** Equipo de Desarrollo  
+**Elaborado por:** Luis Raggio  
 **Institucion:** Facultad de Ciencias Economicas y de Administracion - Universidad de la Republica
 
 ---
@@ -188,7 +188,7 @@ El sistema contempla tres tipos de usuarios con diferentes perfiles:
 
 #### Vigilante
 - **Perfil:** Personal de seguridad de la facultad
-- **Conocimientos tecnicos:** Basicos a intermedios
+- **Conocimientos tecnicos:** Basicos
 - **Frecuencia de uso:** Continua durante su turno
 - **Necesidades:** Gestionar entregas/devoluciones, ver solicitudes pendientes, ubicar llaves en tablero
 
@@ -427,7 +427,7 @@ El sistema contempla tres tipos de usuarios con diferentes perfiles:
 - Compatible con pantallas táctiles
 
 #### RNF-005: Escalabilidad
-- Debe soportar al menos 100 llaves en el catalogo
+- Debe soportar al menos 400 llaves en el catalogo
 - Debe manejar al menos 500 operaciones diarias sin degradacion
 - Escalable a múltiples tipos de edificios y zonas
 
@@ -607,10 +607,10 @@ Dashboard/
 
 ```typescript
 // Tipos de Lugar
-type TipoLugar = 'Salón' | 'Oficina' | 'Laboratorio' | 'Depósito' | 'Otro';
+type TipoLugar = 'Salón' | 'Oficina' | 'Depósito' | 'Otro';
 
 // Tipos de Usuario
-type TipoUsuario = 'Docente' | 'Estudiante' | 'Administrativo' | 'Externo' | 'Personal TAS' | 'Empresa';
+type TipoUsuario = 'Docente' | 'Estudiante' | 'Externo' | 'Personal TAS' | 'Empresa';
 
 // Estados de Solicitud
 type EstadoSolicitud = 'pendiente' | 'entregada' | 'devuelta';
@@ -741,7 +741,7 @@ type Tablero = 'Tablero Principal' | 'Tablero Híbrido' | 'Tablero Externo';
 | **Actor Principal** | Usuario Solicitante + Vigilante |
 | **Descripcion** | Transferir una llave de un usuario a otro sin devolverla primero |
 | **Precondiciones** | Existe una llave en estado "En Uso" |
-| **Flujo Principal** | 1. El nuevo usuario solicita la llave ya en uso<br>2. El vigilante selecciona la opción "Intercambiar"<br>3. El vigilante registra los datos del nuevo usuario<br>4. El sistema registra el intercambio manteniendo el historial original<br>5. El sistema marca la solicitud como "intercambio" |
+| **Flujo Principal** | 1. El nuevo usuario solicita la llave ya en uso<br>2. El usuario selecciona la opción "Intercambiar"<br>3. El sistema registra los datos del nuevo usuario<br>4. El sistema registra el intercambio manteniendo el historial original<br>5. El sistema marca la solicitud como "intercambio" |
 | **Postcondiciones** | La llave continúa en estado "En Uso" pero con nuevo usuario |
 
 #### CU-005: Deshacer Operacion
@@ -1603,11 +1603,11 @@ RECUPERACION_SISTEMA_LLAVES_FCEA\
 
 | Version | Fecha | Autor | Cambios |
 |---------|-------|-------|---------|
-| 1.0 | Enero 2026 | Equipo Desarrollo | Version inicial |
-| 2.0 | Enero 2026 | Equipo Desarrollo | Agregado modulo Dashboard |
-| 3.0 | Enero 2026 | Equipo Desarrollo | Sistema de turnos y vigilantes |
-| 3.5 | Febrero 2026 | Equipo Desarrollo | Historial y exportacion |
-| 3.6 | Febrero 2026 | Equipo Desarrollo | Documentacion completa SRS |
+| 1.0 | Enero 2026 | Luis Raggio | Version inicial |
+| 2.0 | Enero 2026 | Luis Raggio | Agregado modulo Dashboard |
+| 3.0 | Enero 2026 |  Luis Raggio | Sistema de turnos y vigilantes |
+| 3.5 | Febrero 2026 | Luis Raggio | Historial y exportacion |
+| 3.6 | Febrero 2026 | Luis Raggio | Documentacion completa SRS |
 | 4.0 | Abril 2026 | Equipo Desarrollo | Actualización completa: respaldos 52 semanas, sistema pendrive, encabezado bienvenida, etc. |
 
 ---
