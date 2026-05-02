@@ -10,7 +10,6 @@ import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
 import { Turno } from '@/data/fceaData';
 import { useVigilantes } from '@/hooks/useVigilantes';
 import { EstadisticasTurno, EstadisticasVigilante } from '@/types/estadisticas';
-import { ExportReportModal } from '@/components/dashboard/ExportReportModal';
 import { AdminLogin } from '@/components/admin/AdminLogin';
 import { AdvancedExportModal } from '@/components/admin/AdvancedExportModal';
 import { useObjetosOlvidados } from '@/hooks/useObjetosOlvidados';
@@ -32,7 +31,6 @@ export default function Dashboard() {
   const { isAuthenticated, isLoading, isCustodian, login, logout, changePassword } = useAdminAuth();
   const { toast } = useToast();
   const [, setTick] = useState(0);
-  const [exportModalOpen, setExportModalOpen] = useState(false);
   const [advancedExportOpen, setAdvancedExportOpen] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [usbDetected, setUsbDetected] = useState(false);
@@ -260,26 +258,15 @@ export default function Dashboard() {
                   <span className="hidden md:inline">Exportar a Pendrive</span>
                 </Button>
               ) : (
-                <>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="gap-2"
-                    onClick={() => setAdvancedExportOpen(true)}
-                  >
-                    <FileSpreadsheet className="w-4 h-4" />
-                    <span className="hidden md:inline">Exportar Avanzado</span>
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="gap-2"
-                    onClick={() => setExportModalOpen(true)}
-                  >
-                    <FileSpreadsheet className="w-4 h-4" />
-                    <span className="hidden md:inline">Exportar Básico</span>
-                  </Button>
-                </>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2"
+                  onClick={() => setAdvancedExportOpen(true)}
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  <span className="hidden md:inline">Exportar Datos</span>
+                </Button>
               )}
               <Button asChild variant="outline" size="sm" className="gap-2">
                 <Link to="/monitor">
@@ -665,11 +652,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </main>
-
-      <ExportReportModal 
-        open={exportModalOpen} 
-        onOpenChange={setExportModalOpen} 
-      />
 
       <AdvancedExportModal
         open={advancedExportOpen}

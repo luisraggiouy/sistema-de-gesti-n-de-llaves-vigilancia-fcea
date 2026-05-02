@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState } from 'react';
 import { 
   PieChart, Pie, Cell, Legend, Tooltip, Label,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, 
@@ -6,15 +6,12 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   BarChart2, LineChart as LineChartIcon, PieChart as PieChartIcon,
-  CalendarClock, Download, ImageDown, Clock
+  CalendarClock, Clock
 } from 'lucide-react';
 import { Turno } from '@/data/fceaData';
-import html2canvas from 'html2canvas';
-import { saveAs } from 'file-saver';
 
 // Tipos para los datos de estadísticas
 interface TurnStats {
@@ -154,7 +151,6 @@ function calcularEstadisticasPeriodo(
 export default function AdvancedChartVisualizations({ solicitudes, className = "" }: AdvancedChartVisualizationsProps) {
   const [chartType, setChartType] = useState<'pie' | 'bar' | 'line'>('pie');
   const [periodType, setPeriodType] = useState<'mensual' | 'semestral' | 'anual'>('mensual');
-  const chartContainerRef = useRef<HTMLDivElement>(null);
   
   // Calcular los periodos de tiempo para las estadísticas
   const periodos = React.useMemo(() => {
@@ -196,31 +192,6 @@ export default function AdvancedChartVisualizations({ solicitudes, className = "
     return periodos[periodType][0];
   }, [periodos, periodType]);
 
-  // Función para exportar a imagen
-  const exportToImage = useCallback(() => {
-    if (!chartContainerRef.current) return;
-
-    // Manejar la exportación del gráfico como imagen
-    html2canvas(chartContainerRef.current, {
-      scale: 2, // Mayor calidad
-      backgroundColor: '#ffffff',
-      logging: false
-    }).then(canvas => {
-      // Convertir a blob
-      canvas.toBlob((blob) => {
-        if (!blob) return;
-        
-        // Generar nombre de archivo
-        const ahora = new Date();
-        const timestamp = ahora.toISOString().replace(/[:.]/g, '-');
-        const fileName = `estadisticas_llaves_${chartType}_${periodType}_${timestamp}.png`;
-        
-        // Descargar imagen
-        saveAs(blob, fileName);
-      });
-    });
-  }, [chartType, periodType]);
-
   // Datos para el gráfico de barras
   const barData = React.useMemo(() => {
     if (!periodoActual) return [];
@@ -243,22 +214,11 @@ export default function AdvancedChartVisualizations({ solicitudes, className = "
   return (
     <Card className={`col-span-full ${className}`}>
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {chartType === 'pie' && <PieChartIcon className="w-5 h-5" />}
-            {chartType === 'bar' && <BarChart2 className="w-5 h-5" />}
-            {chartType === 'line' && <LineChartIcon className="w-5 h-5" />}
-            Estadísticas de Devoluciones por Turno
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="gap-2"
-            onClick={exportToImage}
-          >
-            <ImageDown className="w-4 h-4" />
-            Exportar como Imagen
-          </Button>
+        <CardTitle className="flex items-center gap-2">
+          {chartType === 'pie' && <PieChartIcon className="w-5 h-5" />}
+          {chartType === 'bar' && <BarChart2 className="w-5 h-5" />}
+          {chartType === 'line' && <LineChartIcon className="w-5 h-5" />}
+          Estadísticas de Devoluciones por Turno
         </CardTitle>
         <CardDescription>
           {chartType === 'pie' && 'Visualización de la proporción de devoluciones por turno en gráficos circulares.'}
@@ -311,10 +271,7 @@ export default function AdvancedChartVisualizations({ solicitudes, className = "
         </div>
 
         {/* Contenedor de gráficos */}
-        <div 
-          ref={chartContainerRef}
-          className="bg-white p-4 rounded-lg border border-gray-200"
-        >
+        <div className="bg-white p-4 rounded-lg border border-gray-200">
           {/* Gráfico de tipo Torta */}
           {chartType === 'pie' && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
