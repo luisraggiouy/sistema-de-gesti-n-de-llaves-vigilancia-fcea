@@ -369,7 +369,9 @@ export async function exportToExcel(data: any, filename: string, options: any = 
       ['Solicitudes Pendientes:', data.solicitudesPendientes?.length || 0],
       ['Llaves Entregadas:', data.solicitudesEntregadas?.length || 0],
       ['Llaves Devueltas:', data.solicitudesDevueltas?.length || 0],
-      ['Total de Registros:', (data.solicitudesPendientes?.length || 0) + (data.solicitudesEntregadas?.length || 0) + (data.solicitudesDevueltas?.length || 0)]
+      ['Objetos Olvidados:', data.objetosOlvidados?.length || 0],
+      ['Autorizaciones:', data.autorizaciones?.length || 0],
+      ['Total de Registros:', (data.solicitudesPendientes?.length || 0) + (data.solicitudesEntregadas?.length || 0) + (data.solicitudesDevueltas?.length || 0) + (data.objetosOlvidados?.length || 0) + (data.autorizaciones?.length || 0)]
     ];
     sheets['Resumen'] = stats;
   }
@@ -443,6 +445,43 @@ export async function exportToExcel(data: any, filename: string, options: any = 
       'Estado': 'Devuelta'
     }));
     sheets['Llaves Devueltas'] = devueltas;
+  }
+
+  // Hoja de objetos olvidados
+  if (data.objetosOlvidados && data.objetosOlvidados.length > 0) {
+    const objetos = data.objetosOlvidados.map((o: any) => ({
+      'Fecha Registro': new Date(o.fechaRegistro).toLocaleDateString('es-UY'),
+      'Hora Registro': new Date(o.fechaRegistro).toLocaleTimeString('es-UY'),
+      'Descripción': o.descripcion,
+      'Lugar Encontrado': o.lugarEncontrado,
+      'Registrado Por': o.registradoPor,
+      'Estado': o.estado === 'pendiente' ? 'Pendiente' : 'Devuelto',
+      'Fecha Devolución': o.fechaDevolucion ? new Date(o.fechaDevolucion).toLocaleDateString('es-UY') : 'N/A',
+      'Hora Devolución': o.fechaDevolucion ? new Date(o.fechaDevolucion).toLocaleTimeString('es-UY') : 'N/A',
+      'Devuelto A': o.devueltoA || 'N/A',
+      'CI Receptor': o.ciReceptor || 'N/A',
+      'Devuelto Por': o.devueltoPor || 'N/A',
+      'Observaciones': o.observaciones || ''
+    }));
+    sheets['Objetos Olvidados'] = objetos;
+  }
+
+  // Hoja de autorizaciones
+  if (data.autorizaciones && data.autorizaciones.length > 0) {
+    const autorizaciones = data.autorizaciones.map((a: any) => ({
+      'Fecha Autorización': new Date(a.fechaAutorizacion).toLocaleDateString('es-UY'),
+      'Hora Autorización': new Date(a.fechaAutorizacion).toLocaleTimeString('es-UY'),
+      'Persona Nombre': a.personaNombre,
+      'Persona CI': a.personaCI,
+      'Lugar Autorizado': a.lugarAutorizado,
+      'Autorizado Por': a.autorizadoPor,
+      'Fecha Desde': a.fechaDesde ? new Date(a.fechaDesde).toLocaleDateString('es-UY') : 'N/A',
+      'Fecha Hasta': a.fechaHasta ? new Date(a.fechaHasta).toLocaleDateString('es-UY') : 'N/A',
+      'Horario': a.horario || 'N/A',
+      'Email Referencia': a.emailReferencia || 'N/A',
+      'Observaciones': a.observaciones || ''
+    }));
+    sheets['Autorizaciones'] = autorizaciones;
   }
   
   // Exportar cada hoja como CSV separado

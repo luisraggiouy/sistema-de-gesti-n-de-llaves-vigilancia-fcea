@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { exportToExcel, hayUSBConectado, obtenerUSBsConectados } from '@/utils/exportUtils';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { useObjetosOlvidados } from '@/hooks/useObjetosOlvidados';
+import { getAutorizaciones } from '@/data/fceaData';
 
 interface AdvancedExportModalProps {
   open: boolean;
@@ -58,6 +60,7 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
   const { toast } = useToast();
   const { solicitudesPendientes, solicitudesEntregadas, solicitudesDevueltas } = useSolicitudesContext();
   const { isCustodian } = useAdminAuth();
+  const { objetos } = useObjetosOlvidados();
 
   // Verificar si hay un USB conectado cuando se abre el modal
   useEffect(() => {
@@ -121,6 +124,9 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999); // Incluir todo el día final
 
+      // Obtener autorizaciones
+      const autorizaciones = getAutorizaciones();
+
       const filteredData = {
         solicitudesPendientes: exportOptions.includeRequests ? 
           solicitudesPendientes.filter(s => {
@@ -137,6 +143,20 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
         solicitudesDevueltas: exportOptions.includeReturns ? 
           solicitudesDevueltas.filter(s => {
             const fecha = new Date(s.horaSolicitud);
+            return fecha >= start && fecha <= end;
+          }) : [],
+
+        // Objetos olvidados filtrados por fecha de registro
+        objetosOlvidados: exportOptions.includeObjetos ?
+          objetos.filter(o => {
+            const fecha = new Date(o.fechaRegistro);
+            return fecha >= start && fecha <= end;
+          }) : [],
+
+        // Autorizaciones filtradas por fecha de autorización
+        autorizaciones: exportOptions.includeAutorizaciones ?
+          autorizaciones.filter(a => {
+            const fecha = new Date(a.fechaAutorizacion);
             return fecha >= start && fecha <= end;
           }) : []
       };
@@ -230,6 +250,23 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
     if (exportOptions.includeReturns) {
       total += solicitudesDevueltas.filter(s => {
         const fecha = new Date(s.horaSolicitud);
+        return fecha >= start && fecha <= end;
+      }).length;
+    }
+
+    // Contar objetos olvidados
+    if (exportOptions.includeObjetos) {
+      total += objetos.filter(o => {
+        const fecha = new Date(o.fechaRegistro);
+        return fecha >= start && fecha <= end;
+      }).length;
+    }
+
+    // Contar autorizaciones
+    if (exportOptions.includeAutorizaciones) {
+      const autorizaciones = getAutorizaciones();
+      total += autorizaciones.filter(a => {
+        const fecha = new Date(a.fechaAutorizacion);
         return fecha >= start && fecha <= end;
       }).length;
     }
