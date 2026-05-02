@@ -1329,7 +1329,7 @@ El Monitor de Vigilancia es la interfaz central para el personal de seguridad. P
 
 ### 8.3 Dashboard Estadistico
 
-El Dashboard proporciona una vision ejecutiva de las operaciones del sistema, con metricas agregadas y desglose por turno y vigilante.
+El Dashboard proporciona una vision ejecutiva completa de las operaciones del sistema. **Es el fiel reflejo del trabajo realizado por cada vigilante y por cada turno**, incluyendo todas las tareas que realizan.
 
 ![Dashboard Estadistico](screenshots/dashboard-estadistico.png)
 
@@ -1337,8 +1337,16 @@ El Dashboard proporciona una vision ejecutiva de las operaciones del sistema, co
 - Tarjetas de KPIs principales (entregas, devoluciones, llaves en uso)
 - Estadisticas desglosadas por turno (Matutino, Vespertino, Nocturno)
 - Rendimiento individual de cada vigilante
-- Boton de exportacion de reportes mensuales
-- Visualizaciones gráficas avanzadas
+- Visualizaciones gráficas avanzadas (torta, barras, línea temporal)
+- Filtros temporales (mensual, semestral, anual)
+- Boton de exportacion de datos completos
+
+**Datos exportables:**
+- 🔑 Gestión de llaves (solicitudes, entregas, devoluciones)
+- 📦 Objetos olvidados (registro y devolución por vigilantes)
+- ✅ Autorizaciones ingresadas (creadas por vigilantes)
+- 📈 Estadísticas y resúmenes por turno y período
+- 👥 Usuarios y catálogo de llaves (opcional)
 
 ### 8.4 Modales de Configuracion
 
