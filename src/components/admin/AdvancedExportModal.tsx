@@ -24,6 +24,8 @@ interface ExportOptions {
   includeStats: boolean;
   includeUsers: boolean;
   includeKeys: boolean;
+  includeObjetos: boolean;
+  includeAutorizaciones: boolean;
 }
 
 export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalProps) {
@@ -43,7 +45,9 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
     includeReturns: true,
     includeStats: true,
     includeUsers: false,
-    includeKeys: false
+    includeKeys: false,
+    includeObjetos: true,
+    includeAutorizaciones: true
   });
 
   const [isExporting, setIsExporting] = useState(false);
@@ -391,6 +395,28 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
                   />
                   <Label htmlFor="includeKeys" className="text-sm font-medium">
                     Catálogo de Llaves/Lugares
+                  </Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="includeObjetos"
+                    checked={exportOptions.includeObjetos}
+                    onCheckedChange={(checked) => handleOptionChange('includeObjetos', checked as boolean)}
+                  />
+                  <Label htmlFor="includeObjetos" className="text-sm font-medium">
+                    📦 Objetos Olvidados (Registro y Devolución)
+                  </Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="includeAutorizaciones"
+                    checked={exportOptions.includeAutorizaciones}
+                    onCheckedChange={(checked) => handleOptionChange('includeAutorizaciones', checked as boolean)}
+                  />
+                  <Label htmlFor="includeAutorizaciones" className="text-sm font-medium">
+                    ✅ Autorizaciones Ingresadas
                   </Label>
                 </div>
               </div>
