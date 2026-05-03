@@ -25,6 +25,7 @@ echo   [*] Configuracion de hardware (tactil o tradicional)
 echo   [*] Configuracion de modo kiosk (produccion)
 echo   [*] Configuracion de mantenimiento automatizado
 echo   [*] Configuracion de watchdog anti-caidas
+echo   [*] Configuracion de INICIO AUTOMATICO al arrancar Windows
 echo   [*] Verificacion final del sistema
 echo.
 echo  Duracion estimada: 10-15 minutos

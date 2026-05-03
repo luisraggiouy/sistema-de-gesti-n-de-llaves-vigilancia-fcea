@@ -1,4 +1,4 @@
-# 📚 ÍNDICE COMPLETO DE DOCUMENTACIÓN
+ithub # 📚 ÍNDICE COMPLETO DE DOCUMENTACIÓN
 ## Sistema de Gestión de Llaves — FCEA
 
 **Última actualización:** Abril 2026  
@@ -44,7 +44,18 @@ Este índice organiza toda la documentación del sistema en categorías para fac
      - Checklists de verificación
      - Solución de problemas
 
-### 3. **configuracion_produccion.md**
+### 3. **SOLUCION_INICIO_AUTOMATICO.md** ⭐ CRÍTICO PARA PRODUCCIÓN
+   - **Propósito**: Configuración de inicio automático al arrancar Windows
+   - **Cuándo usar**: INMEDIATAMENTE después de instalar el sistema
+   - **Contenido clave**:
+     - Problema: Sistema no se inicia automáticamente
+     - Solución: Tarea programada de Windows + Watchdog
+     - Configuración paso a paso
+     - Triple protección: Inicio automático + Watchdog PocketBase + Watchdog Frontend
+     - Comandos útiles y troubleshooting
+     - **CRÍTICO**: Evita que el sistema quede caído en producción
+
+### 4. **configuracion_produccion.md**
    - **Propósito**: Configuración del sistema para ambiente de producción
    - **Cuándo usar**: Después de instalar, antes de poner en producción
    - **Contenido clave**:

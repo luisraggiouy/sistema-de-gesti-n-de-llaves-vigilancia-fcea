@@ -21,6 +21,8 @@ Sistema integral de gestión de llaves para el servicio de vigilancia de FCEA, d
 - ✅ **Respaldos Automáticos**: Semanales (Domingos 8 AM) con configuración automática
 - ✅ **Sistema de Alertas**: Monitoreo de salud del sistema en tiempo real
 - ✅ **Mantenimiento Automatizado**: Verificación diaria y mantenimiento semanal
+- ✅ **Inicio Automático**: Se inicia automáticamente al arrancar Windows
+- ✅ **Watchdog Completo**: Reinicio automático si PocketBase o Frontend se caen
 - ✅ **Modo Kiosk**: Operación segura en producción
 - ✅ **Soporte Multi-Pantalla**: 3 pantallas simultáneas
 - ✅ **Instalación Automática**: Pendrive instalador con menú interactivo

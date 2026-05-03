@@ -22,6 +22,7 @@ echo   [*] Crear respaldo de seguridad del estado actual
 echo   [*] Restaurar base de datos desde respaldo
 echo   [*] Restaurar archivos del sistema
 echo   [*] Verificar integridad
+echo   [*] Configurar inicio automatico
 echo   [*] Reiniciar sistema
 echo.
 echo  Duracion estimada: 5-10 minutos
