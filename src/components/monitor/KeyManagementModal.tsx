@@ -40,7 +40,7 @@ interface KeyManagementModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   lugares: Lugar[];
-  onAgregarLlave: (lugar: Omit<Lugar, 'id'>) => void;
+  onAgregarLlave: (lugar: Omit<Lugar, 'id'>) => Promise<void>;
   onQuitarLlave: (lugarId: string) => void;
   onModificarLlave: (lugarId: string, datos: Partial<Lugar>) => Promise<void>;
 }
@@ -109,7 +109,9 @@ export function KeyManagementModal({
     setColumna('');
   };
 
-  const handleAgregar = () => {
+  const [isAdding, setIsAdding] = useState(false);
+
+  const handleAgregar = async () => {
     if (!nombre.trim() || !edificio || !tipo || !zona) {
       toast({
         title: "Campos requeridos",
@@ -133,13 +135,23 @@ export function KeyManagementModal({
       esHibrido: tipo === 'Salón Híbrido',
     };
 
-    onAgregarLlave(nuevaLlave);
-    resetForm();
-    
-    toast({
-      title: "Llave agregada",
-      description: `${nombre} se agregó al sistema correctamente`,
-    });
+    setIsAdding(true);
+    try {
+      await onAgregarLlave(nuevaLlave);
+      resetForm();
+      toast({
+        title: "Llave agregada",
+        description: `${nombre.trim()} se agregó al sistema correctamente`,
+      });
+    } catch (e) {
+      toast({
+        title: "Error al agregar",
+        description: "No se pudo guardar la llave. Verifique la conexión.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   const handleQuitar = () => {
@@ -362,9 +374,9 @@ export function KeyManagementModal({
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleAgregar} className="gap-2">
+              <Button onClick={handleAgregar} disabled={isAdding} className="gap-2">
                 <Plus className="w-4 h-4" />
-                Agregar Llave
+                {isAdding ? 'Guardando...' : 'Agregar Llave'}
               </Button>
             </DialogFooter>
           </TabsContent>

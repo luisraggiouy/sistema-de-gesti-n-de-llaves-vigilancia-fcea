@@ -36,7 +36,7 @@ interface SolicitudesContextType {
   intercambiarPorLugar: (lugarId: string, nuevoUsuario: { nombre: string; celular: string; tipo: string }) => boolean;
   deshacerAccion: (undoId: string) => boolean;
   getUndoParaSolicitud: (solicitudId: string) => AccionUndo | undefined;
-  agregarLlave: (lugar: Lugar) => void;
+  agregarLlave: (lugar: Omit<Lugar, 'id'>) => Promise<void>;
   quitarLlave: (lugarId: string) => Promise<void>;
   modificarLlave: (lugarId: string, datos: Partial<Lugar>) => Promise<void>;
   actualizarNotas: (solicitudId: string, notas: string) => void;
@@ -516,12 +516,39 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
     return accionesUndo.find(a => a.solicitudId === solicitudId && new Date() < a.expiresAt);
   }, [accionesUndo]);
 
-  const agregarLlave = useCallback((lugar: Lugar) => {
-    setLugares(prev =>
-      prev.some(l => l.id === lugar.id)
-        ? prev.map(l => l.id === lugar.id ? { ...l, disponible: true } : l)
-        : [...prev, { ...lugar, disponible: true }]
-    );
+  const agregarLlave = useCallback(async (lugar: Omit<Lugar, 'id'>) => {
+    try {
+      const record = await pb.collection('lugares').create({
+        nombre: lugar.nombre,
+        tipo: lugar.tipo,
+        edificio: lugar.edificio,
+        tablero: lugar.tablero ?? 'Tablero Principal',
+        zona: lugar.ubicacion.zona,
+        fila: lugar.ubicacion.fila ?? '',
+        columna: lugar.ubicacion.columna ?? '',
+        disponible: true,
+        es_hibrido: lugar.esHibrido ?? false,
+      });
+      const nuevaLlave: Lugar = {
+        id: record.id,
+        nombre: record.nombre,
+        tipo: record.tipo,
+        edificio: record.edificio ?? '',
+        tablero: record.tablero ?? 'Tablero Principal',
+        ubicacion: {
+          zona: record.zona ?? 'Fondo',
+          fila: record.fila ? parseInt(record.fila) : undefined,
+          columna: record.columna || undefined,
+        },
+        disponible: true,
+        esHibrido: record.es_hibrido ?? false,
+      };
+      setLugares(prev => [...prev, nuevaLlave].sort((a, b) => ordenNatural(a.nombre, b.nombre)));
+      lugaresRef.current = [...lugaresRef.current, nuevaLlave].sort((a, b) => ordenNatural(a.nombre, b.nombre));
+    } catch (e) {
+      console.error('Error agregando llave a PocketBase:', e);
+      throw e;
+    }
   }, []);
 
   const quitarLlave = useCallback(async (lugarId: string) => {
