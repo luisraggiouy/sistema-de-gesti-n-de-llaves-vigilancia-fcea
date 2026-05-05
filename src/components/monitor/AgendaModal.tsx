@@ -127,16 +127,16 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-lg h-[85vh] flex flex-col overflow-hidden p-0">
+        <DialogHeader className="px-6 pt-6 pb-2 flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <User className="w-5 h-5" />
             Agenda / Autorizaciones
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="contactos" className="w-full">
-          <TabsList className="w-full grid grid-cols-3">
+        <Tabs defaultValue="contactos" className="flex flex-col flex-1 min-h-0 px-6 pb-4">
+          <TabsList className="w-full grid grid-cols-3 flex-shrink-0">
             <TabsTrigger value="contactos" className="gap-1 text-xs">
               <User className="w-3.5 h-3.5" />Contactos
             </TabsTrigger>
@@ -148,8 +148,8 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="contactos" className="space-y-3 mt-3">
-            <div className="relative">
+          <TabsContent value="contactos" className="flex flex-col flex-1 min-h-0 space-y-3 mt-3">
+            <div className="relative flex-shrink-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar por nombre, teléfono, email o función..."
@@ -159,7 +159,7 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
               />
             </div>
 
-            <ScrollArea className="h-[370px] -mx-2 px-2">
+            <ScrollArea className="flex-1 min-h-0 -mx-2 px-2">
               {resultados.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   {usuarios.length === 0
@@ -259,7 +259,7 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
               )}
             </ScrollArea>
 
-            <p className="text-xs text-muted-foreground text-center">
+            <p className="text-xs text-muted-foreground text-center flex-shrink-0">
               {resultados.length} de {usuarios.length} contacto{usuarios.length !== 1 ? 's' : ''}
             </p>
           </TabsContent>
