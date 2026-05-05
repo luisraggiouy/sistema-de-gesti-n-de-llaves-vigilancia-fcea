@@ -391,8 +391,18 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
   }, [actualizarSolicitud]);
 
   const devolverLlave = useCallback(async (solicitudId: string, vigilante: string) => {
+    // Verificar si existe un undo activo para esta solicitud
+    const undoExistente = accionesUndoRef.current.find(a => a.solicitudId === solicitudId);
+    
+    // Si existe un undo activo de entrega, eliminarlo (la devolución es la acción final)
+    if (undoExistente) {
+      setAccionesUndo(prev => prev.filter(a => a.solicitudId !== solicitudId));
+    }
+    
     await actualizarSolicitud(solicitudId, { estado: 'devuelta', horaDevolucion: new Date(), recibidoPor: vigilante });
-    return crearUndo(solicitudId, 'devolucion', vigilante);
+    
+    // NO crear nuevo undo para devoluciones - la devolución es la acción final
+    return undefined;
   }, [actualizarSolicitud]);
 
   const intercambiarLlave = useCallback(async (

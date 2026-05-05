@@ -601,6 +601,34 @@ function Start-Installation {
     Write-Host "Log de instalación guardado en: $LogFile" -ForegroundColor Gray
     Write-Host ""
     
+    # ============================================================================
+    # CONFIGURACIÓN AUTOMÁTICA DE INICIO
+    # ============================================================================
+    Write-Host ""
+    Write-Host "╔════════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+    Write-Host "║  CONFIGURANDO INICIO AUTOMÁTICO                                    ║" -ForegroundColor Cyan
+    Write-Host "╚════════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Log "Configurando inicio automático del sistema..." "INFO"
+    
+    try {
+        # Usar el método simple que SIEMPRE funciona (no requiere permisos especiales)
+        $regPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
+        $regName = "SistemaLlavesFCEA"
+        $regValue = "$DestinationPath\INICIAR_SISTEMA_AHORA.bat"
+        
+        Set-ItemProperty -Path $regPath -Name $regName -Value $regValue -Force
+        
+        Write-Log "✓ Inicio automático configurado correctamente" "SUCCESS"
+        Write-Host "  El sistema se iniciará automáticamente cuando inicies sesión" -ForegroundColor Green
+        Write-Host ""
+    } catch {
+        Write-Log "⚠ No se pudo configurar el inicio automático: $_" "WARNING"
+        Write-Host "  Puedes configurarlo manualmente después ejecutando:" -ForegroundColor Yellow
+        Write-Host "  CONFIGURAR_INICIO_DEFINITIVO.bat" -ForegroundColor Yellow
+        Write-Host ""
+    }
+    
     if ($operationMode -eq "produccion") {
         Write-Host "El sistema se reiniciará automáticamente en modo kiosk." -ForegroundColor Cyan
         Write-Host ""

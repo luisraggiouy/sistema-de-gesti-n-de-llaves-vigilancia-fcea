@@ -69,14 +69,16 @@ export function useHistorialLlaves(usuarioId: string | null, lugares: Lugar[] = 
     
     console.log("Llaves ordenadas por frecuencia:", llavesOrdenadas);
     
-    // Mapear a objetos Lugar y filtrar los que no existen o no están disponibles
+    // Mapear a objetos Lugar y filtrar los que no existen
+    // NOTA: No filtramos por disponibilidad aquí porque lugaresDisponibles del contexto
+    // ya contiene solo las llaves disponibles (filtradas dinámicamente)
     const llavesMapeadas = llavesOrdenadas
       .map(entry => {
         const lugar = lugares.find(l => l.id === entry.lugarId);
         if (!lugar) console.log("Llave no encontrada:", entry.lugarId);
         return lugar;
       })
-      .filter((l): l is Lugar => l !== undefined && l.disponible);
+      .filter((l): l is Lugar => l !== undefined);
     
     console.log("Llaves frecuentes disponibles:", llavesMapeadas.length);
     return llavesMapeadas;

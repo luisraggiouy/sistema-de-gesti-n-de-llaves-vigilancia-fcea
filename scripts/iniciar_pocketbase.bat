@@ -19,8 +19,8 @@ if not exist "pocketbase.exe" (
     exit /b 1
 )
 
-REM Iniciar PocketBase
-start "PocketBase Server - Sistema Llaves FCEA" /MIN pocketbase.exe serve
+REM Iniciar PocketBase con puerto especificado
+start "PocketBase Server - Sistema Llaves FCEA" /MIN pocketbase.exe serve --http=127.0.0.1:8090
 
 echo PocketBase iniciado en segundo plano.
 echo Puerto: 8090

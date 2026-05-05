@@ -48,6 +48,21 @@ Este índice organiza toda la documentación del sistema en categorías para fac
    - **Propósito**: Configuración de inicio automático al arrancar Windows
    - **Cuándo usar**: INMEDIATAMENTE después de instalar el sistema
    - **Contenido clave**:
+
+### 3.1. **SOLUCION_PROBLEMA_REINICIO.md** 🔴 NUEVO - SOLUCIÓN URGENTE
+   - **Propósito**: Solución cuando el sistema no inicia después de reiniciar
+   - **Cuándo usar**: Si después de reiniciar la PC el sistema no está disponible
+   - **Contenido clave**:
+     - Diagnóstico del problema (inicio automático no configurado)
+     - Solución inmediata: Script INICIAR_SISTEMA_AHORA.bat
+     - Solución permanente: Configurar inicio automático
+     - Verificación del sistema
+     - Troubleshooting completo
+   - **Archivos relacionados**:
+     - `INICIAR_SISTEMA_AHORA.bat` - Inicia el sistema manualmente
+     - `CONFIGURAR_INICIO_DEFINITIVO.bat` ⭐ NUEVO - Menú interactivo (simple o avanzado)
+     - `CONFIGURAR_INICIO_AUTOMATICO_DEFINITIVO.bat` - Configura inicio automático avanzado
+     - `LEEME_SOLUCION_REINICIO.txt` - Instrucciones rápidas
      - Problema: Sistema no se inicia automáticamente
      - Solución: Tarea programada de Windows + Watchdog
      - Configuración paso a paso

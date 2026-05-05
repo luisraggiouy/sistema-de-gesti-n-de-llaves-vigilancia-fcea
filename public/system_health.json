@@ -1,15 +1,13 @@
 ﻿{
-    "timestamp":  "2026-05-01T19:47:32",
-    "metrics":  {
-                    "diskSpacePercent":  82.92,
-                    "lastBackupDaysAgo":  0,
-                    "lastMaintenanceDaysAgo":  0,
-                    "databaseSizeMB":  0.71,
-                    "diskSpaceFreeGB":  393.71,
-                    "pendriveDaysOutdated":  0
-                },
-    "overallStatus":  "healthy",
-    "alerts":  [
-
-               ]
+    "timestamp": "2026-05-05T17:07:00",
+    "metrics": {
+        "diskSpacePercent": 82.92,
+        "lastBackupDaysAgo": 0,
+        "lastMaintenanceDaysAgo": 4,
+        "databaseSizeMB": 0.73,
+        "diskSpaceFreeGB": 393.71,
+        "pendriveDaysOutdated": 4
+    },
+    "overallStatus": "healthy",
+    "alerts": []
 }
