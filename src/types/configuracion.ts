@@ -8,7 +8,7 @@ export interface ConfiguracionSistema {
 
 export const CONFIGURACION_DEFAULT: ConfiguracionSistema = {
   tiempoAlertaMinutos: 135, // 2 horas 15 minutos
-  mensajeWhatsApp: 'Lo saludamos desde vigilancia de FCEA, tenemos en registro que usted tiene la llave de {{LLAVE}} le agradecemos si la pueda devolver a la cabina de vigilancia, muchas gracias y saludos cordiales.',
+  mensajeWhatsApp: 'Lo saludamos desde vigilancia de FCEA, tenemos en registro que usted tiene la llave de {{LLAVE}}. Le agradecemos si la puede devolver a la cabina de vigilancia. Muchas gracias y saludos cordiales.',
   transicionTurnoMinutos: 30
 };
 
