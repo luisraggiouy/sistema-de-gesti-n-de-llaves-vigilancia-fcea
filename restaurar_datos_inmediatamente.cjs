@@ -305,20 +305,19 @@ async function restaurarDatos() {
         
         for (const v of vigilantesPorTurno) {
             try {
-                // Verificar si ya existe
+                // Verificar si ya existe (colección correcta: 'vigilante' sin 's')
                 try {
-                    await pb.collection('vigilantes').getFirstListItem(
+                    await pb.collection('vigilante').getFirstListItem(
                         `nombre="${v.nombre}" && turno="${v.turno}"`
                     );
                     console.log(`  (ya existe) ${v.nombre} - ${v.turno}`);
                     vigilantesOmitidos++;
                 } catch (notFound) {
-                    // No existe, crear
-                    await pb.collection('vigilantes').create({
+                    // No existe, crear (colección correcta: 'vigilante' sin 's')
+                    await pb.collection('vigilante').create({
                         nombre: v.nombre,
                         turno: v.turno,
-                        esJefe: v.esJefe,
-                        estadoLicencia: 'activo'
+                        es_jefe: v.esJefe,
                     });
                     vigilantesCreados++;
                     console.log(`  ✓ ${v.nombre} - ${v.turno}${v.esJefe ? ' (Jefe)' : ''}`);
