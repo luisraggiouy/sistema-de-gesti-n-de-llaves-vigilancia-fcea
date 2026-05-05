@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
-import { ConfiguracionSistema } from '@/types/configuracion';
+import { ConfiguracionSistema, CONFIGURACION_DEFAULT } from '@/types/configuracion';
 import { Clock, MessageCircle, RefreshCw, Settings, Plus, Minus } from 'lucide-react';
 
 interface ConfigurationModalProps {
@@ -134,7 +134,19 @@ export function ConfigurationModal({ open, onOpenChange, configuracion, onGuarda
         </div>
 
         <DialogFooter className="flex-col sm:flex-row gap-2">
-          <Button variant="outline" onClick={onResetear} className="gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              // Actualizar estado local del modal inmediatamente
+              setTiempoAlertaHoras(Math.floor(CONFIGURACION_DEFAULT.tiempoAlertaMinutos / 60));
+              setTiempoAlertaMinutos(CONFIGURACION_DEFAULT.tiempoAlertaMinutos % 60);
+              setMensaje(CONFIGURACION_DEFAULT.mensajeWhatsApp);
+              setTransicion(CONFIGURACION_DEFAULT.transicionTurnoMinutos);
+              // Persistir en PocketBase
+              onResetear();
+            }}
+            className="gap-2"
+          >
             <RefreshCw className="w-4 h-4" />
             Restaurar valores
           </Button>
