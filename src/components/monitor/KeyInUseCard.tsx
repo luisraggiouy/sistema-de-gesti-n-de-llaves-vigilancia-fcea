@@ -91,9 +91,8 @@ export function KeyInUseCard({
   };
 
   const tiempoEnUsoMinutos = tiempoEnUso / 60;
-  const tiposConAlerta = ['Salón', 'Salón Híbrido'];
-  const aplicaAlerta = !solicitud.lugar.tipo || tiposConAlerta.includes(solicitud.lugar.tipo);
-  const estaEnAlerta = aplicaAlerta && tiempoEnUsoMinutos >= tiempoAlertaMinutos;
+  // La alerta aplica a TODAS las llaves sin excepción de tipo
+  const estaEnAlerta = tiempoEnUsoMinutos >= tiempoAlertaMinutos;
   const colorTipo = getColorTipoLugar(solicitud.lugar.tipo);
 
   const mensajeTexto = mensajeWhatsApp.replace('{{LLAVE}}', solicitud.lugar.nombre);
