@@ -99,63 +99,37 @@ export function UsuariosRegistradosProvider({ children }: { children: React.Reac
 
   const buscarPorTexto = useCallback((texto: string): UsuarioRegistrado[] => {
     if (!texto.trim()) return [];
-    
+
     const norm = (t: string) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const textoNorm = norm(texto);
+    const textoNorm = norm(texto.trim());
     const celularBusqueda = texto.replace(/\D/g, '');
     const currentUsuarios = usuariosRef.current;
-    
-    // Verificar si es búsqueda por celular (solo números)
-    if (/^\d+$/.test(texto)) {
+
+    // Búsqueda por celular (solo dígitos)
+    if (/^\d+$/.test(texto.trim())) {
       return currentUsuarios.filter(u => u.celular && u.celular.replace(/\D/g, '').includes(celularBusqueda));
     }
-    
-    // Verificar si es búsqueda por email
+
+    // Búsqueda por email
     if (texto.includes('@')) {
       return currentUsuarios.filter(u => u.email && norm(u.email).includes(textoNorm));
     }
-    
-    // Búsqueda por nombre y apellido
-    const palabras = textoNorm.split(' ').filter(p => p.length > 0);
-    
-    if (palabras.length === 1) {
-      const palabra = palabras[0];
-      return currentUsuarios.filter(u => {
-        const nombreNorm = norm(u.nombre);
-        const nombreParts = nombreNorm.split(' ');
-        
-        if (palabra.length === 1) {
-          return nombreParts[0].startsWith(palabra);
-        }
-        
-        return nombreParts[0] === palabra || nombreNorm.includes(palabra);
-      });
-    } else if (palabras.length >= 2) {
-      const nombre = palabras[0];
-      const apellido = palabras.slice(1).join(' ');
-      
-      return currentUsuarios.filter(u => {
-        const nombreNorm = norm(u.nombre);
-        const nombreParts = nombreNorm.split(' ');
-        
-        const primerNombreCoincide = nombreParts[0] === nombre || nombreParts[0].startsWith(nombre);
-        
-        if (apellido.length === 1) {
-          const posibleApellido = nombreParts.length > 1 ? nombreParts[1] : '';
-          return primerNombreCoincide && posibleApellido.startsWith(apellido);
-        }
-        
-        const restoNombre = nombreParts.slice(1).join(' ');
-        return primerNombreCoincide && restoNombre.includes(apellido);
-      });
-    }
-    
-    // Fallback
+
+    // Búsqueda general: busca en nombre, empresa y departamento
+    // Todas las palabras escritas deben aparecer en algún campo del usuario
+    const palabras = textoNorm.split(/\s+/).filter(p => p.length > 0);
+
     return currentUsuarios.filter(u => {
-      const nombreMatch = norm(u.nombre).includes(textoNorm);
-      const celularMatch = u.celular && u.celular.replace(/\D/g, '').includes(celularBusqueda);
-      const emailMatch = u.email && norm(u.email).includes(textoNorm);
-      return nombreMatch || celularMatch || emailMatch;
+      const campos = [
+        norm(u.nombre),
+        u.celular ? u.celular.replace(/\D/g, '') : '',
+        u.email ? norm(u.email) : '',
+        u.nombreEmpresa ? norm(u.nombreEmpresa) : '',
+        u.departamento ? norm(u.departamento) : '',
+        norm(u.tipo),
+      ].join(' ');
+
+      return palabras.every(p => campos.includes(p));
     });
   }, []);
 
