@@ -162,7 +162,7 @@ export default function Dashboard() {
       const objRegistros = registrosTurno.filter(r => r.tipo === 'objeto_registro').length;
       const objDevoluciones = registrosTurno.filter(r => r.tipo === 'objeto_devolucion').length;
       
-      const estadisticasVigilantes: EstadisticasVigilante[] = vigilantesTurno.map(v => {
+      const estadisticasVigilantes: (EstadisticasVigilante & { estadoLicencia?: string })[] = vigilantesTurno.map(v => {
         const registrosVigilante = registrosTurno.filter(r => r.vigilante === v.nombre);
         const entregasV = registrosVigilante.filter(r => r.tipo === 'entrega').length;
         const devolucionesV = registrosVigilante.filter(r => r.tipo === 'devolucion').length;
@@ -173,7 +173,9 @@ export default function Dashboard() {
           nombre: v.nombre,
           entregas: entregasV,
           devoluciones: devolucionesV,
-          total: entregasV + devolucionesV + objRegV + objDevV
+          total: entregasV + devolucionesV + objRegV + objDevV,
+          // Pasar el estado de licencia para que el render lo muestre
+          estadoLicencia: v.estadoLicencia,
         };
       });
       
@@ -471,22 +473,44 @@ export default function Dashboard() {
                       </p>
                     ) : (
                       <div className="space-y-2">
-                        {stat.vigilantes.map((v) => (
-                          <div key={v.nombre} className="space-y-1">
-                            <div className="flex justify-between text-sm">
-                              <span className="font-medium">{v.nombre}</span>
-                              <span className="text-muted-foreground">
-                                <span className="text-success">{v.entregas}</span>
-                                {' / '}
-                                <span className="text-info">{v.devoluciones}</span>
-                              </span>
+                        {stat.vigilantes.map((v) => {
+                          const enLicencia = (v as any).estadoLicencia && (v as any).estadoLicencia !== 'activo';
+                          const esMedica = (v as any).estadoLicencia === 'licencia_medica';
+                          return (
+                            <div key={v.nombre} className={`space-y-1 ${enLicencia ? 'opacity-50' : ''}`}>
+                              <div className="flex justify-between text-sm">
+                                <span className="font-medium flex items-center gap-1">
+                                  {enLicencia && (
+                                    esMedica
+                                      ? <Stethoscope className="w-3 h-3 text-red-500" />
+                                      : <Palmtree className="w-3 h-3 text-amber-500" />
+                                  )}
+                                  {v.nombre}
+                                  {enLicencia && (
+                                    <span className="text-xs text-muted-foreground font-normal">
+                                      ({esMedica ? 'Lic. Médica' : 'Licencia'})
+                                    </span>
+                                  )}
+                                </span>
+                                {enLicencia ? (
+                                  <span className="text-xs text-muted-foreground italic">ausente</span>
+                                ) : (
+                                  <span className="text-muted-foreground">
+                                    <span className="text-success">{v.entregas}</span>
+                                    {' / '}
+                                    <span className="text-info">{v.devoluciones}</span>
+                                  </span>
+                                )}
+                              </div>
+                              {!enLicencia && (
+                                <Progress 
+                                  value={(v.total / maxTotal) * 100} 
+                                  className="h-2"
+                                />
+                              )}
                             </div>
-                            <Progress 
-                              value={(v.total / maxTotal) * 100} 
-                              className="h-2"
-                            />
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>

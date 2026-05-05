@@ -1,5 +1,5 @@
 ﻿import { useState, useCallback, useEffect } from 'react';
-import { Vigilante, Turno, obtenerTurnoActual } from '@/data/fceaData';
+import { Vigilante, Turno, EstadoLicencia, obtenerTurnoActual } from '@/data/fceaData';
 import pb from '@/lib/pocketbase';
 
 function obtenerTurnoAnterior(turnoActual: Turno): Turno {
@@ -29,6 +29,8 @@ export function useVigilantes() {
         nombre: r.nombre,
         turno: r.turno as Turno,
         esJefe: r.es_jefe ?? false,
+        // estadoLicencia: leer desde PocketBase; si no existe o es vacío → 'activo'
+        estadoLicencia: (r.estadoLicencia as EstadoLicencia) || 'activo',
       }));
       setVigilantes(lista);
     } catch (e) {
@@ -60,11 +62,15 @@ export function useVigilantes() {
 
   const actualizarVigilante = useCallback(async (vigilanteId: string, datos: Partial<Omit<Vigilante, 'id'>>) => {
     try {
-      await pb.collection('vigilante').update(vigilanteId, {
-        nombre: datos.nombre,
-        turno: datos.turno,
-        es_jefe: datos.esJefe,
-      });
+      // Construir objeto de actualización solo con campos definidos
+      const payload: Record<string, unknown> = {};
+      if (datos.nombre !== undefined) payload.nombre = datos.nombre;
+      if (datos.turno !== undefined) payload.turno = datos.turno;
+      if (datos.esJefe !== undefined) payload.es_jefe = datos.esJefe;
+      // estadoLicencia se guarda en PocketBase para que persista entre recargas
+      if (datos.estadoLicencia !== undefined) payload.estadoLicencia = datos.estadoLicencia;
+
+      await pb.collection('vigilante').update(vigilanteId, payload);
       setVigilantes(prev => prev.map(v => v.id === vigilanteId ? { ...v, ...datos } : v));
     } catch (e) {
       console.error('Error actualizando vigilante:', e);
@@ -91,10 +97,13 @@ export function useVigilantes() {
     } else {
       minutosEnTurno = minutosHoy - minutosInicioTurno;
     }
-    const vigilantesTurnoActual = vigilantes.filter(v => v.turno === turnoActual);
+    // Solo vigilantes ACTIVOS aparecen en botones de entrega/devolución
+    const soloActivos = (lista: Vigilante[]) => lista.filter(v => !v.estadoLicencia || v.estadoLicencia === 'activo');
+
+    const vigilantesTurnoActual = soloActivos(vigilantes.filter(v => v.turno === turnoActual));
     if (minutosEnTurno < transicionMinutos) {
       const turnoAnterior = obtenerTurnoAnterior(turnoActual);
-      const vigilantesTurnoAnterior = vigilantes.filter(v => v.turno === turnoAnterior);
+      const vigilantesTurnoAnterior = soloActivos(vigilantes.filter(v => v.turno === turnoAnterior));
       return { actuales: vigilantesTurnoActual, anteriores: vigilantesTurnoAnterior, enTransicion: true };
     }
     return { actuales: vigilantesTurnoActual, anteriores: [], enTransicion: false };
