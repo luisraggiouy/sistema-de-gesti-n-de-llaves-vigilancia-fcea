@@ -91,8 +91,11 @@ export function KeyInUseCard({
   };
 
   const tiempoEnUsoMinutos = tiempoEnUso / 60;
-  // La alerta aplica a TODAS las llaves sin excepción de tipo
-  const estaEnAlerta = tiempoEnUsoMinutos >= tiempoAlertaMinutos;
+  const tiposConAlerta = ['Salón', 'Salón Híbrido'];
+  const aplicaAlerta = !solicitud.lugar.tipo || tiposConAlerta.includes(solicitud.lugar.tipo);
+  const estaEnAlerta = aplicaAlerta && tiempoEnUsoMinutos >= tiempoAlertaMinutos;
+  // Llaves que NO tienen alerta WhatsApp pero ya superaron el tiempo configurado
+  const tiempoSuperadoSinAlerta = !aplicaAlerta && tiempoEnUsoMinutos >= tiempoAlertaMinutos;
   const colorTipo = getColorTipoLugar(solicitud.lugar.tipo);
 
   const mensajeTexto = mensajeWhatsApp.replace('{{LLAVE}}', solicitud.lugar.nombre);
@@ -222,6 +225,16 @@ export function KeyInUseCard({
           </div>
         </div>
       </div>
+
+      {/* Cartelito informativo para llaves sin alerta WhatsApp */}
+      {tiempoSuperadoSinAlerta && (
+        <div className="mt-4 flex justify-end">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-300 bg-slate-100 text-slate-500 text-xs">
+            <MessageCircle className="w-4 h-4 flex-shrink-0" />
+            <span>Sin alerta para enviar WhatsApp</span>
+          </div>
+        </div>
+      )}
 
       {/* Panel WhatsApp offline */}
       {estaEnAlerta && (
