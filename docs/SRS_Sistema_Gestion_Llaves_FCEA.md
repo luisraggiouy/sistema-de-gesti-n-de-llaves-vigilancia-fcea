@@ -1,8 +1,8 @@
 # Especificacion de Requisitos de Software (SRS)
 ## Sistema de Gestion de Llaves - FCEA UdelaR
 
-**Version:** 4.0  
-**Fecha:** Abril 2026  
+**Version:** 5.1  
+**Fecha:** Mayo 2026  
 **Elaborado por:** Luis Raggio  
 **Institucion:** Facultad de Ciencias Economicas y de Administracion - Universidad de la Republica
 
@@ -214,6 +214,7 @@ El sistema contempla tres tipos de usuarios con diferentes perfiles:
 
 **Dependencias:**
 - Disponibilidad de hardware básico (PC con Windows 10/11)
+- **Cámara web (webcam) conectada al equipo del Monitor de Vigilancia** — requerida para fotografiar objetos olvidados al momento del registro
 - Mantenimiento del tablero fisico de llaves actualizado
 - Coordinacion con el area de recursos humanos para actualizacion de turnos
 
@@ -399,10 +400,12 @@ El sistema contempla tres tipos de usuarios con diferentes perfiles:
 |-------|-------------|
 | ID | RF-018 |
 | Nombre | Registro de Objetos Olvidados |
-| Descripcion | Permitir registrar objetos olvidados en espacios de la facultad |
-| Prioridad | Baja |
-| Entrada | Descripción del objeto, ubicación, fecha, encargado |
-| Salida | Lista de objetos pendientes de reclamar |
+| Descripcion | Permitir registrar objetos olvidados en espacios de la facultad, con fotografías tomadas desde la webcam del equipo del Monitor de Vigilancia |
+| Prioridad | Media |
+| Entrada | Descripción del objeto, lugar donde fue encontrado, fecha/hora, vigilante que registra, hasta 3 fotos (general, marca/modelo, detalle adicional) tomadas con webcam |
+| Salida | Lista de objetos en custodia con fecha completa (día de semana + fecha + hora), búsqueda por descripción/lugar/fecha, registro de devolución con datos del receptor |
+| Requisito de hardware | **Webcam conectada al equipo del Monitor de Vigilancia** (obligatoria para fotografiar objetos) |
+| Notas | Las fechas se muestran con día de semana en letras para facilitar la búsqueda ("lunes 5 de mayo — 14:30") ya que los alumnos suelen recordar el día de la semana en que olvidaron el objeto |
 
 ### 3.2 Requisitos No Funcionales
 
@@ -1617,6 +1620,7 @@ RECUPERACION_SISTEMA_LLAVES_FCEA\
 | 3.5 | Febrero 2026 | Luis Raggio | Historial y exportacion |
 | 3.6 | Febrero 2026 | Luis Raggio | Documentacion completa SRS |
 | 4.0 | Abril 2026 | Equipo Desarrollo | Actualización completa: respaldos 52 semanas, sistema pendrive, encabezado bienvenida, etc. |
+| 5.1 | Mayo 2026 | Luis Raggio | RF-018 ampliado: webcam obligatoria para fotos de objetos, fechas con día de semana. Dependencias: webcam en Monitor de Vigilancia. |
 
 ---
 

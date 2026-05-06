@@ -69,7 +69,7 @@ function ObjetoCard({ objeto, vigilantes, onDevolver, showDevolucion = true }: {
             )}
             <p className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
-              {objeto.fechaRegistro.toLocaleDateString('es-UY')} {objeto.fechaRegistro.toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' })}
+              {objeto.fechaRegistro.toLocaleDateString('es-UY', { weekday: 'long', day: 'numeric', month: 'long' })} — {objeto.fechaRegistro.toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' })}
             </p>
             <p>Registrado por: {(objeto as any).registradoPor || (objeto as any).vigilanteRegistra}</p>
             {objeto.devolucion && (
