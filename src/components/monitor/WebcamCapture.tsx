@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Camera, RotateCcw, X, Clipboard, Upload } from 'lucide-react';
+import { Camera, RotateCcw, X } from 'lucide-react';
 
 interface WebcamCaptureProps {
   label: string;
@@ -14,10 +14,8 @@ export function WebcamCapture({ label, required = false, onCapture, capturedImag
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pasteHint, setPasteHint] = useState(false);
   const streamRef = useRef<MediaStream | null>(null);
 
   const stopCamera = useCallback(() => {
@@ -42,39 +40,6 @@ export function WebcamCapture({ label, required = false, onCapture, capturedImag
     stopCamera();
   }, [onCapture, stopCamera]);
 
-  // Leer un File/Blob de imagen y convertirlo a base64
-  const readImageFile = useCallback((file: File | Blob) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      if (result) onCapture(result);
-    };
-    reader.readAsDataURL(file);
-  }, [onCapture]);
-
-  // Pegar desde portapapeles (Ctrl+V)
-  useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
-      // Solo actuar si el modal está visible (capturedImage vacío = esperando foto)
-      if (capturedImage) return;
-      const items = e.clipboardData?.items;
-      if (!items) return;
-      for (const item of Array.from(items)) {
-        if (item.type.startsWith('image/')) {
-          const blob = item.getAsFile();
-          if (blob) {
-            readImageFile(blob);
-            setPasteHint(false);
-          }
-          break;
-        }
-      }
-    };
-    window.addEventListener('paste', handlePaste);
-    return () => window.removeEventListener('paste', handlePaste);
-  }, [capturedImage, readImageFile]);
-
-  // Abrir cámara al hacer clic en la zona (solo si no hay imagen)
   useEffect(() => {
     const card = cardRef.current;
     if (!card) return;
@@ -94,7 +59,7 @@ export function WebcamCapture({ label, required = false, onCapture, capturedImag
           }
         }, 100);
       } catch (err) {
-        setError('No se pudo acceder a la cámara. Use Ctrl+V para pegar o el botón para subir archivo.');
+        setError('No se pudo acceder a la cámara.');
         console.error(err);
       }
     };
@@ -106,13 +71,6 @@ export function WebcamCapture({ label, required = false, onCapture, capturedImag
   useEffect(() => {
     return () => stopCamera();
   }, [stopCamera]);
-
-  // Subir archivo desde disco
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) readImageFile(file);
-    e.target.value = '';
-  };
 
   if (capturedImage) {
     return (
@@ -152,49 +110,18 @@ export function WebcamCapture({ label, required = false, onCapture, capturedImag
           </div>
         </div>
       ) : (
-        <div className="space-y-2">
-          <div
-            ref={cardRef}
-            className="h-32 flex flex-col items-center justify-center cursor-pointer border-dashed border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            onMouseEnter={() => setPasteHint(true)}
-            onMouseLeave={() => setPasteHint(false)}
-          >
-            {error ? (
-              <p className="text-red-500 text-sm text-center px-4">{error}</p>
-            ) : pasteHint ? (
-              <>
-                <Clipboard className="w-7 h-7 text-blue-400 mb-1" />
-                <span className="text-sm text-blue-500 font-medium">Ctrl+V para pegar captura</span>
-                <span className="text-xs text-gray-400">o toca para abrir cámara</span>
-              </>
-            ) : (
-              <>
-                <Camera className="w-8 h-8 text-gray-400 mb-2" />
-                <span className="text-sm text-gray-500">Toca para abrir cámara</span>
-                <span className="text-xs text-gray-400">o Ctrl+V para pegar imagen</span>
-              </>
-            )}
-          </div>
-          {/* Botón subir archivo */}
-          <div className="flex justify-center">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="gap-1 text-xs"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="w-3 h-3" />
-              Subir desde archivo
-            </Button>
-          </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileChange}
-          />
+        <div
+          ref={cardRef}
+          className="h-40 flex flex-col items-center justify-center cursor-pointer border-dashed border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+        >
+          {error ? (
+            <p className="text-red-500 text-sm text-center px-4">{error}</p>
+          ) : (
+            <>
+              <Camera className="w-8 h-8 text-gray-400 mb-2" />
+              <span className="text-sm text-gray-500">Toca para abrir cámara</span>
+            </>
+          )}
         </div>
       )}
       <canvas ref={canvasRef} className="hidden" />
