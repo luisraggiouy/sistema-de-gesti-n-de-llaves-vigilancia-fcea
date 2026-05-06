@@ -206,7 +206,7 @@ echo   1. Copie el instalador de Node.js al pendrive:
 echo      %USB_DRIVE%\RECUPERACION_SISTEMA_LLAVES_FCEA\instaladores\node-setup.msi
 echo      Descargue de: https://nodejs.org/
 echo.
-echo   2. Etiquete el pendrive: "RECUPERACION SISTEMA LLAVES FCEA"
+echo   2. Etiquete el pendrive: "RECUPERACION SISTEMA LLAVES FCEA - v5.1 Mayo 2026"
 echo.
 echo   3. Guarde el pendrive en un lugar seguro.
 echo.

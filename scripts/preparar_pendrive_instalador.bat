@@ -211,7 +211,7 @@ echo    - Guardar como: %PENDRIVE%\instaladores\node-setup.msi
 echo.
 echo 2. Etiquetar el pendrive físicamente:
 echo    "INSTALADOR SISTEMA LLAVES FCEA"
-echo    "Versión 1.0 - Abril 2026"
+echo    "Versión 5.1 - Mayo 2026"
 echo    "NO BORRAR - SOLO LECTURA"
 echo.
 echo 3. Guardar el pendrive en lugar seguro
