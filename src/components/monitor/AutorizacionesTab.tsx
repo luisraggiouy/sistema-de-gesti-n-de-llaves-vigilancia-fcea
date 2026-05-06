@@ -186,10 +186,18 @@ export function AutorizacionesTab() {
                 ))}
               </div>
             ) : !hayBusqueda && todasLasAutorizaciones.length > 0 ? (
-              <div className="text-center py-8 text-muted-foreground space-y-2">
-                <Search className="w-8 h-8 mx-auto opacity-40" />
-                <p className="text-sm">Escriba un nombre o lugar para buscar autorizaciones</p>
-                <p className="text-xs">{todasLasAutorizaciones.length} autorización{todasLasAutorizaciones.length > 1 ? 'es' : ''} registrada{todasLasAutorizaciones.length > 1 ? 's' : ''}</p>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 py-1">
+                  <ShieldCheck className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">
+                    {todasLasAutorizaciones.length} autorización{todasLasAutorizaciones.length > 1 ? 'es' : ''} vigente{todasLasAutorizaciones.length > 1 ? 's' : ''} — más reciente primero
+                  </span>
+                </div>
+                {[...todasLasAutorizaciones]
+                  .sort((a, b) => b.fechaCreacion.localeCompare(a.fechaCreacion))
+                  .map(a => (
+                    <AutorizacionCard key={a.id} auth={a} onEdit={startEdit} onDelete={handleEliminar} />
+                  ))}
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
