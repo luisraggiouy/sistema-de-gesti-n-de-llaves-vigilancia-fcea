@@ -82,7 +82,7 @@ function ObjetoCard({ objeto, vigilantes, onDevolver, showDevolucion = true }: {
           </div>
         </div>
         <div className="flex gap-1 shrink-0">
-          {(objeto as any).fotos && (
+          {((objeto as any).fotos?.general || (objeto as any).fotos?.marca || (objeto as any).fotos?.adicional) && (
             <Button variant="outline" onClick={() => setExpanded(!expanded)} className="text-sm px-4 py-2">
               <Eye className="w-4 h-4 mr-1.5" />
               Ver fotos
