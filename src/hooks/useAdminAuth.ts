@@ -6,11 +6,9 @@ interface AdminAuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  isCustodian: boolean;
 }
 
-const DEFAULT_ADMIN_PASSWORD = 'admin123'; // Contraseña por defecto
-const DEFAULT_CUSTODIAN_PASSWORD = 'custodio2026'; // Contraseña de custodio por defecto
+const DEFAULT_CUSTODIAN_PASSWORD = 'custodio2026'; // Contraseña compartida por defecto
 const SESSION_DURATION = 5 * 60 * 1000; // 5 minutos en milisegundos
 
 export function useAdminAuth() {
@@ -18,7 +16,6 @@ export function useAdminAuth() {
     isAuthenticated: false,
     isLoading: true,
     error: null,
-    isCustodian: false
   });
   const { toast } = useToast();
 
@@ -31,20 +28,17 @@ export function useAdminAuth() {
     try {
       const sessionData = localStorage.getItem('admin_session');
       if (sessionData) {
-        const { timestamp, authenticated, isCustodian } = JSON.parse(sessionData);
+        const { timestamp, authenticated } = JSON.parse(sessionData);
         const now = Date.now();
-        
-        // Verificar si la sesión no ha expirado
+
         if (authenticated && (now - timestamp) < SESSION_DURATION) {
           setAuthState({
             isAuthenticated: true,
             isLoading: false,
             error: null,
-            isCustodian: !!isCustodian
           });
           return;
         } else {
-          // Sesión expirada
           localStorage.removeItem('admin_session');
         }
       }
@@ -52,49 +46,40 @@ export function useAdminAuth() {
       console.error('Error checking session:', error);
       localStorage.removeItem('admin_session');
     }
-    
+
     setAuthState({
       isAuthenticated: false,
       isLoading: false,
       error: null,
-      isCustodian: false
     });
   }, []);
 
-  const getStoredPassword = useCallback(async (type: 'admin' | 'custodian' = 'admin'): Promise<string> => {
+  const getStoredPassword = useCallback(async (): Promise<string> => {
     try {
-      // Intentar obtener la contraseña de PocketBase
       const records = await pb.collection('admin_config').getFullList();
-      const configKey = type === 'admin' ? 'admin_password' : 'custodian_password';
-      const adminConfig = records.find(r => r.key === configKey);
-      
-      if (adminConfig && adminConfig.value) {
-        return adminConfig.value;
+      const config = records.find(r => r.key === 'custodian_password');
+      if (config && config.value) {
+        return config.value;
       }
     } catch (error) {
-      console.warn(`No se pudo obtener contraseña de ${type} de la base de datos, usando por defecto`);
+      console.warn('No se pudo obtener contraseña de la base de datos, usando por defecto');
     }
-    
-    return type === 'admin' ? DEFAULT_ADMIN_PASSWORD : DEFAULT_CUSTODIAN_PASSWORD;
+    return DEFAULT_CUSTODIAN_PASSWORD;
   }, []);
 
-  const savePassword = useCallback(async (newPassword: string, type: 'admin' | 'custodian' = 'admin'): Promise<void> => {
+  const savePassword = useCallback(async (newPassword: string): Promise<void> => {
     try {
-      // Buscar si ya existe una configuración
       const records = await pb.collection('admin_config').getFullList();
-      const configKey = type === 'admin' ? 'admin_password' : 'custodian_password';
-      const adminConfig = records.find(r => r.key === configKey);
-      
-      if (adminConfig) {
-        // Actualizar contraseña existente
-        await pb.collection('admin_config').update(adminConfig.id, {
+      const config = records.find(r => r.key === 'custodian_password');
+
+      if (config) {
+        await pb.collection('admin_config').update(config.id, {
           value: newPassword,
           updated_at: new Date().toISOString()
         });
       } else {
-        // Crear nueva configuración
         await pb.collection('admin_config').create({
-          key: configKey,
+          key: 'custodian_password',
           value: newPassword,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
@@ -106,54 +91,44 @@ export function useAdminAuth() {
     }
   }, []);
 
-  const login = useCallback(async (password: string, loginAsCustodian: boolean = false): Promise<boolean> => {
+  const login = useCallback(async (password: string): Promise<boolean> => {
     setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
-    
+
     try {
-      const adminPassword = await getStoredPassword('admin');
-      const custodianPassword = await getStoredPassword('custodian');
-      
-      const isCustodian = loginAsCustodian && password === custodianPassword;
-      const isAdmin = !loginAsCustodian && password === adminPassword;
-      
-      if (isAdmin || isCustodian) {
-        // Guardar sesión
+      const storedPassword = await getStoredPassword();
+
+      if (password === storedPassword) {
         const sessionData = {
           authenticated: true,
-          isCustodian: isCustodian,
           timestamp: Date.now()
         };
         localStorage.setItem('admin_session', JSON.stringify(sessionData));
-        
+
         setAuthState({
           isAuthenticated: true,
           isLoading: false,
           error: null,
-          isCustodian
         });
-        
+
         toast({
           title: "Acceso autorizado",
-          description: isCustodian 
-            ? "Bienvenido al dashboard de administración (modo Custodio)"
-            : "Bienvenido al dashboard de administración"
+          description: "Bienvenido al Dashboard de Actividad"
         });
-        
+
         return true;
       } else {
         setAuthState({
           isAuthenticated: false,
           isLoading: false,
           error: 'Contraseña incorrecta',
-          isCustodian: false
         });
-        
+
         toast({
           title: "Acceso denegado",
           description: "La contraseña ingresada es incorrecta",
           variant: "destructive"
         });
-        
+
         return false;
       }
     } catch (error) {
@@ -162,39 +137,38 @@ export function useAdminAuth() {
         isAuthenticated: false,
         isLoading: false,
         error: 'Error al verificar credenciales',
-        isCustodian: false
       });
-      
+
       toast({
         title: "Error de autenticación",
         description: "Ocurrió un error al verificar las credenciales",
         variant: "destructive"
       });
-      
+
       return false;
     }
   }, [getStoredPassword, toast]);
 
-  const changePassword = useCallback(async (oldPassword: string, newPassword: string, type: 'admin' | 'custodian' = 'admin'): Promise<boolean> => {
+  const changePassword = useCallback(async (oldPassword: string, newPassword: string): Promise<boolean> => {
     try {
-      const storedPassword = await getStoredPassword(type);
-      
+      const storedPassword = await getStoredPassword();
+
       if (oldPassword !== storedPassword) {
         toast({
           title: "Error",
-          description: `La contraseña actual de ${type === 'admin' ? 'administrador' : 'custodio'} es incorrecta`,
+          description: "La contraseña actual es incorrecta",
           variant: "destructive"
         });
         return false;
       }
-      
-      await savePassword(newPassword, type);
-      
+
+      await savePassword(newPassword);
+
       toast({
         title: "Contraseña actualizada",
-        description: `La contraseña de ${type === 'admin' ? 'administrador' : 'custodio'} ha sido cambiada exitosamente`
+        description: "La contraseña ha sido cambiada exitosamente"
       });
-      
+
       return true;
     } catch (error) {
       console.error('Change password error:', error);
@@ -213,9 +187,8 @@ export function useAdminAuth() {
       isAuthenticated: false,
       isLoading: false,
       error: null,
-      isCustodian: false
     });
-    
+
     toast({
       title: "Sesión cerrada",
       description: "Ha cerrado sesión correctamente"
@@ -226,12 +199,11 @@ export function useAdminAuth() {
     if (authState.isAuthenticated) {
       const sessionData = {
         authenticated: true,
-        isCustodian: authState.isCustodian,
         timestamp: Date.now()
       };
       localStorage.setItem('admin_session', JSON.stringify(sessionData));
     }
-  }, [authState.isAuthenticated, authState.isCustodian]);
+  }, [authState.isAuthenticated]);
 
   // Auto-logout cuando la sesión expira
   useEffect(() => {
@@ -241,7 +213,7 @@ export function useAdminAuth() {
         if (sessionData) {
           const { timestamp } = JSON.parse(sessionData);
           const now = Date.now();
-          
+
           if ((now - timestamp) >= SESSION_DURATION) {
             logout();
             toast({
@@ -252,8 +224,8 @@ export function useAdminAuth() {
           }
         }
       };
-      
-      const interval = setInterval(checkSession, 60000); // Verificar cada minuto
+
+      const interval = setInterval(checkSession, 60000);
       return () => clearInterval(interval);
     }
   }, [authState.isAuthenticated, logout, toast]);
@@ -262,7 +234,8 @@ export function useAdminAuth() {
     isAuthenticated: authState.isAuthenticated,
     isLoading: authState.isLoading,
     error: authState.error,
-    isCustodian: authState.isCustodian,
+    // isCustodian siempre true para compatibilidad con código existente
+    isCustodian: true,
     login,
     logout,
     changePassword,

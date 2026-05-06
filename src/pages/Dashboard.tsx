@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart3, ArrowLeft, Clock, Users, Key, ArrowUpRight, ArrowDownLeft, Sun, Sunset, Moon, FileSpreadsheet, Palmtree, Stethoscope, Package, LogOut, Settings, Usb, DatabaseBackup, PieChart, CalendarDays, CalendarRange } from 'lucide-react';
+import { BarChart3, ArrowLeft, Clock, Users, Key, ArrowUpRight, ArrowDownLeft, Sun, Sunset, Moon, Palmtree, Stethoscope, Package, LogOut, Settings, Usb, DatabaseBackup, CalendarDays, CalendarRange } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -35,25 +35,23 @@ export default function Dashboard() {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [usbDetected, setUsbDetected] = useState(false);
 
-  // Verificar periódicamente si hay un USB conectado (para el custodio)
+  // Verificar periódicamente si hay un USB conectado
   useEffect(() => {
-    if (isCustodian) {
-      const checkUsb = () => {
-        const hasUsb = hayUSBConectado();
-        setUsbDetected(hasUsb);
-        if (hasUsb && !usbDetected) {
-          toast({
-            title: "USB Detectado",
-            description: "Se ha detectado un dispositivo USB. Puede exportar reportes directamente.",
-          });
-        }
-      };
-      
-      checkUsb(); // Verificar inmediatamente
-      const interval = setInterval(checkUsb, 5000); // Verificar cada 5 segundos
-      return () => clearInterval(interval);
-    }
-  }, [isCustodian, usbDetected, toast]);
+    const checkUsb = () => {
+      const hasUsb = hayUSBConectado();
+      setUsbDetected(hasUsb);
+      if (hasUsb && !usbDetected) {
+        toast({
+          title: "USB Detectado",
+          description: "Se ha detectado un dispositivo USB. Puede exportar reportes directamente.",
+        });
+      }
+    };
+    
+    checkUsb(); // Verificar inmediatamente
+    const interval = setInterval(checkUsb, 5000); // Verificar cada 5 segundos
+    return () => clearInterval(interval);
+  }, [usbDetected, toast]);
   
   // Función para calcular turno a partir de una hora
   const calcularTurno = (fecha: Date | string): Turno => {
@@ -204,12 +202,12 @@ export default function Dashboard() {
     setAdvancedExportOpen(true);
   };
 
-  const handleLogin = (password: string, loginAsCustodian: boolean = false) => {
-    login(password, loginAsCustodian);
+  const handleLogin = (password: string) => {
+    login(password);
   };
 
-  const handleChangePassword = (oldPassword: string, newPassword: string, type: 'admin' | 'custodian' = 'admin') => {
-    changePassword(oldPassword, newPassword, type);
+  const handleChangePassword = (oldPassword: string, newPassword: string) => {
+    changePassword(oldPassword, newPassword);
   };
 
   const estadisticas = calcularEstadisticas(registrosFiltrados);
@@ -225,53 +223,42 @@ export default function Dashboard() {
   });
 
   // Si no está autenticado, mostrar el login
-  // if (!isAuthenticated && !isLoading) {
-  //   return <AdminLogin onLogin={handleLogin} onChangePassword={handleChangePassword} isChangingPassword={false} onToggleChangePassword={() => {}} />;
-  // }
+  if (!isAuthenticated && !isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <AdminLogin
+          onLogin={handleLogin}
+          onChangePassword={handleChangePassword}
+          isChangingPassword={false}
+          onToggleChangePassword={() => {}}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className={`${isCustodian ? 'bg-amber-50 border-amber-200' : 'bg-card'} border-b py-4 px-6 shadow-sm`}>
+      <header className="bg-card border-b py-4 px-6 shadow-sm">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className={`${isCustodian ? 'bg-amber-500' : 'bg-primary'} p-3 rounded-xl`}>
-              {isCustodian ? (
-                <Key className="w-8 h-8 text-primary-foreground" />
-              ) : (
-                <BarChart3 className="w-8 h-8 text-primary-foreground" />
-              )}
+            <div className="bg-primary p-3 rounded-xl">
+              <BarChart3 className="w-8 h-8 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">
-                {isCustodian ? 'Dashboard de Custodio' : 'Dashboard de Actividad'}
-              </h1>
-              <p className="text-muted-foreground text-sm">
-                FCEA - {isCustodian ? 'Exportación Segura' : 'Estadísticas del Sistema de Llaves'}
-              </p>
+              <h1 className="text-2xl font-bold tracking-tight">Dashboard de Actividad</h1>
+              <p className="text-muted-foreground text-sm">FCEA — Estadísticas del Sistema de Llaves</p>
             </div>
             <div className="flex gap-2">
-              {isCustodian ? (
-                <Button 
-                  variant="default"
-                  size="sm" 
-                  className="gap-2"
-                  onClick={handleCustodianExport}
-                >
-                  <Usb className="w-4 h-4" />
-                  <span className="hidden md:inline">Exportar a Pendrive</span>
-                </Button>
-              ) : (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-2"
-                  onClick={() => setAdvancedExportOpen(true)}
-                >
-                  <FileSpreadsheet className="w-4 h-4" />
-                  <span className="hidden md:inline">Exportar Datos</span>
-                </Button>
-              )}
+              <Button 
+                variant="default"
+                size="sm" 
+                className="gap-2"
+                onClick={handleCustodianExport}
+              >
+                <Usb className="w-4 h-4" />
+                <span className="hidden md:inline">Exportar a Pendrive</span>
+              </Button>
               <Button asChild variant="outline" size="sm" className="gap-2">
                 <Link to="/monitor">
                   <ArrowLeft className="w-4 h-4" />
@@ -282,7 +269,7 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-6">
-            {/* Totales del día */}
+            {/* Totales del período */}
             <div className="flex items-center gap-4">
               <div className="text-center px-4 py-2 bg-success/10 rounded-lg">
                 <p className="text-2xl font-bold text-success">{totalEntregas}</p>
@@ -303,12 +290,6 @@ export default function Dashboard() {
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-sm text-muted-foreground capitalize">{fecha}</p>
-                {isCustodian && (
-                  <p className="text-xs font-semibold text-amber-600 flex items-center gap-1 mt-1">
-                    <Key className="w-3 h-3" />
-                    Modo Custodio
-                  </p>
-                )}
               </div>
               
               <div className="flex gap-2">
@@ -336,39 +317,35 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Barra de notificación USB para custodios */}
-      {isCustodian && (
-        <div className={`py-2 px-6 ${usbDetected ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'} border-b border-t`}>
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Usb className="w-4 h-4" />
-              {usbDetected ? (
-                <span>Dispositivo USB conectado. Listo para exportar datos.</span>
-              ) : (
-                <span>Conecte un dispositivo USB para exportar datos del sistema.</span>
-              )}
-            </div>
-            
-            {usbDetected && (
-              <Button 
-                variant="default"
-                size="sm" 
-                className="gap-2 bg-green-700"
-                onClick={handleCustodianExport}
-              >
-                <DatabaseBackup className="w-4 h-4" />
-                Exportar Ahora
-              </Button>
+      {/* Barra de estado USB — visible siempre */}
+      <div className={`py-2 px-6 ${usbDetected ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'} border-b border-t`}>
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Usb className="w-4 h-4" />
+            {usbDetected ? (
+              <span>Dispositivo USB conectado. Listo para exportar datos.</span>
+            ) : (
+              <span>Conecte un dispositivo USB para exportar datos del sistema.</span>
             )}
           </div>
+          
+          {usbDetected && (
+            <Button 
+              variant="default"
+              size="sm" 
+              className="gap-2 bg-green-700"
+              onClick={handleCustodianExport}
+            >
+              <DatabaseBackup className="w-4 h-4" />
+              Exportar Ahora
+            </Button>
+          )}
         </div>
-      )}
+      </div>
 
       <main className="max-w-7xl mx-auto py-6 px-4 space-y-6">
-        {/* Gráficas de estadísticas avanzadas */}
-        {!isCustodian && (
-          <AdvancedChartVisualizations solicitudes={solicitudes} />
-        )}
+        {/* Gráficas de estadísticas avanzadas — visibles para todos */}
+        <AdvancedChartVisualizations solicitudes={solicitudes} />
 
         {/* Selector de período + Tarjetas por turno */}
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -693,8 +670,8 @@ export default function Dashboard() {
       {isChangingPassword && (
         <AdminLogin
           onLogin={() => {}}
-          onChangePassword={(oldPass, newPass, type) => {
-            const success = changePassword(oldPass, newPass, type);
+          onChangePassword={(oldPass, newPass) => {
+            const success = changePassword(oldPass, newPass);
             if (success) {
               setIsChangingPassword(false);
             }

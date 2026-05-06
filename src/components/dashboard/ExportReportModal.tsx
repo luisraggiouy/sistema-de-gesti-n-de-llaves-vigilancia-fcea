@@ -353,7 +353,7 @@ export function ExportReportModal({ open, onOpenChange }: ExportReportModalProps
 
         {showLogin ? (
           <AdminLogin 
-            onLogin={(password) => login(password, true)} 
+            onLogin={(password) => login(password)} 
             isChangingPassword={false} 
             onToggleChangePassword={() => {}} 
             onCancel={() => setShowLogin(false)}

@@ -4,13 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Eye, EyeOff, Key } from 'lucide-react';
+import { Key, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AdminLoginProps {
-  onLogin: (password: string, loginAsCustodian?: boolean) => void;
-  onChangePassword?: (oldPassword: string, newPassword: string, type?: 'admin' | 'custodian') => void;
+  onLogin: (password: string) => void;
+  onChangePassword?: (oldPassword: string, newPassword: string) => void;
   isChangingPassword: boolean;
   onToggleChangePassword: () => void;
   isCustodian?: boolean;
@@ -22,7 +21,7 @@ export function AdminLogin({
   onChangePassword = () => {}, 
   isChangingPassword, 
   onToggleChangePassword,
-  isCustodian = false,
+  isCustodian = true,
   onCancel
 }: AdminLoginProps) {
   const [password, setPassword] = useState('');
@@ -32,7 +31,6 @@ export function AdminLogin({
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [error, setError] = useState('');
-  const [loginType, setLoginType] = useState<'admin' | 'custodian'>('admin');
   const { toast } = useToast();
 
   const handleLogin = (e: React.FormEvent) => {
@@ -42,7 +40,7 @@ export function AdminLogin({
       return;
     }
     setError('');
-    onLogin(password, loginType === 'custodian');
+    onLogin(password);
   };
 
   const handleChangePassword = (e: React.FormEvent) => {
@@ -64,7 +62,7 @@ export function AdminLogin({
     }
 
     setError('');
-    onChangePassword(oldPassword, newPassword, isCustodian ? 'custodian' : 'admin');
+    onChangePassword(oldPassword, newPassword);
     
     // Limpiar formulario
     setOldPassword('');
@@ -74,7 +72,7 @@ export function AdminLogin({
     
     toast({
       title: "Contraseña actualizada",
-      description: `La contraseña de ${isCustodian ? 'custodio' : 'administrador'} ha sido cambiada exitosamente`
+      description: "La contraseña ha sido cambiada exitosamente"
     });
   };
 
@@ -83,21 +81,17 @@ export function AdminLogin({
       <Card className="w-full max-w-md mx-auto">
         <CardHeader className="text-center">
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-            {isCustodian ? (
-              <Key className="w-6 h-6 text-primary" />
-            ) : (
-              <Shield className="w-6 h-6 text-primary" />
-            )}
+            <Key className="w-6 h-6 text-primary" />
           </div>
           <CardTitle className="text-2xl">
             {isChangingPassword 
-              ? `Cambiar Contraseña de ${isCustodian ? 'Custodio' : 'Administrador'}`
-              : 'Acceso de Administrador'}
+              ? 'Cambiar Contraseña'
+              : 'Acceso al Dashboard'}
           </CardTitle>
           <CardDescription>
             {isChangingPassword 
               ? 'Ingrese la contraseña actual y la nueva contraseña'
-              : 'Ingrese la contraseña para acceder al dashboard'}
+              : 'Ingrese la contraseña para acceder al dashboard de actividad'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -109,42 +103,17 @@ export function AdminLogin({
 
           {!isChangingPassword ? (
             <form onSubmit={handleLogin} className="space-y-4">
-              <Tabs 
-                defaultValue="admin" 
-                value={loginType}
-                onValueChange={(value) => setLoginType(value as 'admin' | 'custodian')}
-                className="w-full"
-              >
-                <TabsList className="grid w-full grid-cols-2 mb-4">
-                  <TabsTrigger value="admin">Administrador</TabsTrigger>
-                  <TabsTrigger value="custodian">Custodio</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="admin" className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Acceso para administradores del sistema con todos los permisos.
-                  </p>
-                </TabsContent>
-                
-                <TabsContent value="custodian" className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Acceso para el custodio designado que puede llevar reportes en USB.
-                  </p>
-                </TabsContent>
-              </Tabs>
-              
               <div className="space-y-2">
-                <Label htmlFor="password">
-                  Contraseña de {loginType === 'admin' ? 'Administrador' : 'Custodio'}
-                </Label>
+                <Label htmlFor="password">Contraseña</Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder={`Ingrese la contraseña de ${loginType === 'admin' ? 'administrador' : 'custodio'}`}
+                    placeholder="Ingrese la contraseña de acceso"
                     className="pr-10"
+                    autoFocus
                   />
                   <Button
                     type="button"
@@ -171,16 +140,14 @@ export function AdminLogin({
                 </Button>
               )}
               
-              {loginType === 'admin' && (
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={onToggleChangePassword}
-                >
-                  Cambiar Contraseña
-                </Button>
-              )}
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full"
+                onClick={onToggleChangePassword}
+              >
+                Cambiar Contraseña
+              </Button>
             </form>
           ) : (
             <form onSubmit={handleChangePassword} className="space-y-4">
@@ -266,10 +233,9 @@ export function AdminLogin({
         </CardContent>
         
         <CardFooter className="flex justify-center border-t pt-4">
-          <p className="text-xs text-muted-foreground">
-            {loginType === 'custodian' 
-              ? "El custodio es responsable de la gestión y resguardo de los reportes exportados" 
-              : "Ingrese como custodio si necesita exportar reportes a un pendrive"}
+          <p className="text-xs text-muted-foreground text-center">
+            Dashboard de Actividad — FCEA UdelaR<br/>
+            Acceso para jefes e intendencia
           </p>
         </CardFooter>
       </Card>
