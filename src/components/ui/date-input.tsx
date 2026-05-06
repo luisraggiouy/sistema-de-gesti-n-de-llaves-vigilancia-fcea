@@ -1,24 +1,23 @@
 /**
- * DateInput — input de fecha con formato DD/MM/AAAA garantizado.
+ * DateInput — input de fecha con formato DD/MM/AAAA garantizado + picker de calendario.
  *
- * Los <input type="date"> nativos muestran el formato según el idioma del
- * navegador/SO (en Windows en inglés aparece MM/DD/AAAA). Este componente
- * usa type="text" con máscara automática para garantizar DD/MM/AAAA en
- * cualquier navegador, y convierte internamente a/desde YYYY-MM-DD que es
- * el formato que espera el backend.
- *
- * Props:
- *   value    — string en formato YYYY-MM-DD (o vacío)
- *   onChange — recibe string en formato YYYY-MM-DD (o vacío)
- *   className, id, disabled — se pasan al input
+ * - El campo de texto acepta escritura manual con máscara DD/MM/AAAA
+ * - El ícono de calendario abre un Popover con el componente Calendar de shadcn/ui
+ * - Al seleccionar una fecha en el calendario, se completa el campo automáticamente
+ * - Siempre trabaja con YYYY-MM-DD internamente (compatible con el backend)
  */
 import { useState, useEffect, useRef } from 'react';
 import { CalendarIcon } from 'lucide-react';
+import { format, parse, isValid } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
 
 interface DateInputProps {
-  value: string;           // YYYY-MM-DD
-  onChange: (v: string) => void; // YYYY-MM-DD
+  value: string;                   // YYYY-MM-DD
+  onChange: (v: string) => void;   // YYYY-MM-DD
   className?: string;
   id?: string;
   disabled?: boolean;
@@ -40,7 +39,6 @@ function displayToIso(display: string): string {
   const d = clean.slice(0, 2);
   const m = clean.slice(2, 4);
   const y = clean.slice(4, 8);
-  // Validación básica
   const day = parseInt(d, 10);
   const month = parseInt(m, 10);
   const year = parseInt(y, 10);
@@ -59,8 +57,16 @@ function applyMask(raw: string): string {
   return result;
 }
 
+/** Convierte YYYY-MM-DD → Date object (o undefined) */
+function isoToDate(iso: string): Date | undefined {
+  if (!iso) return undefined;
+  const d = new Date(iso + 'T12:00:00');
+  return isValid(d) ? d : undefined;
+}
+
 export function DateInput({ value, onChange, className, id, disabled, placeholder }: DateInputProps) {
   const [display, setDisplay] = useState(() => isoToDisplay(value));
+  const [open, setOpen] = useState(false);
   const prevValueRef = useRef(value);
 
   // Sincronizar cuando el valor externo cambia (ej: resetForm)
@@ -78,6 +84,17 @@ export function DateInput({ value, onChange, className, id, disabled, placeholde
     prevValueRef.current = iso;
     onChange(iso);
   };
+
+  const handleCalendarSelect = (date: Date | undefined) => {
+    if (!date) return;
+    const iso = format(date, 'yyyy-MM-dd');
+    prevValueRef.current = iso;
+    setDisplay(isoToDisplay(iso));
+    onChange(iso);
+    setOpen(false);
+  };
+
+  const selectedDate = isoToDate(value);
 
   return (
     <div className="relative w-full">
@@ -97,7 +114,29 @@ export function DateInput({ value, onChange, className, id, disabled, placeholde
           className
         )}
       />
-      <CalendarIcon className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            disabled={disabled}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:pointer-events-none disabled:opacity-50"
+            tabIndex={-1}
+            aria-label="Abrir calendario"
+          >
+            <CalendarIcon className="w-4 h-4" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="end">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={handleCalendarSelect}
+            defaultMonth={selectedDate}
+            locale={es}
+            initialFocus
+          />
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
