@@ -54,9 +54,9 @@ function ObjetoCard({ objeto, vigilantes, onDevolver, showDevolucion = true }: {
     <Card className={`p-4 ${objeto.estado === 'custodia' ? 'border-amber-300 bg-amber-50/50' : 'border-emerald-300 bg-emerald-50/50'}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <Package className="w-4 h-4 text-muted-foreground shrink-0" />
-            <span className="font-semibold truncate">{objeto.descripcion}</span>
+          <div className="flex items-start gap-2 mb-1">
+            <Package className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+            <span className="font-semibold break-words">{objeto.descripcion}</span>
             <Badge variant={objeto.estado === 'custodia' ? 'default' : 'secondary'} className={
               objeto.estado === 'custodia' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-emerald-100 text-emerald-800 border-emerald-300'
             }>
