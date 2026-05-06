@@ -23,7 +23,7 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
     if (busqueda.length < 2) return [];
     // Usamos el texto de búsqueda tal como está, la función buscarPorTexto
     // ya se encarga de normalizar y hacer la búsqueda insensible a mayúsculas/minúsculas
-    return buscarUsuarios(busqueda).slice(0, 5);
+    return buscarUsuarios(busqueda);
   }, [busqueda, buscarUsuarios]);
 
   useEffect(() => {
