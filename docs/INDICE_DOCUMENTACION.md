@@ -1,8 +1,8 @@
-ithub # 📚 ÍNDICE COMPLETO DE DOCUMENTACIÓN
+# 📚 ÍNDICE COMPLETO DE DOCUMENTACIÓN
 ## Sistema de Gestión de Llaves — FCEA
 
-**Última actualización:** Abril 2026  
-**Versión del sistema:** 1.0
+**Última actualización:** Mayo 2026  
+**Versión del sistema:** 5.1
 
 ---
 
@@ -113,6 +113,18 @@ Este índice organiza toda la documentación del sistema en categorías para fac
      - Permisos y funcionalidades de cada rol
      - Exportación de datos
      - Gestión de usuarios
+
+### 6b. **funcionalidad_autorizaciones.md** ⭐ NUEVO Mayo 2026
+   - **Propósito**: Documentación completa del módulo de Autorizaciones
+   - **Audiencia**: Vigilantes, Jefes de Turno, Personal de Sistemas
+   - **Cuándo usar**: Para entender cómo registrar, verificar y gestionar autorizaciones de acceso a llaves
+   - **Contenido clave**:
+     - Cómo registrar una autorización (campos obligatorios y opcionales)
+     - Búsqueda en tiempo real por nombre o CI
+     - Historial: diferencia entre eliminadas y vencidas
+     - Cómo restablecer una autorización eliminada
+     - Modelo de datos y persistencia en localStorage
+     - Reglas de negocio (purga automática de vencidas, etc.)
 
 ### 7. **estadisticas_avanzadas.md**
    - **Propósito**: Guía de uso de estadísticas y reportes
@@ -305,7 +317,7 @@ Para consultas sobre la documentación:
 
 Todos los documentos están versionados en GitHub, y se hace entrega de copia en pendrive a autoridades de FCEA:
 - Repositorio: https://github.com/luisraggiouy/sistema-de-gesti-n-de-llaves-vigilancia-fcea
-- Última actualización: Commit 53c2a0a (Abril 2026)
+- Última actualización: Commit 8975482 (Mayo 2026) — v5.1 módulo autorizaciones
 
 ---
 

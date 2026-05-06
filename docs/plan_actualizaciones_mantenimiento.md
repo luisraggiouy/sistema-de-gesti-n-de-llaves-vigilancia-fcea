@@ -525,3 +525,27 @@ npm audit fix --force
 ---
 
 **NOTA:** Este plan debe revisarse y actualizarse anualmente para reflejar cambios en tecnologías, necesidades institucionales y disponibilidad de recursos.
+
+---
+
+## Historial de Cambios — v5.x (Mayo 2026)
+
+### v5.1 — 05/05/2026
+
+**Módulo de Autorizaciones — Correcciones y mejoras**
+
+| Tipo | Descripción | Archivos |
+|------|-------------|---------|
+| 🐛 fix | Las funciones `guardarAutorizacion`, `eliminarAutorizacion`, `buscarAutorizacionEnVivo`, `getAutorizaciones`, `getHistorialAutorizaciones` y `purgarAutorizacionesVencidas` eran stubs vacíos. Se implementaron con `localStorage`. | `src/data/fceaData.ts` |
+| ✨ feat | El listado de autorizaciones vigentes se muestra directamente al abrir la pestaña, ordenado por más reciente primero (sin necesidad de buscar). | `src/components/monitor/AutorizacionesTab.tsx` |
+| ✨ feat | Historial: vigencia mostrada como `fechaDesde → fechaHasta`. | `src/components/monitor/HistorialAutorizacionesTab.tsx` |
+| ✨ feat | Historial: badges diferenciados — 🗑 **Eliminada** (rojo) vs ⚠ **Vencida** (amarillo). Etiqueta de fecha contextual ("Eliminada el:" / "Venció el:"). | `src/components/monitor/HistorialAutorizacionesTab.tsx` |
+| ✨ feat | Botón **↩ Restablecer** en autorizaciones eliminadas del historial. Las vencidas no se pueden restablecer (deben crearse nuevamente). | `src/components/monitor/HistorialAutorizacionesTab.tsx` |
+| ✨ feat | Nueva función `restablecerAutorizacion(id)` en `fceaData.ts`. | `src/data/fceaData.ts` |
+| ✨ feat | Contadores de eliminadas/vencidas en el encabezado del historial. | `src/components/monitor/HistorialAutorizacionesTab.tsx` |
+| 📄 docs | Nuevo documento `docs/funcionalidad_autorizaciones.md` con descripción completa del módulo, modelo de datos, reglas de negocio y changelog. | `docs/funcionalidad_autorizaciones.md` |
+
+**Commits GitHub:**
+- `ed49aab` — fix: implementar guardarAutorizacion/eliminar/buscar con localStorage
+- `a2369c4` — feat: mostrar listado de autorizaciones vigentes ordenadas por mas reciente primero
+- `8975482` — feat: historial autorizaciones - vigencia desde/hasta, badge eliminada vs vencida, boton restablecer
