@@ -173,7 +173,8 @@ export default function Dashboard() {
           nombre: v.nombre,
           entregas: entregasV,
           devoluciones: devolucionesV,
-          total: entregasV + devolucionesV + objRegV + objDevV,
+          // total para la barra = solo entregas + devoluciones de llaves (lo que muestra el label)
+          total: entregasV + devolucionesV,
           // Pasar el estado de licencia para que el render lo muestre
           estadoLicencia: v.estadoLicencia,
         };
@@ -185,6 +186,7 @@ export default function Dashboard() {
         devoluciones,
         objRegistros,
         objDevoluciones,
+        // Ordenar descendente por total (entregas+devoluciones), los que tienen 0 al final
         vigilantes: estadisticasVigilantes.sort((a, b) => b.total - a.total)
       };
     });
@@ -397,7 +399,13 @@ export default function Dashboard() {
           {estadisticas.map((stat) => {
             const config = turnosConfig[stat.turno];
             const Icon = config.icon;
-            const maxTotal = Math.max(...stat.vigilantes.map(v => v.total), 1);
+            // maxTotal: solo vigilantes activos (no en licencia) para que la escala sea fiel
+            const maxTotal = Math.max(
+              ...stat.vigilantes
+                .filter(v => !(v as any).estadoLicencia || (v as any).estadoLicencia === 'activo')
+                .map(v => v.total),
+              1
+            );
             
             return (
               <Card key={stat.turno} className="overflow-hidden">
