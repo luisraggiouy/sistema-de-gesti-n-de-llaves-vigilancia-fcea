@@ -530,6 +530,13 @@ npm audit fix --force
 
 ## Historial de Cambios — v5.x (Mayo 2026)
 
+### v5.2 — 06/05/2026
+
+- **fix**: Botón "Ver fotos" oculto en listados cuando el objeto no tiene fotos registradas (evita confusión al registrar sin fotos)
+- **fix**: Filtro de fechas en búsqueda de objetos corregido (desfase UTC vs hora local Uruguay — los objetos del día no aparecían al buscar por fecha)
+- **fix**: Descripción de objetos se muestra completa en los listados (ya no se trunca con "...")
+- **pendrive**: Los scripts `preparar_pendrive_instalador.bat` y `preparar_pendrive_recuperacion.bat` copian automáticamente estos cambios al ejecutarse con el pendrive conectado
+
 ### v5.1 — 05/05/2026
 
 **Módulo de Autorizaciones — Correcciones y mejoras**
