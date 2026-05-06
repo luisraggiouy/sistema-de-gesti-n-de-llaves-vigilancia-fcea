@@ -13,6 +13,7 @@
  *   className, id, disabled — se pasan al input
  */
 import { useState, useEffect, useRef } from 'react';
+import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DateInputProps {
@@ -79,21 +80,24 @@ export function DateInput({ value, onChange, className, id, disabled, placeholde
   };
 
   return (
-    <input
-      id={id}
-      type="text"
-      inputMode="numeric"
-      value={display}
-      onChange={handleChange}
-      disabled={disabled}
-      placeholder={placeholder ?? 'DD/MM/AAAA'}
-      maxLength={10}
-      className={cn(
-        'flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors',
-        'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-        'disabled:cursor-not-allowed disabled:opacity-50',
-        className
-      )}
-    />
+    <div className="relative w-full">
+      <input
+        id={id}
+        type="text"
+        inputMode="numeric"
+        value={display}
+        onChange={handleChange}
+        disabled={disabled}
+        placeholder={placeholder ?? 'DD/MM/AAAA'}
+        maxLength={10}
+        className={cn(
+          'flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 pr-9 text-sm shadow-sm transition-colors',
+          'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+          'disabled:cursor-not-allowed disabled:opacity-50',
+          className
+        )}
+      />
+      <CalendarIcon className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+    </div>
   );
 }
