@@ -403,7 +403,7 @@ export function getColorTipoLugar(tipo: TipoLugar): string {
 export interface Autorizacion {
   id: string;
   personaNombre: string;
-  personaCI?: string; // Campo opcional para cédula de identidad
+  personaCI?: string;
   lugarAutorizado: string;
   autorizadoPor: string;
   fechaAutorizacion: string;
@@ -420,21 +420,119 @@ export interface AutorizacionHistorial extends Autorizacion {
   fechaBaja: string;
 }
 
-export function getAutorizaciones(): Autorizacion[] { return []; }
-export function getHistorialAutorizaciones(): AutorizacionHistorial[] { return []; }
-export function buscarAutorizacion(_persona: string, _lugar: string): Autorizacion[] { return []; }
-export function buscarAutorizacionEnVivo(_persona: string, _lugar: string): Autorizacion[] { 
-  // Nota: En una implementación real, esta función buscaría por nombre o CI
-  // _persona puede ser nombre o CI
-  return []; 
+const LS_AUTORIZACIONES = 'fcea_autorizaciones_v1';
+const LS_HISTORIAL_AUTORIZACIONES = 'fcea_historial_autorizaciones_v1';
+
+function _loadAutorizaciones(): Autorizacion[] {
+  try {
+    const raw = localStorage.getItem(LS_AUTORIZACIONES);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
 }
-export function buscarHistorialAutorizaciones(_lugar: string): AutorizacionHistorial[] { return []; }
-export function guardarAutorizacion(_auth: Omit<Autorizacion, 'id' | 'fechaCreacion'>): Autorizacion {
-  throw new Error('Usar useAutorizaciones hook en su lugar');
+
+function _saveAutorizaciones(list: Autorizacion[]): void {
+  try { localStorage.setItem(LS_AUTORIZACIONES, JSON.stringify(list)); } catch {}
 }
-export function actualizarAutorizacion(_id: string, _datos: any): Autorizacion | null { return null; }
-export function eliminarAutorizacion(_id: string): boolean { return false; }
-export function purgarAutorizacionesVencidas(): number { return 0; }
+
+function _loadHistorialAutorizaciones(): AutorizacionHistorial[] {
+  try {
+    const raw = localStorage.getItem(LS_HISTORIAL_AUTORIZACIONES);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function _saveHistorialAutorizaciones(list: AutorizacionHistorial[]): void {
+  try { localStorage.setItem(LS_HISTORIAL_AUTORIZACIONES, JSON.stringify(list)); } catch {}
+}
+
+export function getAutorizaciones(): Autorizacion[] {
+  return _loadAutorizaciones();
+}
+
+export function getHistorialAutorizaciones(): AutorizacionHistorial[] {
+  return _loadHistorialAutorizaciones();
+}
+
+export function guardarAutorizacion(auth: Omit<Autorizacion, 'id' | 'fechaCreacion'>): Autorizacion {
+  const nueva: Autorizacion = {
+    ...auth,
+    id: `aut_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    fechaCreacion: new Date().toISOString(),
+  };
+  const list = _loadAutorizaciones();
+  list.push(nueva);
+  _saveAutorizaciones(list);
+  return nueva;
+}
+
+export function actualizarAutorizacion(id: string, datos: Partial<Omit<Autorizacion, 'id' | 'fechaCreacion'>>): Autorizacion | null {
+  const list = _loadAutorizaciones();
+  const idx = list.findIndex(a => a.id === id);
+  if (idx === -1) return null;
+  list[idx] = { ...list[idx], ...datos };
+  _saveAutorizaciones(list);
+  return list[idx];
+}
+
+export function eliminarAutorizacion(id: string): boolean {
+  const list = _loadAutorizaciones();
+  const idx = list.findIndex(a => a.id === id);
+  if (idx === -1) return false;
+  const [eliminada] = list.splice(idx, 1);
+  _saveAutorizaciones(list);
+  // Guardar en historial
+  const historial = _loadHistorialAutorizaciones();
+  historial.push({ ...eliminada, motivoBaja: 'eliminada', fechaBaja: new Date().toISOString() });
+  _saveHistorialAutorizaciones(historial);
+  return true;
+}
+
+export function buscarAutorizacion(persona: string, lugar: string): Autorizacion[] {
+  return buscarAutorizacionEnVivo(persona, lugar);
+}
+
+export function buscarAutorizacionEnVivo(persona: string, lugar: string): Autorizacion[] {
+  const list = _loadAutorizaciones();
+  const np = normalizarTexto(persona.trim());
+  const nl = normalizarTexto(lugar.trim());
+  return list.filter(a => {
+    const matchPersona = !np ||
+      normalizarTexto(a.personaNombre).includes(np) ||
+      (a.personaCI && normalizarTexto(a.personaCI).includes(np));
+    const matchLugar = !nl || normalizarTexto(a.lugarAutorizado).includes(nl);
+    return matchPersona && matchLugar;
+  });
+}
+
+export function buscarHistorialAutorizaciones(
+  lugar: string,
+  fechaDesde?: string,
+  fechaHasta?: string
+): AutorizacionHistorial[] {
+  const list = _loadHistorialAutorizaciones();
+  const nl = normalizarTexto(lugar.trim());
+  return list.filter(a => {
+    const matchLugar = !nl ||
+      normalizarTexto(a.lugarAutorizado).includes(nl) ||
+      normalizarTexto(a.personaNombre).includes(nl);
+    const matchDesde = !fechaDesde || a.fechaBaja >= fechaDesde;
+    const matchHasta = !fechaHasta || a.fechaBaja <= fechaHasta + 'T23:59:59';
+    return matchLugar && matchDesde && matchHasta;
+  });
+}
+
+export function purgarAutorizacionesVencidas(): number {
+  const hoy = new Date().toISOString().split('T')[0];
+  const list = _loadAutorizaciones();
+  const vencidas = list.filter(a => a.fechaHasta && a.fechaHasta < hoy);
+  if (vencidas.length === 0) return 0;
+  const activas = list.filter(a => !a.fechaHasta || a.fechaHasta >= hoy);
+  _saveAutorizaciones(activas);
+  const historial = _loadHistorialAutorizaciones();
+  vencidas.forEach(a => historial.push({ ...a, motivoBaja: 'vencida', fechaBaja: new Date().toISOString() }));
+  _saveHistorialAutorizaciones(historial);
+  return vencidas.length;
+}
 
 // ============= USUARIOS REGISTRADOS =============
 export function getUsuariosRegistrados(): UsuarioRegistrado[] { return []; }
