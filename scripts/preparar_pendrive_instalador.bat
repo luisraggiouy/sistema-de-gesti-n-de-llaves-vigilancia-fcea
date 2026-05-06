@@ -5,7 +5,7 @@ setlocal enabledelayedexpansion
 :: ============================================================================
 :: Script: Preparar Pendrive Instalador
 :: Propósito: Crear un pendrive de instalación automática del sistema
-:: Versión: 1.0
+:: Versión: 5.3 — Mayo 2026
 :: ============================================================================
 
 title Preparación de Pendrive Instalador - Sistema de Llaves FCEA
@@ -15,7 +15,7 @@ echo.
 echo ╔════════════════════════════════════════════════════════════════════╗
 echo ║                                                                    ║
 echo ║     PREPARACIÓN DE PENDRIVE INSTALADOR                             ║
-echo ║     Sistema de Gestión de Llaves - FCEA                            ║
+echo ║     Sistema de Gestión de Llaves - FCEA  v5.3                      ║
 echo ║                                                                    ║
 echo ╚════════════════════════════════════════════════════════════════════╝
 echo.
@@ -33,7 +33,7 @@ if %errorLevel% neq 0 (
 )
 
 :: Detectar letra del pendrive
-echo [1/8] Detectando pendrive conectado...
+echo [1/9] Detectando pendrive conectado...
 echo.
 echo Pendrives disponibles:
 echo.
@@ -81,16 +81,20 @@ echo.
 pause
 
 :: Verificar espacio disponible
-echo [2/8] Verificando espacio disponible en el pendrive...
+echo [2/9] Verificando espacio disponible en el pendrive...
 for /f "tokens=3" %%a in ('dir %PENDRIVE% ^| find "bytes free"') do set FREE_SPACE=%%a
 echo Espacio libre: %FREE_SPACE% bytes
 echo.
 
 :: Limpiar pendrive
-echo [3/8] Limpiando contenido anterior del pendrive...
+echo [3/9] Limpiando contenido anterior del pendrive...
 if exist "%PENDRIVE%\sistema" (
     echo Eliminando carpeta sistema anterior...
     rd /s /q "%PENDRIVE%\sistema" 2>nul
+)
+if exist "%PENDRIVE%\codigo_fuente" (
+    echo Eliminando carpeta codigo_fuente anterior...
+    rd /s /q "%PENDRIVE%\codigo_fuente" 2>nul
 )
 if exist "%PENDRIVE%\scripts" (
     echo Eliminando carpeta scripts anterior...
@@ -108,16 +112,17 @@ echo [OK] Pendrive limpiado
 echo.
 
 :: Crear estructura de carpetas
-echo [4/8] Creando estructura de carpetas...
+echo [4/9] Creando estructura de carpetas...
 mkdir "%PENDRIVE%\sistema" 2>nul
+mkdir "%PENDRIVE%\codigo_fuente" 2>nul
 mkdir "%PENDRIVE%\scripts" 2>nul
 mkdir "%PENDRIVE%\docs" 2>nul
 mkdir "%PENDRIVE%\instaladores" 2>nul
 echo [OK] Estructura creada
 echo.
 
-:: Copiar sistema completo
-echo [5/8] Copiando sistema completo al pendrive...
+:: Copiar sistema completo (para instalación)
+echo [5/9] Copiando sistema completo al pendrive...
 echo Esto puede tardar 5-10 minutos dependiendo de la velocidad del pendrive...
 echo.
 
@@ -125,6 +130,7 @@ xcopy /E /I /Y /Q "%~dp0..\src" "%PENDRIVE%\sistema\src\" >nul
 xcopy /E /I /Y /Q "%~dp0..\pocketbase" "%PENDRIVE%\sistema\pocketbase\" >nul
 xcopy /E /I /Y /Q "%~dp0..\public" "%PENDRIVE%\sistema\public\" >nul
 xcopy /E /I /Y /Q "%~dp0..\scripts" "%PENDRIVE%\sistema\scripts\" >nul
+xcopy /E /I /Y /Q "%~dp0..\docs" "%PENDRIVE%\sistema\docs\" >nul
 
 copy /Y "%~dp0..\package.json" "%PENDRIVE%\sistema\" >nul
 copy /Y "%~dp0..\package-lock.json" "%PENDRIVE%\sistema\" >nul
@@ -143,23 +149,53 @@ copy /Y "%~dp0..\.env.example" "%PENDRIVE%\sistema\" >nul
 echo [OK] Sistema copiado
 echo.
 
+:: Copiar código fuente completo (copia separada para archivo/desarrollo)
+echo [6/9] Copiando código fuente completo (copia de archivo)...
+echo Esta copia incluye TODO el código fuente para desarrollo y auditoría...
+echo.
+
+xcopy /E /I /Y /Q "%~dp0..\src" "%PENDRIVE%\codigo_fuente\src\" >nul
+xcopy /E /I /Y /Q "%~dp0..\public" "%PENDRIVE%\codigo_fuente\public\" >nul
+xcopy /E /I /Y /Q "%~dp0..\scripts" "%PENDRIVE%\codigo_fuente\scripts\" >nul
+xcopy /E /I /Y /Q "%~dp0..\docs" "%PENDRIVE%\codigo_fuente\docs\" >nul
+xcopy /E /I /Y /Q "%~dp0..\pocketbase\pb_migrations" "%PENDRIVE%\codigo_fuente\pocketbase\pb_migrations\" >nul
+
+copy /Y "%~dp0..\package.json" "%PENDRIVE%\codigo_fuente\" >nul
+copy /Y "%~dp0..\package-lock.json" "%PENDRIVE%\codigo_fuente\" >nul
+copy /Y "%~dp0..\tsconfig.json" "%PENDRIVE%\codigo_fuente\" >nul
+copy /Y "%~dp0..\tsconfig.app.json" "%PENDRIVE%\codigo_fuente\" >nul
+copy /Y "%~dp0..\tsconfig.node.json" "%PENDRIVE%\codigo_fuente\" >nul
+copy /Y "%~dp0..\vite.config.ts" "%PENDRIVE%\codigo_fuente\" >nul
+copy /Y "%~dp0..\index.html" "%PENDRIVE%\codigo_fuente\" >nul
+copy /Y "%~dp0..\tailwind.config.ts" "%PENDRIVE%\codigo_fuente\" >nul
+copy /Y "%~dp0..\postcss.config.js" "%PENDRIVE%\codigo_fuente\" >nul
+copy /Y "%~dp0..\components.json" "%PENDRIVE%\codigo_fuente\" >nul
+copy /Y "%~dp0..\eslint.config.js" "%PENDRIVE%\codigo_fuente\" >nul
+copy /Y "%~dp0..\README.md" "%PENDRIVE%\codigo_fuente\" >nul
+copy /Y "%~dp0..\.env.example" "%PENDRIVE%\codigo_fuente\" >nul
+copy /Y "%~dp0..\iniciar_sistema.bat" "%PENDRIVE%\codigo_fuente\" >nul
+copy /Y "%~dp0..\CREDENCIALES_SISTEMA.txt" "%PENDRIVE%\codigo_fuente\" >nul 2>&1
+
+echo [OK] Código fuente completo copiado en: %PENDRIVE%\codigo_fuente\
+echo      (sin node_modules - ejecutar "npm install" para restaurar dependencias)
+echo.
+
 :: Copiar scripts de instalación
-echo [6/8] Copiando scripts de instalación...
+echo [7/9] Copiando scripts de instalación...
 copy /Y "%~dp0instalar_automatico.ps1" "%PENDRIVE%\scripts\" >nul 2>&1
-copy /Y "%~dp0configurar_pantallas.ps1" "%PENDRIVE%\scripts\" >nul 2>&1
-copy /Y "%~dp0configurar_kiosk.ps1" "%PENDRIVE%\scripts\" >nul 2>&1
-copy /Y "%~dp0configurar_mantenimiento.ps1" "%PENDRIVE%\scripts\" >nul 2>&1
+copy /Y "%~dp0configurar_mantenimiento_automatico.ps1" "%PENDRIVE%\scripts\" >nul 2>&1
+copy /Y "%~dp0watchdog_completo.ps1" "%PENDRIVE%\scripts\" >nul 2>&1
 echo [OK] Scripts copiados
 echo.
 
 :: Copiar documentación
-echo [7/8] Copiando documentación...
+echo [8/9] Copiando documentación...
 xcopy /E /I /Y /Q "%~dp0..\docs" "%PENDRIVE%\docs\" >nul
 echo [OK] Documentación copiada
 echo.
 
 :: Crear script principal de instalación
-echo [8/8] Creando script principal de instalación...
+echo [9/9] Creando script principal de instalación...
 (
 echo @echo off
 echo chcp 65001 ^>nul
@@ -167,7 +203,7 @@ echo title Instalador Automático - Sistema de Llaves FCEA
 echo.
 echo echo ╔════════════════════════════════════════════════════════════════════╗
 echo echo ║                                                                    ║
-echo echo ║     INSTALADOR AUTOMÁTICO - SISTEMA DE LLAVES FCEA                 ║
+echo echo ║     INSTALADOR AUTOMÁTICO - SISTEMA DE LLAVES FCEA  v5.3           ║
 echo echo ║                                                                    ║
 echo echo ╚════════════════════════════════════════════════════════════════════╝
 echo echo.
@@ -202,6 +238,14 @@ echo ╚════════════════════════
 echo.
 echo Ubicación: %PENDRIVE%
 echo.
+echo Contenido del pendrive:
+echo   INSTALAR_SISTEMA.bat     ← Ejecutar para instalar
+echo   sistema\                 ← Sistema listo para instalar
+echo   codigo_fuente\           ← Copia completa del código fuente
+echo   scripts\                 ← Scripts de mantenimiento
+echo   docs\                    ← Documentación completa
+echo   instaladores\            ← (Agregar node-setup.msi aquí)
+echo.
 echo ⚠️  PASOS FINALES IMPORTANTES:
 echo.
 echo 1. Descargar Node.js:
@@ -211,7 +255,7 @@ echo    - Guardar como: %PENDRIVE%\instaladores\node-setup.msi
 echo.
 echo 2. Etiquetar el pendrive físicamente:
 echo    "INSTALADOR SISTEMA LLAVES FCEA"
-echo    "Versión 5.1 - Mayo 2026"
+echo    "Versión 5.3 - Mayo 2026"
 echo    "NO BORRAR - SOLO LECTURA"
 echo.
 echo 3. Guardar el pendrive en lugar seguro
