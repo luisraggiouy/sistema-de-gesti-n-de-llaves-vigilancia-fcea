@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Download, FileSpreadsheet, Calendar, CalendarRange, UsbIcon, ShieldAlert, Info } from 'lucide-react';
+import { DateInput } from '@/components/ui/date-input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -503,21 +504,11 @@ export function ExportReportModal({ open, onOpenChange }: ExportReportModalProps
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Fecha inicio</Label>
-                  <input
-                    type="date"
-                    value={fechaInicioStr}
-                    onChange={(e) => setFechaInicioStr(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                  />
+                  <DateInput value={fechaInicioStr} onChange={v => setFechaInicioStr(v)} className="h-10" />
                 </div>
                 <div className="space-y-2">
                   <Label>Fecha fin</Label>
-                  <input
-                    type="date"
-                    value={fechaFinStr}
-                    onChange={(e) => setFechaFinStr(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                  />
+                  <DateInput value={fechaFinStr} onChange={v => setFechaFinStr(v)} className="h-10" />
                 </div>
               </div>
               

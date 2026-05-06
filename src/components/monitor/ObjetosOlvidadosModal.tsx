@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ObjetoOlvidado } from '@/types/objetoOlvidado';
 import { Package, Search, Calendar, MapPin, User, CreditCard, CheckCircle2, Plus, Eye, X } from 'lucide-react';
+import { DateInput } from '@/components/ui/date-input';
 
 interface ObjetosOlvidadosModalProps {
   open: boolean;
@@ -215,8 +216,8 @@ export function ObjetosOlvidadosModal({
               <div className="grid grid-cols-2 gap-2">
                 <div><Label className="text-xs">Descripción</Label><Input placeholder="Ej: jarra térmica" value={busqueda} onChange={e => setBusqueda(e.target.value)} className="h-9" /></div>
                 <div><Label className="text-xs">Lugar</Label><Input placeholder="Ej: Salón 101" value={busquedaLugar} onChange={e => setBusquedaLugar(e.target.value)} className="h-9" /></div>
-                <div><Label className="text-xs">Desde</Label><Input type="date" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)} className="h-9" /></div>
-                <div><Label className="text-xs">Hasta</Label><Input type="date" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)} className="h-9" /></div>
+                <div><Label className="text-xs">Desde</Label><DateInput value={fechaDesde} onChange={v => setFechaDesde(v)} className="h-9" /></div>
+                <div><Label className="text-xs">Hasta</Label><DateInput value={fechaHasta} onChange={v => setFechaHasta(v)} className="h-9" /></div>
               </div>
               <Select value={filtroEstado} onValueChange={(v) => setFiltroEstado(v as any)}>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>

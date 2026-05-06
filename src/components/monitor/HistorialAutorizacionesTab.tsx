@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Search, CalendarDays, Clock, UserCheck, Mail, X, History } from 'lucide-react';
 import { buscarHistorialAutorizaciones, getHistorialAutorizaciones, type AutorizacionHistorial } from '@/data/fceaData';
+import { DateInput } from '@/components/ui/date-input';
 
 export function HistorialAutorizacionesTab() {
   const [busqLugar, setBusqLugar] = useState('');
@@ -44,11 +45,11 @@ export function HistorialAutorizacionesTab() {
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
             <Label className="text-xs">Desde</Label>
-            <Input type="date" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)} className="h-9" />
+            <DateInput value={fechaDesde} onChange={v => setFechaDesde(v)} className="h-9" />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Hasta</Label>
-            <Input type="date" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)} className="h-9" />
+            <DateInput value={fechaHasta} onChange={v => setFechaHasta(v)} className="h-9" />
           </div>
         </div>
         {hayFiltros && (

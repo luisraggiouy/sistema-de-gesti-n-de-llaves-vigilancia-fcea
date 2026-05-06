@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Download, Calendar, FileSpreadsheet, Usb, Info, Check, X } from 'lucide-react';
+import { DateInput } from '@/components/ui/date-input';
 import { useToast } from '@/hooks/use-toast';
 import { exportToExcel, hayUSBConectado, obtenerUSBsConectados } from '@/utils/exportUtils';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
@@ -330,21 +331,11 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="startDate">Fecha de Inicio</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
+                  <DateInput value={startDate} onChange={v => setStartDate(v)} className="h-9" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="endDate">Fecha de Fin</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
+                  <DateInput value={endDate} onChange={v => setEndDate(v)} className="h-9" />
                 </div>
               </div>
               

@@ -12,6 +12,7 @@ import {
   purgarAutorizacionesVencidas, normalizarTexto
 } from '@/data/fceaData';
 import { useToast } from '@/hooks/use-toast';
+import { DateInput } from '@/components/ui/date-input';
 
 export function AutorizacionesTab() {
   const { toast } = useToast();
@@ -230,7 +231,7 @@ export function AutorizacionesTab() {
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label className="text-xs">Fecha de autorización</Label>
-                <Input type="date" value={form.fechaAutorizacion} onChange={e => setForm(f => ({ ...f, fechaAutorizacion: e.target.value }))} className="h-9" />
+                <DateInput value={form.fechaAutorizacion} onChange={v => setForm(f => ({ ...f, fechaAutorizacion: v }))} className="h-9" />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Email de referencia</Label>
@@ -240,11 +241,11 @@ export function AutorizacionesTab() {
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label className="text-xs">Vigencia desde (opcional)</Label>
-                <Input type="date" value={form.fechaDesde} onChange={e => setForm(f => ({ ...f, fechaDesde: e.target.value }))} className="h-9" />
+                <DateInput value={form.fechaDesde} onChange={v => setForm(f => ({ ...f, fechaDesde: v }))} className="h-9" />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Vigencia hasta (opcional)</Label>
-                <Input type="date" value={form.fechaHasta} onChange={e => setForm(f => ({ ...f, fechaHasta: e.target.value }))} className="h-9" />
+                <DateInput value={form.fechaHasta} onChange={v => setForm(f => ({ ...f, fechaHasta: v }))} className="h-9" />
               </div>
             </div>
             <div className="space-y-1">
