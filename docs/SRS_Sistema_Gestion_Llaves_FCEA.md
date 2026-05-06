@@ -1345,11 +1345,11 @@ El Dashboard proporciona una vision ejecutiva completa de las operaciones del si
 - Boton de exportacion de datos completos
 
 **Datos exportables:**
-- 🔑 Gestión de llaves (solicitudes, entregas, devoluciones)
-- 📦 Objetos olvidados (registro y devolución por vigilantes)
-- ✅ Autorizaciones ingresadas (creadas por vigilantes)
-- 📈 Estadísticas y resúmenes por turno y período
-- 👥 Usuarios y catálogo de llaves (opcional)
+- Gestión de llaves (solicitudes, entregas, devoluciones)
+- Objetos olvidados (registro y devolución por vigilantes)
+- Autorizaciones ingresadas (creadas por vigilantes)
+- Estadísticas y resúmenes por turno y período
+- Usuarios y catálogo de llaves (opcional)
 
 ### 8.4 Modales de Configuracion
 

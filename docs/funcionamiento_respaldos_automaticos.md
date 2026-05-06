@@ -1,4 +1,4 @@
-# 💾 FUNCIONAMIENTO: Respaldos Automáticos del Sistema
+# FUNCIONAMIENTO: Respaldos Automáticos del Sistema
 ## Sistema de Gestión de Llaves — FCEA
 
 **Versión:** 1.0  
@@ -50,29 +50,29 @@ El sistema cuenta con un mecanismo de **respaldos automáticos** que garantiza q
 ```
 Cada domingo a las 8:00 AM, automáticamente:
 
-  1️⃣  El sistema verifica que hay espacio suficiente en el disco
-      (necesita al menos 15% libre)
+  1. El sistema verifica que hay espacio suficiente en el disco
+     (necesita al menos 15% libre)
 
-  2️⃣  Detiene temporalmente la base de datos (2 segundos)
-      para asegurar que la copia sea perfecta
+  2. Detiene temporalmente la base de datos (2 segundos)
+     para asegurar que la copia sea perfecta
 
-  3️⃣  Copia el archivo de base de datos completo
-      (pocketbase/pb_data/data.db)
+  3. Copia el archivo de base de datos completo
+     (pocketbase/pb_data/data.db)
 
-  4️⃣  Comprime la copia en formato ZIP para ahorrar espacio
-      (una base de datos de 50 MB se comprime a ~15 MB)
+  4. Comprime la copia en formato ZIP para ahorrar espacio
+     (una base de datos de 50 MB se comprime a ~15 MB)
 
-  5️⃣  Reinicia la base de datos automáticamente
-      (el sistema vuelve a funcionar en segundos)
+  5. Reinicia la base de datos automáticamente
+     (el sistema vuelve a funcionar en segundos)
 
-  6️⃣  Verifica la integridad de la base de datos
-      (comprueba que no haya datos corruptos)
+  6. Verifica la integridad de la base de datos
+     (comprueba que no haya datos corruptos)
 
-  7️⃣  Elimina las copias más antiguas si hay más de 52
-      (siempre mantiene las 52 más recientes = 1 año)
+  7. Elimina las copias más antiguas si hay más de 52
+     (siempre mantiene las 52 más recientes = 1 año)
 
-  8️⃣  Registra todo en un archivo de log
-      (para que se pueda auditar qué pasó)
+  8. Registra todo en un archivo de log
+     (para que se pueda auditar qué pasó)
 ```
 
 ### 3.2 ¿Dónde se guardan los respaldos?
@@ -82,7 +82,7 @@ pocketbase\
 ├── pb_data\
 │   └── data.db                    ← Base de datos ACTIVA (la que usa el sistema)
 │
-├── pb_backups\                    ← 📁 CARPETA DE RESPALDOS
+├── pb_backups\                    ← CARPETA DE RESPALDOS
 │   ├── backup_full_20260412_080000.db.zip    ← Respaldo del 12/04/2026
 │   ├── backup_full_20260405_080000.db.zip    ← Respaldo del 05/04/2026
 │   ├── backup_full_20260329_080000.db.zip    ← Respaldo del 29/03/2026
@@ -233,16 +233,16 @@ Además del respaldo, el script de mantenimiento automático realiza:
 
 ## 8. Recomendaciones para máxima seguridad
 
-### 🥇 Nivel básico (mínimo recomendado)
+### Nivel básico (mínimo recomendado)
 - ✅ Dejar el respaldo automático semanal funcionando
 - ✅ Verificar el log una vez al mes
 
-### 🥈 Nivel intermedio (recomendado)
+### Nivel intermedio (recomendado)
 - ✅ Todo lo anterior
 - ✅ Copiar la carpeta `pb_backups` a un pendrive externo una vez al mes
 - ✅ Guardar el pendrive en un lugar diferente a donde está la computadora
 
-### 🥉 Nivel avanzado (ideal)
+### Nivel avanzado (ideal)
 - ✅ Todo lo anterior
 - ✅ Copiar los respaldos a una carpeta compartida en la red de la Facultad
 - ✅ Tener un segundo pendrive de recuperación actualizado

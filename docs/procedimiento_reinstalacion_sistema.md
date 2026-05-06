@@ -1,4 +1,4 @@
-# 🔧 PROCEDIMIENTO: Reinstalación del Sistema ante Fallas
+# PROCEDIMIENTO: Reinstalación del Sistema ante Fallas
 ## Sistema de Gestión de Llaves — FCEA
 
 **Versión:** 2.0  
@@ -20,7 +20,7 @@ El sistema está diseñado para que, en caso de falla grave, pueda ser **restaur
 
 ## 2. Escenarios de falla y tiempos reales de recuperación
 
-### 📊 Tabla de escenarios críticos
+### Tabla de escenarios críticos
 
 | # | Escenario | Gravedad | ¿Se pierden datos? | Método de recuperación | Tiempo real | ¿Quién lo resuelve? |
 |---|-----------|----------|--------------------|-----------------------|-------------|---------------------|

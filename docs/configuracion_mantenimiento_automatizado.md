@@ -18,7 +18,7 @@ El sistema de mantenimiento consiste en:
 5. **Directorio de logs** (`pocketbase/maintenance/logs`) - Almacena registros de todas las operaciones
 6. **Archivo de estado** (`public/system_health.json`) - Estado de salud del sistema en tiempo real
 
-## Configuración Automática (Recomendada) ⭐
+## Configuración Automática (Recomendada)
 
 ### Método Rápido: Script de Configuración Automática
 
@@ -178,7 +178,7 @@ Para probar que el sistema funciona:
 3. **Visualización**: El Monitor de Vigilancia lee este archivo cada 5 minutos y muestra:
    - 🔴 **Alertas Críticas**: Requieren acción inmediata
    - 🟡 **Advertencias**: Requieren atención pronto
-   - 📊 **Métricas**: Estado general del sistema
+   - **Métricas**: Estado general del sistema
 
 ### Tipos de Alertas
 

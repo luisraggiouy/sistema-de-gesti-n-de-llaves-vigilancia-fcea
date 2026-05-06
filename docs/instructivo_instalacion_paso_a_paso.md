@@ -1,12 +1,12 @@
-# 📖 Instructivo de Instalación Paso a Paso - Sistema de Llaves FCEA
+# Instructivo de Instalación Paso a Paso - Sistema de Llaves FCEA
 
-## 🎯 Guía Ultra-Simplificada (Para Cualquier Persona)
+## Guía Ultra-Simplificada (Para Cualquier Persona)
 
 Este documento explica cómo instalar el sistema de forma TAN SIMPLE que hasta un niño podría hacerlo.
 
 ---
 
-## 📦 OPCIÓN 1: Instalación con Pendrive (MÁS FÁCIL)
+## OPCIÓN 1: Instalación con Pendrive (MÁS FÁCIL)
 
 ### Paso 1: Preparar el Pendrive de Instalación
 
@@ -199,7 +199,7 @@ El sistema ya está instalado y funcionando. Si seleccionaste "Producción", se 
 
 ---
 
-## 📦 OPCIÓN 2: Recuperación con Pendrive (Si algo salió mal)
+## OPCIÓN 2: Recuperación con Pendrive (Si algo salió mal)
 
 ### Paso 1: Preparar el Pendrive de Recuperación
 
@@ -266,7 +266,7 @@ El sistema está recuperado y funcionando nuevamente.
 
 ---
 
-## 🆘 Solución de Problemas Comunes
+## Solución de Problemas Comunes
 
 ### Problema 1: "No se puede ejecutar como administrador"
 **Solución**:
@@ -312,7 +312,7 @@ Después de instalar, verificar que:
 
 ---
 
-## 📞 ¿Necesitas Ayuda?
+## ¿Necesitas Ayuda?
 
 Si algo no funciona:
 
@@ -323,7 +323,7 @@ Si algo no funciona:
 
 ---
 
-## 🎉 ¡Felicitaciones!
+## ¡Felicitaciones!
 
 Si llegaste hasta aquí y todo funciona, ¡lo lograste! El sistema está instalado y listo para usar.
 

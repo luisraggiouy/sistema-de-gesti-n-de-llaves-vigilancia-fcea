@@ -57,7 +57,7 @@ Cada tarjeta de autorización muestra:
 - Horario autorizado (si aplica)
 - Email de referencia (si aplica)
 - Observaciones (si aplica)
-- Botones: ✏️ Editar | 🗑 Eliminar
+- Botones: Editar | Eliminar
 
 ### Modo Nueva / Editar
 
@@ -88,8 +88,8 @@ Muestra todas las autorizaciones que ya no están vigentes, ordenadas por fecha 
 
 | Tipo | Badge | Color | Descripción |
 |------|-------|-------|-------------|
-| **Eliminada** | 🗑 Eliminada | Rojo | El vigilante la eliminó manualmente |
-| **Vencida** | ⚠ Vencida | Amarillo | La fecha de vigencia expiró y fue purgada automáticamente |
+| **Eliminada** | Eliminada | Rojo | El vigilante la eliminó manualmente |
+| **Vencida** | Vencida | Amarillo | La fecha de vigencia expiró y fue purgada automáticamente |
 
 ### Información mostrada por tarjeta
 
@@ -181,7 +181,7 @@ Los datos se almacenan en `localStorage` del navegador:
 ### v5.1 — 05/05/2026
 - **fix**: Implementadas todas las funciones de autorizaciones con `localStorage` (`guardarAutorizacion`, `eliminarAutorizacion`, `buscarAutorizacionEnVivo`, `getAutorizaciones`, `getHistorialAutorizaciones`, `purgarAutorizacionesVencidas`). Anteriormente eran stubs que no hacían nada.
 - **feat**: El listado de autorizaciones vigentes se muestra directamente al abrir la pestaña (sin necesidad de buscar), ordenado por más reciente primero.
-- **feat**: Historial mejorado: vigencia mostrada como `fechaDesde → fechaHasta`, badges diferenciados (🗑 Eliminada en rojo / ⚠ Vencida en amarillo), etiqueta de fecha de baja contextual ("Eliminada el:" / "Venció el:").
+- **feat**: Historial mejorado: vigencia mostrada como `fechaDesde → fechaHasta`, badges diferenciados (Eliminada en rojo / Vencida en amarillo), etiqueta de fecha de baja contextual ("Eliminada el:" / "Venció el:").
 - **feat**: Botón **↩ Restablecer** en autorizaciones eliminadas del historial. Mueve la autorización de vuelta a vigentes.
 - **feat**: Función `restablecerAutorizacion(id)` en `fceaData.ts`.
 - **feat**: Contadores de eliminadas/vencidas en el encabezado del historial.

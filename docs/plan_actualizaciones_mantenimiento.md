@@ -91,7 +91,7 @@ El Monitor de Vigilancia muestra automáticamente alertas cuando se detectan pro
 
 - 🔴 **Críticas**: Espacio disco < 10%, backup > 14 días, PocketBase caído
 - 🟡 **Advertencias**: Espacio disco < 20%, backup > 8 días, pendrive > 90 días, errores en logs
-- 📊 **Métricas**: Estado general visible en tiempo real
+- **Métricas**: Estado general visible en tiempo real
 
 **Responsabilidad de Vigilantes**: Revisar Monitor al inicio del turno y reportar alertas críticas a Personal de Sistemas.
 
@@ -105,7 +105,7 @@ El Monitor de Vigilancia muestra automáticamente alertas cuando se detectan pro
 - Reiniciar servicios (si PocketBase caído)
 ```
 
-> 📌 **IMPORTANTE**: Con el sistema de alertas automatizado, ya NO es necesario realizar mantenimiento mensual ni trimestral manual de rutina. El sistema se auto-mantiene y solo requiere atención cuando muestra alertas.
+> **IMPORTANTE**: Con el sistema de alertas automatizado, ya NO es necesario realizar mantenimiento mensual ni trimestral manual de rutina. El sistema se auto-mantiene y solo requiere atención cuando muestra alertas.
 
 ### Mantenimiento Anual (Manual)
 ```bash
@@ -126,7 +126,7 @@ El Monitor de Vigilancia muestra automáticamente alertas cuando se detectan pro
 - Evaluación de hardware
 ```
 
-> 💡 **Nota**: Las actualizaciones de software solo se realizan cuando hay vulnerabilidades de seguridad conocidas o cuando el sistema muestra problemas de rendimiento.
+> **Nota**: Las actualizaciones de software solo se realizan cuando hay vulnerabilidades de seguridad conocidas o cuando el sistema muestra problemas de rendimiento.
 
 ## Procedimientos de Actualización
 
@@ -550,14 +550,14 @@ npm audit fix --force
 
 | Tipo | Descripción | Archivos |
 |------|-------------|---------|
-| 🐛 fix | Las funciones `guardarAutorizacion`, `eliminarAutorizacion`, `buscarAutorizacionEnVivo`, `getAutorizaciones`, `getHistorialAutorizaciones` y `purgarAutorizacionesVencidas` eran stubs vacíos. Se implementaron con `localStorage`. | `src/data/fceaData.ts` |
-| ✨ feat | El listado de autorizaciones vigentes se muestra directamente al abrir la pestaña, ordenado por más reciente primero (sin necesidad de buscar). | `src/components/monitor/AutorizacionesTab.tsx` |
-| ✨ feat | Historial: vigencia mostrada como `fechaDesde → fechaHasta`. | `src/components/monitor/HistorialAutorizacionesTab.tsx` |
-| ✨ feat | Historial: badges diferenciados — 🗑 **Eliminada** (rojo) vs ⚠ **Vencida** (amarillo). Etiqueta de fecha contextual ("Eliminada el:" / "Venció el:"). | `src/components/monitor/HistorialAutorizacionesTab.tsx` |
-| ✨ feat | Botón **↩ Restablecer** en autorizaciones eliminadas del historial. Las vencidas no se pueden restablecer (deben crearse nuevamente). | `src/components/monitor/HistorialAutorizacionesTab.tsx` |
-| ✨ feat | Nueva función `restablecerAutorizacion(id)` en `fceaData.ts`. | `src/data/fceaData.ts` |
-| ✨ feat | Contadores de eliminadas/vencidas en el encabezado del historial. | `src/components/monitor/HistorialAutorizacionesTab.tsx` |
-| 📄 docs | Nuevo documento `docs/funcionalidad_autorizaciones.md` con descripción completa del módulo, modelo de datos, reglas de negocio y changelog. | `docs/funcionalidad_autorizaciones.md` |
+| fix | Las funciones `guardarAutorizacion`, `eliminarAutorizacion`, `buscarAutorizacionEnVivo`, `getAutorizaciones`, `getHistorialAutorizaciones` y `purgarAutorizacionesVencidas` eran stubs vacíos. Se implementaron con `localStorage`. | `src/data/fceaData.ts` |
+| feat | El listado de autorizaciones vigentes se muestra directamente al abrir la pestaña, ordenado por más reciente primero (sin necesidad de buscar). | `src/components/monitor/AutorizacionesTab.tsx` |
+| feat | Historial: vigencia mostrada como `fechaDesde → fechaHasta`. | `src/components/monitor/HistorialAutorizacionesTab.tsx` |
+| feat | Historial: badges diferenciados — **Eliminada** (rojo) vs **Vencida** (amarillo). Etiqueta de fecha contextual ("Eliminada el:" / "Venció el:"). | `src/components/monitor/HistorialAutorizacionesTab.tsx` |
+| feat | Botón **↩ Restablecer** en autorizaciones eliminadas del historial. Las vencidas no se pueden restablecer (deben crearse nuevamente). | `src/components/monitor/HistorialAutorizacionesTab.tsx` |
+| feat | Nueva función `restablecerAutorizacion(id)` en `fceaData.ts`. | `src/data/fceaData.ts` |
+| feat | Contadores de eliminadas/vencidas en el encabezado del historial. | `src/components/monitor/HistorialAutorizacionesTab.tsx` |
+| docs | Nuevo documento `docs/funcionalidad_autorizaciones.md` con descripción completa del módulo, modelo de datos, reglas de negocio y changelog. | `docs/funcionalidad_autorizaciones.md` |
 
 **Commits GitHub:**
 - `ed49aab` — fix: implementar guardarAutorizacion/eliminar/buscar con localStorage
