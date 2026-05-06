@@ -521,6 +521,20 @@ export function buscarHistorialAutorizaciones(
   });
 }
 
+export function restablecerAutorizacion(id: string): Autorizacion | null {
+  const historial = _loadHistorialAutorizaciones();
+  const idx = historial.findIndex(a => a.id === id);
+  if (idx === -1) return null;
+  const [entrada] = historial.splice(idx, 1);
+  _saveHistorialAutorizaciones(historial);
+  // Quitar campos de historial y volver a activas
+  const { motivoBaja: _m, fechaBaja: _f, ...autorizacion } = entrada;
+  const list = _loadAutorizaciones();
+  list.push(autorizacion);
+  _saveAutorizaciones(list);
+  return autorizacion;
+}
+
 export function purgarAutorizacionesVencidas(): number {
   const hoy = new Date().toISOString().split('T')[0];
   const list = _loadAutorizaciones();
