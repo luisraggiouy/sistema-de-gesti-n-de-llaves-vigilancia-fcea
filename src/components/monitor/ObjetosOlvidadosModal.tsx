@@ -160,11 +160,18 @@ export function ObjetosOlvidadosModal({
   const [fechaHasta, setFechaHasta] = useState('');
   const [filtroEstado, setFiltroEstado] = useState<'custodia' | 'devuelto' | 'todos'>('todos');
 
+  // Parsear "YYYY-MM-DD" como fecha LOCAL (new Date("YYYY-MM-DD") la interpreta como UTC y desfasa 3h en Uruguay)
+  const parsearFechaLocal = (s: string): Date | undefined => {
+    if (!s) return undefined;
+    const [y, m, d] = s.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  };
+
   const resultados = buscarObjetos({
     texto: busqueda || undefined,
     lugar: busquedaLugar || undefined,
-    fechaDesde: fechaDesde ? new Date(fechaDesde) : undefined,
-    fechaHasta: fechaHasta ? new Date(fechaHasta) : undefined,
+    fechaDesde: parsearFechaLocal(fechaDesde),
+    fechaHasta: parsearFechaLocal(fechaHasta),
     estado: filtroEstado,
   });
 

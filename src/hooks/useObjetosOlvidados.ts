@@ -104,13 +104,15 @@ export function useObjetosOlvidados() {
         if (!normalizar(o.lugarEncontrado || '').includes(normalizar(filtros.lugar))) return false;
       }
       if (filtros.fechaDesde) {
-        const desde = new Date(filtros.fechaDesde);
-        desde.setHours(0, 0, 0, 0);
+        // Forzar inicio del día en hora local (evita desfase UTC)
+        const d = filtros.fechaDesde;
+        const desde = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
         if (o.fechaRegistro < desde) return false;
       }
       if (filtros.fechaHasta) {
-        const hasta = new Date(filtros.fechaHasta);
-        hasta.setHours(23, 59, 59, 999);
+        // Forzar fin del día en hora local (evita desfase UTC)
+        const d = filtros.fechaHasta;
+        const hasta = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
         if (o.fechaRegistro > hasta) return false;
       }
       if (filtros.estado && filtros.estado !== 'todos') {
