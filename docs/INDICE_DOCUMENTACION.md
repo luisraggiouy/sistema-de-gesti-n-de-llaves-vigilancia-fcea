@@ -1,20 +1,20 @@
-# 📚 Índice de Documentación — Sistema de Gestión de Llaves FCEA
+# Índice de Documentación — Sistema de Gestión de Llaves FCEA
 
 > **Versión del sistema:** 5.3 — Mayo 2026  
 > **Repositorio:** https://github.com/luisraggiouy/sistema-de-gesti-n-de-llaves-vigilancia-fcea
 
 ---
 
-## 🗂️ Documentos por Categoría
+## Documentos por Categoría
 
-### 🔐 Acceso y Credenciales
+### Acceso y Credenciales
 | Documento | Descripción |
 |-----------|-------------|
 | [credenciales_sistema.md](credenciales_sistema.md) | Contraseñas de PocketBase, Monitor (Admin y Custodio). **Leer primero.** |
 
 ---
 
-### 🚀 Instalación y Puesta en Marcha
+### Instalación y Puesta en Marcha
 | Documento | Descripción |
 |-----------|-------------|
 | [instructivo_instalacion_paso_a_paso.md](instructivo_instalacion_paso_a_paso.md) | Guía completa de instalación desde cero en un equipo nuevo. |
@@ -24,7 +24,7 @@
 
 ---
 
-### 🖥️ Uso del Sistema
+### Uso del Sistema
 | Documento | Descripción |
 |-----------|-------------|
 | [instructivo_acceso_dashboard.md](instructivo_acceso_dashboard.md) | Cómo acceder y usar el Dashboard de estadísticas. |
@@ -34,7 +34,7 @@
 
 ---
 
-### 🔧 Mantenimiento y Operación
+### Mantenimiento y Operación
 | Documento | Descripción |
 |-----------|-------------|
 | [guia_mantenimiento_paso_a_paso.md](guia_mantenimiento_paso_a_paso.md) | Tareas de mantenimiento rutinario del sistema. |
@@ -45,7 +45,7 @@
 
 ---
 
-### 🛠️ Solución de Problemas
+### Solución de Problemas
 | Documento | Descripción |
 |-----------|-------------|
 | [procedimiento_reinstalacion_sistema.md](procedimiento_reinstalacion_sistema.md) | Pasos para reinstalar el sistema completo desde cero. |
@@ -57,7 +57,7 @@
 
 ---
 
-### 📋 Documentación Técnica
+### Documentación Técnica
 | Documento | Descripción |
 |-----------|-------------|
 | [SRS_Sistema_Gestion_Llaves_FCEA.md](SRS_Sistema_Gestion_Llaves_FCEA.md) | Especificación de Requisitos del Software (SRS) completa. |
@@ -66,43 +66,43 @@
 
 ---
 
-### 🎓 Presentación a Autoridades
+### Presentación a Autoridades
 | Documento | Descripción |
 |-----------|-------------|
 | [presentacion_autoridades.md](presentacion_autoridades.md) | Resumen ejecutivo del sistema para presentar a las autoridades de FCEA. |
 
 ---
 
-## 📁 Estructura del Repositorio
+## Estructura del Repositorio
 
 ```
 sistema-de-gestion-de-llaves-vigilancia-fcea/
-├── src/                    ← Código fuente del frontend (React + TypeScript)
-├── pocketbase/             ← Base de datos y ejecutable PocketBase
-│   ├── pocketbase.exe      ← Servidor de base de datos
-│   ├── pb_data/            ← Datos de la base de datos (NO borrar)
-│   └── pb_migrations/      ← Migraciones de esquema
-├── public/                 ← Archivos estáticos
-├── scripts/                ← Scripts de instalación, mantenimiento y watchdog
-├── docs/                   ← Toda la documentación (este directorio)
-├── iniciar_sistema.bat     ← Arrancar el sistema manualmente
-├── INICIAR_SISTEMA_AHORA.bat ← Arrancar el sistema (alternativo)
-└── README.md               ← Descripción general del proyecto
+├── src/                    — Código fuente del frontend (React + TypeScript)
+├── pocketbase/             — Base de datos y ejecutable PocketBase
+│   ├── pocketbase.exe      — Servidor de base de datos
+│   ├── pb_data/            — Datos de la base de datos (NO borrar)
+│   └── pb_migrations/      — Migraciones de esquema
+├── public/                 — Archivos estáticos
+├── scripts/                — Scripts de instalación, mantenimiento y watchdog
+├── docs/                   — Toda la documentación (este directorio)
+├── iniciar_sistema.bat     — Arrancar el sistema manualmente
+├── INICIAR_SISTEMA_AHORA.bat — Arrancar el sistema (alternativo)
+└── README.md               — Descripción general del proyecto
 ```
 
 ---
 
-## ⚡ Inicio Rápido
+## Inicio Rápido
 
 ### Arrancar el sistema
 ```
 Doble clic en: iniciar_sistema.bat
 ```
 Luego abrir en el navegador:
-- **Monitor de Vigilancia:** http://localhost:8080/monitor
-- **Terminal de Usuario:** http://localhost:8080/terminal
-- **Dashboard:** http://localhost:8080/dashboard
-- **Admin PocketBase:** http://localhost:8090/_/
+- Monitor de Vigilancia: http://localhost:8080/monitor
+- Terminal de Usuario: http://localhost:8080/terminal
+- Dashboard: http://localhost:8080/dashboard
+- Admin PocketBase: http://localhost:8090/_/
 
 ### Si el sistema no arranca
 Ver: [SOLUCION_PROBLEMA_REINICIO_5_MAYO.md](SOLUCION_PROBLEMA_REINICIO_5_MAYO.md)

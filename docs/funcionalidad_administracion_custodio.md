@@ -86,7 +86,7 @@ El sistema ahora soporta dos tipos de usuarios administrativos:
 5. Hace clic en "Exportar a USB" y los datos se guardan directamente en el pendrive.
 6. El sistema muestra un mensaje de confirmación cuando puede retirar el pendrive.
 
-> 💡 **Nota sobre modo kiosk:** El navegador funciona en modo kiosk, lo que significa que los archivos se exportan directamente al pendrive USB conectado. Esto simplifica el proceso y evita la necesidad de navegar por el sistema de archivos de Windows o acceder a la carpeta de Descargas. Simplemente conecte el pendrive antes de exportar y el sistema lo detectará automáticamente.
+> **Nota sobre modo kiosk:** El navegador funciona en modo kiosk, lo que significa que los archivos se exportan directamente al pendrive USB conectado. Esto simplifica el proceso y evita la necesidad de navegar por el sistema de archivos de Windows o acceder a la carpeta de Descargas. Simplemente conecte el pendrive antes de exportar y el sistema lo detectará automáticamente.
 
 > ⚠️ **Importante:** Tanto administradores como custodios REQUIEREN un pendrive USB conectado para exportar datos. Esto garantiza compatibilidad total con el modo kiosk y evita tener que salir del modo kiosk para acceder a archivos descargados.
 

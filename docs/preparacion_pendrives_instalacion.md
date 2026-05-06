@@ -1,4 +1,4 @@
-# 📀 Preparación de Pendrives de Instalación y Recuperación
+# Preparación de Pendrives de Instalación y Recuperación
 ## Sistema de Gestión de Llaves — FCEA
 
 **Versión:** 1.0  

@@ -480,24 +480,24 @@ crontab -e
 
 #### Tarjeta de Referencia para Vigilantes
 ```
-🚨 PROBLEMAS COMUNES - SISTEMA DE LLAVES
+PROBLEMAS COMUNES - SISTEMA DE LLAVES
 
-❌ "Sin conexión" en pantallas:
+"Sin conexión" en pantallas:
 1. Verificar que Mini-PC esté encendida
 2. Esperar 30 segundos para reconexión automática
 3. Si persiste, llamar a TAS: [TELÉFONO]
 
-❌ Terminal no responde:
+Terminal no responde:
 1. Presionar Ctrl+Shift+R
 2. Si no funciona, reiniciar dispositivo
 3. Esperar 2 minutos para que cargue
 
-❌ Datos no se guardan:
+Datos no se guardan:
 1. Verificar conexión (esquina superior)
 2. No apagar equipos hasta resolver
 3. Llamar inmediatamente a TAS: [TELÉFONO]
 
-📞 CONTACTOS DE EMERGENCIA:
+CONTACTOS DE EMERGENCIA:
 - TAS (8-17h): [TELÉFONO]
 - Soporte 24/7: [TELÉFONO]
 ```

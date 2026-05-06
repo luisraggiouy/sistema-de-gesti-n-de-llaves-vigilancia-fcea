@@ -9,9 +9,9 @@ Este documento detalla las funcionalidades de visualización de datos y exportac
 **El Dashboard es el fiel reflejo del trabajo realizado por cada vigilante y por cada turno.**
 
 El sistema registra y permite exportar TODA la información relacionada con las tareas que realizan los vigilantes:
-- 🔑 Gestión de llaves (entregas y devoluciones)
-- 📦 Objetos olvidados (registro y devolución)
-- ✅ Autorizaciones (creación y gestión)
+- Gestión de llaves (entregas y devoluciones)
+- Objetos olvidados (registro y devolución)
+- Autorizaciones (creación y gestión)
 
 ## Visualizaciones Disponibles
 
@@ -59,7 +59,7 @@ El sistema permite exportar datos completos en formato CSV (compatible con Excel
 
 El sistema permite seleccionar qué información incluir:
 
-#### 🔑 Gestión de Llaves
+#### Gestión de Llaves
 
 **Solicitudes Pendientes**:
 - Fecha y hora de solicitud
@@ -86,7 +86,7 @@ El sistema permite seleccionar qué información incluir:
 - Notas
 - Estado
 
-#### 📦 Objetos Olvidados
+#### Objetos Olvidados
 
 **Registro de Objetos**:
 - Fecha y hora de registro
@@ -101,7 +101,7 @@ El sistema permite seleccionar qué información incluir:
 - **Vigilante que realizó la devolución**
 - Observaciones
 
-#### ✅ Autorizaciones Ingresadas
+#### Autorizaciones Ingresadas
 
 **Creación de Autorizaciones**:
 - Fecha y hora de autorización
@@ -113,7 +113,7 @@ El sistema permite seleccionar qué información incluir:
 - Email de referencia
 - Observaciones
 
-#### 📈 Información Adicional (Opcional)
+#### Información Adicional (Opcional)
 
 - **Estadísticas y Resúmenes**: Análisis agregados por turno y período
 - **Lista de Usuarios**: Catálogo de usuarios registrados en el sistema
@@ -193,11 +193,11 @@ Para facilitar la interpretación de los datos, se utilizan códigos de color:
 
 ## Seguridad y Privacidad
 
-- ✅ Requiere USB conectado para exportar (todos los usuarios)
-- ✅ Requiere seleccionar rango de fechas (no exportación masiva indiscriminada)
-- ✅ Registro de quién exportó y cuándo
-- ✅ Compatible con modo kiosk
-- ✅ Datos sensibles protegidos
+- Requiere USB conectado para exportar (todos los usuarios)
+- Requiere seleccionar rango de fechas (no exportación masiva indiscriminada)
+- Registro de quién exportó y cuándo
+- Compatible con modo kiosk
+- Datos sensibles protegidos
 
 ## Recomendaciones de Uso
 

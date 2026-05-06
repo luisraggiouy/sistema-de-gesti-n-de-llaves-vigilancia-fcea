@@ -1,4 +1,4 @@
-# 📊 INSTRUCTIVO: Acceso al Dashboard de Estadísticas
+# INSTRUCTIVO: Acceso al Dashboard de Estadísticas
 ## Sistema de Gestión de Llaves — FCEA
 
 **Versión:** 1.0  
@@ -47,14 +47,14 @@ Al intentar acceder al Dashboard, el sistema mostrará una **pantalla de contras
 ```
 ┌─────────────────────────────────────┐
 │                                     │
-│   🔒 Acceso al Dashboard            │
+│   Acceso al Dashboard               │
 │                                     │
 │   Ingrese la contraseña:            │
 │   ┌───────────────────────────┐     │
 │   │ ••••••••                  │     │
 │   └───────────────────────────┘     │
 │                                     │
-│   ☐ Ingresar como Custodio          │
+│   [ ] Ingresar como Custodio        │
 │                                     │
 │   [ Iniciar Sesión ]                │
 │                                     │
@@ -128,7 +128,7 @@ El sistema implementa las siguientes medidas de seguridad:
 5. Haga clic en **"Descargar"**
 6. El archivo se guardará **directamente en el pendrive** conectado
 
-> 💡 **Nota importante:** El navegador funciona en modo kiosk, por lo que los archivos se exportan directamente al pendrive USB conectado. Asegúrese de tener un pendrive insertado antes de iniciar la exportación. Si necesita acceder a otras ubicaciones de Windows, consulte con el personal de sistemas.
+> **Nota importante:** El navegador funciona en modo kiosk, por lo que los archivos se exportan directamente al pendrive USB conectado. Asegúrese de tener un pendrive insertado antes de iniciar la exportación. Si necesita acceder a otras ubicaciones de Windows, consulte con el personal de sistemas.
 
 ---
 
@@ -137,13 +137,13 @@ El sistema implementa las siguientes medidas de seguridad:
 Solo el **Administrador** puede cambiar las contraseñas. Para hacerlo:
 
 1. Acceda al Dashboard con la contraseña de Administrador
-2. Haga clic en el ícono de **Configuración** (⚙️)
+2. Haga clic en el ícono de **Configuración**
 3. Seleccione **"Cambiar contraseña"**
 4. Ingrese la contraseña actual
 5. Ingrese la nueva contraseña
 6. Confirme
 
-> 💡 **Recomendación:** Cambie las contraseñas al menos una vez por semestre y cada vez que un jefe de turno deje su cargo.
+> **Recomendación:** Cambie las contraseñas al menos una vez por semestre y cada vez que un jefe de turno deje su cargo.
 
 ---
 
@@ -156,7 +156,7 @@ Solo el **Administrador** puede cambiar las contraseñas. Para hacerlo:
 
 > ⚠️ **Se recomienda encarecidamente cambiar estas contraseñas inmediatamente después de la primera instalación.**
 
-> 📌 **Importante:** Estas contraseñas por defecto se restablecerán automáticamente cada vez que se restaure el sistema utilizando el pendrive restaurador. Después de cada restauración, deberá cambiar las contraseñas nuevamente por seguridad.
+> **Importante:** Estas contraseñas por defecto se restablecerán automáticamente cada vez que se restaure el sistema utilizando el pendrive restaurador. Después de cada restauración, deberá cambiar las contraseñas nuevamente por seguridad.
 
 ---
 

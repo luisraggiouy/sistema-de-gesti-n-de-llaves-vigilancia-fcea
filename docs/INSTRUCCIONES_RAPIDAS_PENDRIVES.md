@@ -1,4 +1,4 @@
-# 💾 Instrucciones Rápidas: Preparar los Pendrives
+# Instrucciones Rápidas: Preparar los Pendrives
 ## Sistema de Gestión de Llaves — FCEA · v5.3 · Mayo 2026
 
 ---
@@ -53,16 +53,16 @@ Se necesitan **2 pendrives**:
 ### Contenido del pendrive una vez preparado:
 ```
 INSTALADOR_LLAVES_FCEA\
-├── INSTALAR_SISTEMA.bat      ← Ejecutar para instalar
-├── sistema\                  ← Sistema listo para instalar
-├── codigo_fuente\            ← Copia completa del código fuente (sin node_modules)
-├── scripts\                  ← Scripts de mantenimiento
-├── docs\                     ← Documentación completa
+├── INSTALAR_SISTEMA.bat      — Ejecutar para instalar
+├── sistema\                  — Sistema listo para instalar
+├── codigo_fuente\            — Copia completa del código fuente (sin node_modules)
+├── scripts\                  — Scripts de mantenimiento
+├── docs\                     — Documentación completa
 └── instaladores\
-    └── node-setup.msi        ← Node.js (agregar manualmente)
+    └── node-setup.msi        — Node.js (agregar manualmente)
 ```
 
-> 📌 La carpeta `codigo_fuente\` contiene TODO el código fuente del sistema para archivo, auditoría o desarrollo futuro. Para restaurar las dependencias: `npm install`.
+> NOTA: La carpeta `codigo_fuente\` contiene todo el código fuente del sistema para archivo, auditoría o desarrollo futuro. Para restaurar las dependencias ejecutar: `npm install`.
 
 ---
 
@@ -104,13 +104,13 @@ Copiar el mismo node-setup.msi del pendrive instalador a:
 ### Contenido del pendrive una vez preparado:
 ```
 RECUPERACION_LLAVES_FCEA\
-├── RESTAURAR_SISTEMA.bat     ← Ejecutar para restaurar
-├── sistema\                  ← Código del sistema
+├── RESTAURAR_SISTEMA.bat     — Ejecutar para restaurar
+├── sistema\                  — Código del sistema
 ├── respaldos_db\
-│   └── pb_data_ultimo\       ← Datos de la base de datos
+│   └── pb_data_ultimo\       — Datos de la base de datos
 ├── instaladores\
-│   └── node-setup.msi        ← Node.js
-└── docs\                     ← Documentación
+│   └── node-setup.msi        — Node.js
+└── docs\                     — Documentación
 ```
 
 ---

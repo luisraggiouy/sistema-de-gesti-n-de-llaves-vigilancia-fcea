@@ -93,7 +93,7 @@ Para mantener el sistema funcionando de manera óptima con el volumen descrito:
 - ✅ **Detección de errores en logs**
 - ✅ **Generación de alertas automáticas**
 
-> 📌 **Nota**: Todo el mantenimiento es automático. Ver documento "configuracion_mantenimiento_automatizado.md" para configuración inicial.
+> **Nota**: Todo el mantenimiento es automático. Ver documento "configuracion_mantenimiento_automatizado.md" para configuración inicial.
 
 ### Sistema de Alertas en Monitor de Vigilancia
 
@@ -101,13 +101,13 @@ El sistema muestra automáticamente alertas cuando detecta problemas:
 
 - 🔴 **Críticas**: Espacio disco < 10%, backup > 14 días, PocketBase caído
 - 🟡 **Advertencias**: Espacio disco < 20%, backup > 8 días, pendrive > 90 días
-- 📊 **Métricas**: Estado general del sistema visible en todo momento
+- **Métricas**: Estado general del sistema visible en todo momento
 
 **Los vigilantes solo deben**: Revisar el Monitor al inicio del turno y reportar alertas críticas a Personal de Sistemas.
 
 ### Mantenimiento Manual (Solo Anual)
 
-> 🎯 **IMPORTANTE**: Con el sistema de alertas automatizado, ya NO es necesario realizar mantenimiento mensual ni trimestral manual. El sistema se auto-mantiene y solo muestra alertas cuando requiere atención.
+> **IMPORTANTE**: Con el sistema de alertas automatizado, ya NO es necesario realizar mantenimiento mensual ni trimestral manual. El sistema se auto-mantiene y solo muestra alertas cuando requiere atención.
 
 **Si el Monitor muestra alertas**, siga las acciones recomendadas en cada alerta. De lo contrario, no se requiere intervención.
 
@@ -167,7 +167,7 @@ El sistema muestra automáticamente alertas cuando detecta problemas:
 
 ### Mantenimiento Anual (Manual) - Una vez al año
 
-#### 🔧 PROCEDIMIENTO PASO A PASO
+#### PROCEDIMIENTO PASO A PASO
 
 ---
 
@@ -222,7 +222,7 @@ El sistema muestra automáticamente alertas cuando detecta problemas:
    iniciar_sistema.bat
 ```
 
-> 💡 **Nota**: El comando `vacuum` reorganiza la base de datos para mejorar el rendimiento y reducir el tamaño del archivo.
+> **Nota**: El comando `vacuum` reorganiza la base de datos para mejorar el rendimiento y reducir el tamaño del archivo.
 
 ---
 
@@ -278,7 +278,7 @@ El sistema muestra automáticamente alertas cuando detecta problemas:
 **Responsable**: Personal de Sistemas  
 **Frecuencia**: Una vez al año
 
-#### 🔧 PROCEDIMIENTO PASO A PASO
+#### PROCEDIMIENTO PASO A PASO
 
 ---
 

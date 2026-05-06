@@ -68,7 +68,7 @@ El sistema fue **desarrollado íntegramente por la Facultad**, con código propi
 
 ---
 
-#### 🔒 "¿Qué pasa con la seguridad de los datos?"
+#### "¿Qué pasa con la seguridad de los datos?"
 
 El sistema opera como un **appliance físico completamente aislado**:
 
@@ -82,7 +82,7 @@ Los datos están **más seguros que en un cuaderno físico** que cualquiera pued
 
 ---
 
-#### 💻 "¿Quién lo va a mantener?"
+#### "¿Quién lo va a mantener?"
 
 - El código fuente es **propiedad de la Facultad**, alojado en repositorio propio
 - Está desarrollado con tecnologías estándar y ampliamente documentadas (React, TypeScript, PocketBase)
@@ -92,7 +92,7 @@ Los datos están **más seguros que en un cuaderno físico** que cualquiera pued
 
 ---
 
-#### 🏗️ "¿No lo podría hacer Sistemas?"
+#### "¿No lo podría hacer Sistemas?"
 
 - El sistema **ya está construido y funcionando**
 - No requiere desarrollo adicional por parte del Departamento de Sistemas

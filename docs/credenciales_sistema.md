@@ -1,4 +1,4 @@
-# 🔐 Credenciales del Sistema de Gestión de Llaves — FCEA
+# Credenciales del Sistema de Gestión de Llaves — FCEA
 
 > ⚠️ **DOCUMENTO CONFIDENCIAL** — Guardar en lugar seguro. No compartir con personal no autorizado.
 
