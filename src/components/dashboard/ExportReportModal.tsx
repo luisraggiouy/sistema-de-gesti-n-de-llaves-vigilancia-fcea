@@ -181,11 +181,11 @@ export function ExportReportModal({ open, onOpenChange }: ExportReportModalProps
     aniosDisponibles.push(ahora.getFullYear());
   }
 
-  // Agrupar vigilantes por turno
-  const vigilantesPorTurno: Record<Turno, string[]> = {
-    'Matutino': vigilantes.filter(v => v.turno === 'Matutino').map(v => v.nombre),
-    'Vespertino': vigilantes.filter(v => v.turno === 'Vespertino').map(v => v.nombre),
-    'Nocturno': vigilantes.filter(v => v.turno === 'Nocturno').map(v => v.nombre),
+  // Agrupar vigilantes por turno (con estado de licencia para el reporte)
+  const vigilantesPorTurno: Record<Turno, import('@/utils/exportUtils').VigilanteReporte[]> = {
+    'Matutino': vigilantes.filter(v => v.turno === 'Matutino').map(v => ({ nombre: v.nombre, estadoLicencia: v.estadoLicencia, esJefe: v.esJefe })),
+    'Vespertino': vigilantes.filter(v => v.turno === 'Vespertino').map(v => ({ nombre: v.nombre, estadoLicencia: v.estadoLicencia, esJefe: v.esJefe })),
+    'Nocturno': vigilantes.filter(v => v.turno === 'Nocturno').map(v => ({ nombre: v.nombre, estadoLicencia: v.estadoLicencia, esJefe: v.esJefe })),
   };
 
   // Generar reportes

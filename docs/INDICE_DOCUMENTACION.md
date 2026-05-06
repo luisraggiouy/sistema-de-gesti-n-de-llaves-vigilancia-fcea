@@ -317,7 +317,7 @@ Para consultas sobre la documentación:
 
 Todos los documentos están versionados en GitHub, y se hace entrega de copia en pendrive a autoridades de FCEA:
 - Repositorio: https://github.com/luisraggiouy/sistema-de-gesti-n-de-llaves-vigilancia-fcea
-- Última actualización: Commit ef3ed31 (06/05/2026) — v5.2 objetos olvidados: ocultar "Ver fotos" sin fotos, fix fechas, descripción completa
+- Última actualización: 06/05/2026 — v5.3 CSV exportable incluye Rol y Estado de licencia por vigilante; sección "PERSONAL EN LICENCIA" automática
 
 ---
 

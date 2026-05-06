@@ -530,6 +530,13 @@ npm audit fix --force
 
 ## Historial de Cambios — v5.x (Mayo 2026)
 
+### v5.3 — 06/05/2026
+
+- **feat**: CSV exportable incluye columnas **Rol** (Vigilante / Jefe de Turno) y **Estado** (Activo / Licencia / Licencia Médica) en la sección "ACTIVIDAD POR VIGILANTE"
+- **feat**: Sección **"PERSONAL EN LICENCIA"** aparece automáticamente en el CSV cuando hay vigilantes ausentes en el período — las autoridades pueden distinguir claramente quién no trabajó por licencia vs. quién simplemente no tuvo operaciones
+- **refactor**: `exportUtils.ts` — firma de `generarReporteMensual` y `generarReportePersonalizado` cambiada de `Record<Turno, string[]>` a `Record<Turno, VigilanteReporte[]>` para transportar `estadoLicencia` y `esJefe`
+- **refactor**: `ExportReportModal.tsx` — pasa objetos `VigilanteReporte` completos en lugar de solo nombres
+
 ### v5.2 — 06/05/2026
 
 - **fix**: Botón "Ver fotos" oculto en listados cuando el objeto no tiene fotos registradas (evita confusión al registrar sin fotos)

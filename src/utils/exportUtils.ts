@@ -1,7 +1,20 @@
 import { RegistroActividad, EstadisticasTurno } from '@/types/estadisticas';
-import { Turno } from '@/data/fceaData';
+import { Turno, EstadoLicencia } from '@/data/fceaData';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+
+// Tipo mínimo de vigilante necesario para los reportes
+export interface VigilanteReporte {
+  nombre: string;
+  estadoLicencia?: EstadoLicencia;
+  esJefe?: boolean;
+}
+
+function etiquetaLicencia(estado?: EstadoLicencia): string {
+  if (!estado || estado === 'activo') return 'Activo';
+  if (estado === 'licencia') return 'Licencia';
+  return 'Licencia Médica';
+}
 
 export interface ReporteMensual {
   mes: string;
@@ -26,29 +39,30 @@ export function generarReporteMensual(
   registros: RegistroActividad[],
   mes: number,
   anio: number,
-  vigilantesPorTurno: Record<Turno, string[]>
+  vigilantesPorTurno: Record<Turno, VigilanteReporte[]>
 ): ReporteMensual {
-  // Filtrar registros del mes seleccionado
   const registrosMes = registros.filter(r => {
     const fecha = new Date(r.timestamp);
     return fecha.getMonth() === mes && fecha.getFullYear() === anio;
   });
 
   const turnos: Turno[] = ['Matutino', 'Vespertino', 'Nocturno'];
-  
+
   const estadisticasPorTurno: EstadisticasTurno[] = turnos.map(turno => {
     const registrosTurno = registrosMes.filter(r => r.turno === turno);
     const entregas = registrosTurno.filter(r => r.tipo === 'entrega').length;
     const devoluciones = registrosTurno.filter(r => r.tipo === 'devolucion').length;
-    
+
     const vigilantesTurno = vigilantesPorTurno[turno] || [];
-    const vigilantes = vigilantesTurno.map(nombre => {
-      const registrosVigilante = registrosTurno.filter(r => r.vigilante === nombre);
+    const vigilantes = vigilantesTurno.map(v => {
+      const registrosVigilante = registrosTurno.filter(r => r.vigilante === v.nombre);
       return {
-        nombre,
+        nombre: v.nombre,
         entregas: registrosVigilante.filter(r => r.tipo === 'entrega').length,
         devoluciones: registrosVigilante.filter(r => r.tipo === 'devolucion').length,
-        total: registrosVigilante.length
+        total: registrosVigilante.length,
+        estadoLicencia: v.estadoLicencia,
+        esJefe: v.esJefe,
       };
     });
 
@@ -92,14 +106,29 @@ export function exportarCSV(reporte: ReporteMensual): string {
   
   // Estadísticas por vigilante
   lineas.push('ACTIVIDAD POR VIGILANTE');
-  lineas.push('Turno,Vigilante,Entregas,Devoluciones,Total');
+  lineas.push('Turno,Vigilante,Rol,Estado,Entregas,Devoluciones,Total');
   reporte.estadisticasPorTurno.forEach(stat => {
-    stat.vigilantes.forEach(v => {
-      lineas.push(`${stat.turno},${v.nombre},${v.entregas},${v.devoluciones},${v.total}`);
+    stat.vigilantes.forEach((v: any) => {
+      const rol = v.esJefe ? 'Jefe de Turno' : 'Vigilante';
+      const estado = etiquetaLicencia(v.estadoLicencia);
+      lineas.push(`${stat.turno},${v.nombre},${rol},${estado},${v.entregas},${v.devoluciones},${v.total}`);
     });
   });
   lineas.push('');
-  
+
+  // Personal en licencia durante el período
+  const enLicencia = reporte.estadisticasPorTurno.flatMap(stat =>
+    (stat.vigilantes as any[])
+      .filter(v => v.estadoLicencia && v.estadoLicencia !== 'activo')
+      .map(v => ({ turno: stat.turno, nombre: v.nombre, estado: etiquetaLicencia(v.estadoLicencia) }))
+  );
+  if (enLicencia.length > 0) {
+    lineas.push('PERSONAL EN LICENCIA');
+    lineas.push('Turno,Vigilante,Tipo de Licencia');
+    enLicencia.forEach(v => lineas.push(`${v.turno},${v.nombre},${v.estado}`));
+    lineas.push('');
+  }
+
   // Resumen objetos olvidados
   const objRegistros = reporte.registros.filter(r => r.tipo === 'objeto_registro');
   const objDevoluciones = reporte.registros.filter(r => r.tipo === 'objeto_devolucion');
@@ -132,29 +161,30 @@ export function generarReportePersonalizado(
   registros: RegistroActividad[],
   fechaInicio: Date,
   fechaFin: Date,
-  vigilantesPorTurno: Record<Turno, string[]>
+  vigilantesPorTurno: Record<Turno, VigilanteReporte[]>
 ): ReportePersonalizado {
-  // Filtrar registros del rango de fechas seleccionado
   const registrosFiltrados = registros.filter(r => {
     const fecha = new Date(r.timestamp);
     return fecha >= fechaInicio && fecha <= fechaFin;
   });
 
   const turnos: Turno[] = ['Matutino', 'Vespertino', 'Nocturno'];
-  
+
   const estadisticasPorTurno: EstadisticasTurno[] = turnos.map(turno => {
     const registrosTurno = registrosFiltrados.filter(r => r.turno === turno);
     const entregas = registrosTurno.filter(r => r.tipo === 'entrega').length;
     const devoluciones = registrosTurno.filter(r => r.tipo === 'devolucion').length;
-    
+
     const vigilantesTurno = vigilantesPorTurno[turno] || [];
-    const vigilantes = vigilantesTurno.map(nombre => {
-      const registrosVigilante = registrosTurno.filter(r => r.vigilante === nombre);
+    const vigilantes = vigilantesTurno.map(v => {
+      const registrosVigilante = registrosTurno.filter(r => r.vigilante === v.nombre);
       return {
-        nombre,
+        nombre: v.nombre,
         entregas: registrosVigilante.filter(r => r.tipo === 'entrega').length,
         devoluciones: registrosVigilante.filter(r => r.tipo === 'devolucion').length,
-        total: registrosVigilante.length
+        total: registrosVigilante.length,
+        estadoLicencia: v.estadoLicencia,
+        esJefe: v.esJefe,
       };
     });
 
@@ -200,14 +230,29 @@ export function exportarCSVPersonalizado(reporte: ReportePersonalizado): string 
   
   // Estadísticas por vigilante
   lineas.push('ACTIVIDAD POR VIGILANTE');
-  lineas.push('Turno,Vigilante,Entregas,Devoluciones,Total');
+  lineas.push('Turno,Vigilante,Rol,Estado,Entregas,Devoluciones,Total');
   reporte.estadisticasPorTurno.forEach(stat => {
-    stat.vigilantes.forEach(v => {
-      lineas.push(`${stat.turno},${v.nombre},${v.entregas},${v.devoluciones},${v.total}`);
+    stat.vigilantes.forEach((v: any) => {
+      const rol = v.esJefe ? 'Jefe de Turno' : 'Vigilante';
+      const estado = etiquetaLicencia(v.estadoLicencia);
+      lineas.push(`${stat.turno},${v.nombre},${rol},${estado},${v.entregas},${v.devoluciones},${v.total}`);
     });
   });
   lineas.push('');
-  
+
+  // Personal en licencia durante el período
+  const enLicenciaP = reporte.estadisticasPorTurno.flatMap(stat =>
+    (stat.vigilantes as any[])
+      .filter(v => v.estadoLicencia && v.estadoLicencia !== 'activo')
+      .map(v => ({ turno: stat.turno, nombre: v.nombre, estado: etiquetaLicencia(v.estadoLicencia) }))
+  );
+  if (enLicenciaP.length > 0) {
+    lineas.push('PERSONAL EN LICENCIA');
+    lineas.push('Turno,Vigilante,Tipo de Licencia');
+    enLicenciaP.forEach(v => lineas.push(`${v.turno},${v.nombre},${v.estado}`));
+    lineas.push('');
+  }
+
   // Resumen objetos olvidados
   const objRegP = reporte.registros.filter(r => r.tipo === 'objeto_registro');
   const objDevP = reporte.registros.filter(r => r.tipo === 'objeto_devolucion');
