@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart3, ArrowLeft, Clock, Users, Key, ArrowUpRight, ArrowDownLeft, Sun, Sunset, Moon, Palmtree, Stethoscope, Package, Usb, DatabaseBackup, CalendarDays, CalendarRange, Lock, Eye, EyeOff } from 'lucide-react';
+import { BarChart3, ArrowLeft, Clock, Users, Key, ArrowUpRight, ArrowDownLeft, Sun, Sunset, Moon, Palmtree, Stethoscope, Package, Usb, DatabaseBackup, CalendarDays, CalendarRange, Lock, Eye, EyeOff, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
-import { Turno } from '@/data/fceaData';
+import { Turno, diasSemanaLabels, DiaSemana } from '@/data/fceaData';
 import { useVigilantes } from '@/hooks/useVigilantes';
 import { EstadisticasTurno, EstadisticasVigilante } from '@/types/estadisticas';
 import { AdvancedExportModal } from '@/components/admin/AdvancedExportModal';
@@ -289,6 +289,35 @@ export default function Dashboard() {
     year: 'numeric'
   });
 
+  // ── Calcular rango de fechas del período seleccionado ──────────────────────
+  const rangoPeriodo = useMemo(() => {
+    const ahora = new Date();
+    const hoyInicio = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), 0, 0, 0);
+    const mesInicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+    const semestreInicio = new Date(ahora.getFullYear(), ahora.getMonth() - 5, 1);
+    if (periodoTarjetas === 'hoy') return { inicio: hoyInicio, fin: ahora };
+    if (periodoTarjetas === 'mensual') return { inicio: mesInicio, fin: ahora };
+    return { inicio: semestreInicio, fin: ahora };
+  }, [periodoTarjetas]);
+
+  // ── Función: contar días laborales de un vigilante en el período ────────────
+  const contarDiasLaboralesEnPeriodo = (diasLaborales: DiaSemana[] | undefined, inicio: Date, fin: Date): number => {
+    // Sin configuración → trabaja todos los días
+    const dias = (!diasLaborales || diasLaborales.length === 0 || diasLaborales.length === 7)
+      ? [0, 1, 2, 3, 4, 5, 6]
+      : diasLaborales;
+    let count = 0;
+    const cur = new Date(inicio);
+    cur.setHours(0, 0, 0, 0);
+    const finD = new Date(fin);
+    finD.setHours(23, 59, 59, 999);
+    while (cur <= finD) {
+      if (dias.includes(cur.getDay())) count++;
+      cur.setDate(cur.getDate() + 1);
+    }
+    return count;
+  };
+
   // El Dashboard es visible para todos sin contraseña.
   // La contraseña solo se requiere para exportar a pendrive (se pide en el modal de exportacion).
 
@@ -495,12 +524,22 @@ export default function Dashboard() {
                         Sin vigilantes asignados
                       </p>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {stat.vigilantes.map((v) => {
                           const enLicencia = (v as any).estadoLicencia && (v as any).estadoLicencia !== 'activo';
                           const esMedica = (v as any).estadoLicencia === 'licencia_medica';
+                          // Buscar datos completos del vigilante (con diasLaborales)
+                          const vigCompleto = vigilantes.find(vg => vg.nombre === v.nombre);
+                          const diasLab = vigCompleto?.diasLaborales;
+                          const tieneDiasConfig = diasLab && diasLab.length > 0 && diasLab.length < 7;
+                          // Calcular días laborales en el período
+                          const diasLaboralesEnPeriodo = contarDiasLaboralesEnPeriodo(diasLab, rangoPeriodo.inicio, rangoPeriodo.fin);
+                          // Días de descanso = días totales del período - días laborales
+                          const totalDiasPeriodo = Math.max(1, Math.round((rangoPeriodo.fin.getTime() - rangoPeriodo.inicio.getTime()) / 86400000) + 1);
+                          const diasDescanso = totalDiasPeriodo - diasLaboralesEnPeriodo;
                           return (
-                            <div key={v.nombre} className={`space-y-1 ${enLicencia ? 'opacity-50' : ''}`}>
+                            <div key={v.nombre} className={`space-y-1 pb-2 border-b border-dashed border-muted last:border-0 ${enLicencia ? 'opacity-60' : ''}`}>
+                              {/* Fila 1: nombre + entregas/devoluciones */}
                               <div className="flex justify-between text-sm">
                                 <span className="font-medium flex items-center gap-1">
                                   {enLicencia && (
@@ -518,19 +557,66 @@ export default function Dashboard() {
                                 {enLicencia ? (
                                   <span className="text-xs text-muted-foreground italic">ausente</span>
                                 ) : (
-                                  <span className="text-muted-foreground">
-                                    <span className="text-success">{v.entregas}</span>
-                                    {' / '}
-                                    <span className="text-info">{v.devoluciones}</span>
+                                  <span className="text-muted-foreground text-xs">
+                                    <span className="text-success font-semibold">{v.entregas}</span>
+                                    <span className="text-muted-foreground mx-0.5">↑</span>
+                                    <span className="text-info font-semibold">{v.devoluciones}</span>
+                                    <span className="text-muted-foreground mx-0.5">↓</span>
                                   </span>
                                 )}
                               </div>
+                              {/* Barra de progreso */}
                               {!enLicencia && (
                                 <Progress 
                                   value={(v.total / maxTotal) * 100} 
-                                  className="h-2"
+                                  className="h-1.5"
                                 />
                               )}
+                              {/* Fila 2: chips de días laborales + descanso + licencia */}
+                              <div className="flex flex-wrap items-center gap-1 pt-0.5">
+                                {/* Chips de días de la semana */}
+                                {diasSemanaLabels.map(dia => {
+                                  const esLaboral = !tieneDiasConfig || (diasLab?.includes(dia.value) ?? true);
+                                  const esFinde = dia.value === 0 || dia.value === 6;
+                                  return (
+                                    <span
+                                      key={dia.value}
+                                      title={dia.label}
+                                      className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-bold border ${
+                                        esLaboral
+                                          ? esFinde
+                                            ? 'bg-orange-100 border-orange-300 text-orange-700'
+                                            : 'bg-blue-100 border-blue-300 text-blue-700'
+                                          : 'bg-muted border-muted-foreground/20 text-muted-foreground/40'
+                                      }`}
+                                    >
+                                      {dia.abrev}
+                                    </span>
+                                  );
+                                })}
+                                {/* Días laborales en el período */}
+                                <span className="text-[10px] text-muted-foreground ml-1">
+                                  <span className="font-semibold text-blue-600">{diasLaboralesEnPeriodo}</span>
+                                  <span> lab</span>
+                                  {diasDescanso > 0 && (
+                                    <>
+                                      <span className="mx-0.5">·</span>
+                                      <span className="font-semibold text-slate-400">{diasDescanso}</span>
+                                      <span> desc</span>
+                                    </>
+                                  )}
+                                </span>
+                                {/* Badge de licencia si aplica */}
+                                {enLicencia && (
+                                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ml-1 ${
+                                    esMedica
+                                      ? 'bg-red-100 text-red-700'
+                                      : 'bg-amber-100 text-amber-700'
+                                  }`}>
+                                    {esMedica ? '🏥 Lic. Médica' : '🌴 Licencia'}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           );
                         })}
