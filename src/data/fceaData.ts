@@ -37,13 +37,19 @@ export type DepartamentoTAS =
   | 'UGE'
   | 'UEAM'
   | 'UAE'
+  | 'Personal docente'
+  | 'Reproducciones'
+  | 'Asistencia académica'
+  | 'Rendiciones'
+  | 'Biblioteca'
   | 'Otro';
 
 export const departamentosTAS: DepartamentoTAS[] = [
-  'Apoyo Docente', 'Bedelía', 'CAVIDA', 'Compras', 'Concursos', 'Contaduría',
-  'Convenios', 'Decanato', 'Electrotecnia', 'Gastos', 'Mantenimiento',
-  'Servicios Generales', 'Sistemas', 'Sueldos', 'Suministros',
-  'UAE', 'UEAM', 'UGE', 'UPC', 'Vigilancia', 'Otro'
+  'Apoyo Docente', 'Asistencia académica', 'Bedelía', 'Biblioteca', 'CAVIDA',
+  'Compras', 'Concursos', 'Contaduría', 'Convenios', 'Decanato',
+  'Electrotecnia', 'Gastos', 'Mantenimiento', 'Personal docente',
+  'Rendiciones', 'Reproducciones', 'Servicios Generales', 'Sistemas',
+  'Sueldos', 'Suministros', 'UAE', 'UEAM', 'UGE', 'UPC', 'Vigilancia', 'Otro'
 ];
 
 export type ZonaTablero = 
