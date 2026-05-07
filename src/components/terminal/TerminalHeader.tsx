@@ -19,15 +19,7 @@ export function TerminalHeader() {
   });
 
   return (
-    <header className="bg-primary text-primary-foreground py-6 px-8 shadow-lg">
-      <div className="text-center py-1">
-        <p className="text-lg font-bold tracking-wide">
-          ¡BIENVENIDOS!
-        </p>
-        <p className="text-primary-foreground/80 text-xl font-medium">
-          Software diseñado y desarrollado 100% por Sección Vigilancia de FCEA
-        </p>
-      </div>
+    <header className="bg-primary text-primary-foreground py-4 px-8 shadow-lg">
       <div className="max-w-4xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-4">
           <img src={fceaLogo} alt="FCEA - Universidad de la República" className="h-[6.2rem] w-auto" />
