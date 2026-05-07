@@ -330,19 +330,68 @@ async function encryptWithPassword(data: string, password: string): Promise<stri
 }
 
 /**
- * Verifica si hay un dispositivo USB conectado
- * @returns {boolean} true si hay al menos un USB conectado
+ * Verifica si el navegador soporta exportación de archivos.
+ * Siempre retorna true — el usuario elige dónde guardar al momento de exportar.
  */
 export function hayUSBConectado(): boolean {
-  return window.kioskModeAPI?.usbDrives?.length > 0;
+  return true;
 }
 
 /**
- * Obtiene información sobre los dispositivos USB conectados
- * @returns {Array<{mountPoint: string, label: string}>} Lista de dispositivos USB
+ * Retorna una entrada ficticia para mantener compatibilidad con el modal.
+ * La ruta real se elige en el diálogo de guardado al momento de exportar.
  */
 export function obtenerUSBsConectados(): Array<{mountPoint: string, label: string}> {
-  return window.kioskModeAPI?.usbDrives || [];
+  return [{ mountPoint: '', label: 'Seleccionar destino al exportar' }];
+}
+
+/**
+ * Guarda contenido en un archivo usando File System Access API (Chrome/Edge)
+ * o descarga normal como fallback (Firefox/Safari).
+ * @param content Contenido del archivo
+ * @param suggestedName Nombre sugerido para el archivo
+ * @param mimeType Tipo MIME
+ */
+export async function guardarArchivo(content: string, suggestedName: string, mimeType: string): Promise<boolean> {
+  // Intentar File System Access API (Chrome 86+, Edge 86+)
+  if ('showSaveFilePicker' in window) {
+    try {
+      const extension = suggestedName.endsWith('.csv') ? '.csv' : '.txt';
+      const fileHandle = await (window as any).showSaveFilePicker({
+        suggestedName,
+        types: [
+          {
+            description: 'Archivo CSV',
+            accept: { 'text/csv': ['.csv'] },
+          },
+        ],
+        startIn: 'downloads',
+      });
+      const writable = await fileHandle.createWritable();
+      // Agregar BOM UTF-8 para que Excel abra correctamente con tildes
+      const bom = '\uFEFF';
+      await writable.write(bom + content);
+      await writable.close();
+      return true;
+    } catch (err: any) {
+      // El usuario canceló el diálogo
+      if (err.name === 'AbortError') return false;
+      // Otro error — caer al método de descarga normal
+      console.warn('showSaveFilePicker falló, usando descarga normal:', err);
+    }
+  }
+  // Fallback: descarga normal del navegador
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + content], { type: mimeType });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = suggestedName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+  return true;
 }
 
 // Función auxiliar para convertir datos a CSV
@@ -529,13 +578,7 @@ export async function exportToExcel(data: any, filename: string, options: any = 
     sheets['Autorizaciones'] = autorizaciones;
   }
   
-  // Exportar cada hoja como CSV separado
-  for (const [sheetName, sheetData] of Object.entries(sheets)) {
-    const csvContent = convertToCSV(sheetData);
-    downloadFile(csvContent, `${filename}_${sheetName}.csv`, 'text/csv');
-  }
-  
-  // También crear un archivo combinado
+  // Construir un único CSV combinado con todas las secciones
   const allData: any[] = [];
   
   // Agregar encabezado del resumen
@@ -566,5 +609,6 @@ export async function exportToExcel(data: any, filename: string, options: any = 
   }
   
   const combinedCsv = convertToCSV(allData);
-  downloadFile(combinedCsv, `${filename}_Completo.csv`, 'text/csv');
+  // Usar File System Access API (abre diálogo del SO para elegir dónde guardar)
+  await guardarArchivo(combinedCsv, `${filename}_Completo.csv`, 'text/csv');
 }

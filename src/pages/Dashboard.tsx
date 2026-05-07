@@ -33,25 +33,6 @@ export default function Dashboard() {
   const [, setTick] = useState(0);
   const [advancedExportOpen, setAdvancedExportOpen] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [usbDetected, setUsbDetected] = useState(false);
-
-  // Verificar periódicamente si hay un USB conectado
-  useEffect(() => {
-    const checkUsb = () => {
-      const hasUsb = hayUSBConectado();
-      setUsbDetected(hasUsb);
-      if (hasUsb && !usbDetected) {
-        toast({
-          title: "USB Detectado",
-          description: "Se ha detectado un dispositivo USB. Puede exportar reportes directamente.",
-        });
-      }
-    };
-    
-    checkUsb(); // Verificar inmediatamente
-    const interval = setInterval(checkUsb, 5000); // Verificar cada 5 segundos
-    return () => clearInterval(interval);
-  }, [usbDetected, toast]);
   
   // Función para calcular turno a partir de una hora
   const calcularTurno = (fecha: Date | string): Turno => {
@@ -191,14 +172,6 @@ export default function Dashboard() {
   };
 
   const handleCustodianExport = () => {
-    if (!usbDetected) {
-      toast({
-        title: "No se detecta USB",
-        description: "Para exportar datos, conecte un pendrive al equipo primero.",
-        variant: "destructive"
-      });
-      return;
-    }
     setAdvancedExportOpen(true);
   };
 
@@ -295,29 +268,22 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Barra de estado USB — visible siempre */}
-      <div className={`py-2 px-6 ${usbDetected ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'} border-b border-t`}>
+      {/* Barra de exportación — siempre visible */}
+      <div className="py-2 px-6 bg-blue-50 text-blue-800 border-b border-t">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Usb className="w-4 h-4" />
-            {usbDetected ? (
-              <span>Dispositivo USB conectado. Listo para exportar datos.</span>
-            ) : (
-              <span>Conecte un dispositivo USB para exportar datos del sistema.</span>
-            )}
+            <span>Para exportar datos: haga clic en "Exportar" y elija el pendrive en el explorador de archivos.</span>
           </div>
-          
-          {usbDetected && (
-            <Button 
-              variant="default"
-              size="sm" 
-              className="gap-2 bg-green-700"
-              onClick={handleCustodianExport}
-            >
-              <DatabaseBackup className="w-4 h-4" />
-              Exportar Ahora
-            </Button>
-          )}
+          <Button 
+            variant="default"
+            size="sm" 
+            className="gap-2 bg-blue-700 hover:bg-blue-800"
+            onClick={handleCustodianExport}
+          >
+            <DatabaseBackup className="w-4 h-4" />
+            Exportar Ahora
+          </Button>
         </div>
       </div>
 

@@ -54,10 +54,8 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
   });
 
   const [isExporting, setIsExporting] = useState(false);
-  const [usbStatus, setUsbStatus] = useState({ 
-    connected: false, 
-    drives: [] as Array<{mountPoint: string, label: string}> 
-  });
+  // USB siempre "conectado" — el diálogo del SO permite elegir el destino (pendrive, escritorio, etc.)
+  const usbStatus = { connected: true, drives: [{ mountPoint: '', label: 'Seleccionar al guardar' }] };
   const { toast } = useToast();
   const { solicitudesPendientes, solicitudesEntregadas, solicitudesDevueltas } = useSolicitudesContext();
   const { isAuthenticated, login } = useAdminAuth();
@@ -66,7 +64,7 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  // Resetear autenticacion al cerrar el modal
+  // Resetear autenticación al cerrar el modal
   useEffect(() => {
     if (!open) {
       setAutenticado(false);
@@ -87,21 +85,6 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
     } else {
       setPasswordError('Contraseña incorrecta');
     }
-  };
-
-  // Verificar si hay un USB conectado cuando se abre el modal
-  useEffect(() => {
-    if (open && autenticado) {
-      checkUsbStatus();
-      const interval = setInterval(checkUsbStatus, 2000);
-      return () => clearInterval(interval);
-    }
-  }, [open, autenticado]);
-
-  const checkUsbStatus = () => {
-    const connected = hayUSBConectado();
-    const drives = obtenerUSBsConectados();
-    setUsbStatus({ connected, drives });
   };
 
   const handleExport = async () => {
@@ -128,16 +111,6 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
       toast({
         title: "Error",
         description: "Debe seleccionar al menos una opción de exportación",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // TODOS (custodios Y administradores) requieren USB conectado
-    if (!usbStatus.connected) {
-      toast({
-        title: "No hay USB conectado",
-        description: "Por favor conecte un dispositivo USB para continuar con la exportación",
         variant: "destructive"
       });
       return;
@@ -348,24 +321,13 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
           </div>
         ) : (
         <div className="space-y-6">
-          {/* Estado del USB - PARA TODOS (custodios Y administradores) */}
-          <Alert className={usbStatus.connected ? "bg-green-50 border-green-200 text-green-800" : "bg-amber-50 border-amber-200 text-amber-800"}>
+          {/* Instrucción de destino */}
+          <Alert className="bg-blue-50 border-blue-200">
             <div className="flex items-center gap-2">
-              {usbStatus.connected ? (
-                <>
-                  <Check className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-700 font-medium">
-                    ✅ Dispositivo USB detectado: {usbStatus.drives[0]?.label || "Pendrive"} - Listo para exportar
-                  </AlertDescription>
-                </>
-              ) : (
-                <>
-                  <X className="h-4 w-4 text-amber-600" />
-                  <AlertDescription className="text-amber-700 font-medium">
-                    ⚠️ No se detecta ningún dispositivo USB. Por favor, conecte un pendrive para continuar.
-                  </AlertDescription>
-                </>
-              )}
+              <Usb className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-700 font-medium">
+                Al exportar se abrirá el explorador de archivos. Navegue al pendrive y guarde el archivo ahí.
+              </AlertDescription>
             </div>
           </Alert>
 
@@ -504,35 +466,22 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
             </CardContent>
           </Card>
 
-          {/* Instrucciones para pendrive - UNIFICADAS PARA TODOS */}
-          <Alert>
-            <Usb className="h-4 w-4" />
-            <AlertDescription>
-              <div>
-                <strong>📀 Exportación Directa a Pendrive:</strong>{' '}
-                {usbStatus.connected 
-                  ? "La información se guardará automáticamente en su pendrive. No desconecte el dispositivo durante la exportación."
-                  : "Conecte un pendrive común (sin software especial) para guardar la información directamente. Compatible con modo kiosk."}
-              </div>
-            </AlertDescription>
-          </Alert>
-
-          {/* Botones de acción - TODOS requieren USB */}
+          {/* Botones de acción */}
           <div className="flex gap-3 pt-4">
             <Button 
               onClick={handleExport} 
-              disabled={isExporting || !usbStatus.connected}
-              className={`flex-1 ${usbStatus.connected ? 'bg-green-600 hover:bg-green-700' : ''}`}
+              disabled={isExporting}
+              className="flex-1 bg-green-600 hover:bg-green-700"
             >
               {isExporting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                  Exportando a USB...
+                  Exportando...
                 </>
               ) : (
                 <>
-                  <Usb className="w-4 h-4 mr-2" />
-                  Exportar a USB
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar y Guardar
                 </>
               )}
             </Button>
