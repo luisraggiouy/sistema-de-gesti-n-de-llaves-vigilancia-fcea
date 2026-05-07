@@ -21,10 +21,17 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
 
   const sugerencias = useMemo(() => {
     if (busqueda.length < 2) return [];
-    // Usamos el texto de búsqueda tal como está, la función buscarPorTexto
-    // ya se encarga de normalizar y hacer la búsqueda insensible a mayúsculas/minúsculas
     return buscarUsuarios(busqueda);
   }, [busqueda, buscarUsuarios]);
+
+  // Determinar si el texto ingresado es celular, email o ninguno (nombre)
+  const tipoBusqueda = useMemo(() => {
+    const texto = busqueda.trim();
+    if (!texto) return null;
+    if (/^[\d\s\-\+\(\)]+$/.test(texto)) return 'celular';
+    if (texto.includes('@')) return 'email';
+    return 'nombre'; // no permitido
+  }, [busqueda]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -96,16 +103,37 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
         </Card>
       ) : (
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          {/* Icono dinámico según tipo de búsqueda */}
+          {tipoBusqueda === 'celular' ? (
+            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
+          ) : tipoBusqueda === 'email' ? (
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
+          ) : (
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          )}
           <Input
             ref={inputRef}
-            placeholder="Ingrese su celular, email o nombre..."
+            placeholder="Ingrese su numero de celular o su email..."
             value={busqueda}
             onChange={(e) => handleInputChange(e.target.value)}
             onFocus={() => busqueda.length >= 2 && setShowSuggestions(true)}
             className="pl-10 h-12 text-lg"
           />
-          {showSuggestions && sugerencias.length > 0 && (
+
+          {/* Advertencia si intenta buscar por nombre */}
+          {tipoBusqueda === 'nombre' && busqueda.length >= 2 && (
+            <Card className="absolute z-50 w-full mt-1 p-4 shadow-lg border-amber-300 bg-amber-50">
+              <p className="text-center text-amber-800 text-sm font-medium">
+                Por seguridad, la busqueda por nombre no esta permitida.
+              </p>
+              <p className="text-center text-amber-700 text-xs mt-1">
+                Ingrese su numero de celular o su email para identificarse.
+              </p>
+            </Card>
+          )}
+
+          {/* Sugerencias cuando hay resultados */}
+          {showSuggestions && tipoBusqueda !== 'nombre' && sugerencias.length > 0 && (
             <Card className="absolute z-50 w-full mt-1 py-2 shadow-lg max-h-60 overflow-y-auto">
               {sugerencias.map((usuario) => (
                 <button
@@ -128,9 +156,11 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
               ))}
             </Card>
           )}
-          {showSuggestions && busqueda.length >= 2 && sugerencias.length === 0 && (
+
+          {/* Sin resultados */}
+          {showSuggestions && tipoBusqueda !== 'nombre' && busqueda.length >= 2 && sugerencias.length === 0 && (
             <Card className="absolute z-50 w-full mt-1 p-4 shadow-lg">
-              <p className="text-center text-muted-foreground text-sm">No se encontró ningún usuario registrado</p>
+              <p className="text-center text-muted-foreground text-sm">No se encontro ningun usuario con ese celular o email</p>
               <Button variant="link" className="w-full mt-2" onClick={onRegisterClick}>
                 <UserPlus className="w-4 h-4 mr-2" />
                 Registrarse ahora
@@ -139,8 +169,18 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
           )}
         </div>
       )}
-      <p className="text-xs text-muted-foreground text-center">
-        Ingrese al menos 2 caracteres (celular, email o nombre) para buscar
+
+      {/* Texto de instruccion con link de registro en azul */}
+      <p className="text-sm text-muted-foreground text-center leading-relaxed">
+        Identifiquese con su numero de celular o con su email.{' '}
+        De lo contrario{' '}
+        <button
+          onClick={onRegisterClick}
+          className="text-blue-600 hover:text-blue-800 underline font-medium cursor-pointer"
+        >
+          registrese
+        </button>
+        {' '}para continuar.
       </p>
     </div>
   );

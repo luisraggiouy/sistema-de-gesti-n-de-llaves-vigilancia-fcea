@@ -105,32 +105,22 @@ export function UsuariosRegistradosProvider({ children }: { children: React.Reac
     const celularBusqueda = texto.replace(/\D/g, '');
     const currentUsuarios = usuariosRef.current;
 
-    // Búsqueda por celular (solo dígitos)
-    if (/^\d+$/.test(texto.trim())) {
+    // SEGURIDAD: Solo se permite buscar por celular o por email.
+    // La busqueda por nombre esta deshabilitada para evitar suplantacion de identidad.
+
+    // Busqueda por celular: si el texto contiene solo digitos (y posibles espacios/guiones)
+    if (/^[\d\s\-\+\(\)]+$/.test(texto.trim()) && celularBusqueda.length >= 2) {
       return currentUsuarios.filter(u => u.celular && u.celular.replace(/\D/g, '').includes(celularBusqueda));
     }
 
-    // Búsqueda por email
+    // Busqueda por email: si el texto contiene @
     if (texto.includes('@')) {
       return currentUsuarios.filter(u => u.email && norm(u.email).includes(textoNorm));
     }
 
-    // Búsqueda general: busca en nombre, empresa y departamento
-    // Todas las palabras escritas deben aparecer en algún campo del usuario
-    const palabras = textoNorm.split(/\s+/).filter(p => p.length > 0);
-
-    return currentUsuarios.filter(u => {
-      const campos = [
-        norm(u.nombre),
-        u.celular ? u.celular.replace(/\D/g, '') : '',
-        u.email ? norm(u.email) : '',
-        u.nombreEmpresa ? norm(u.nombreEmpresa) : '',
-        u.departamento ? norm(u.departamento) : '',
-        norm(u.tipo),
-      ].join(' ');
-
-      return palabras.every(p => campos.includes(p));
-    });
+    // Si el texto no es celular ni email, no devolver resultados
+    // (evita busqueda por nombre que permitiria suplantacion de identidad)
+    return [];
   }, []);
 
   const value = { usuarios, registrarUsuario, buscarPorCelular, buscarPorTexto };
