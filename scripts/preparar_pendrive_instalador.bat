@@ -5,7 +5,7 @@ setlocal enabledelayedexpansion
 :: ============================================================================
 :: Script: Preparar Pendrive Instalador
 :: Propósito: Crear un pendrive de instalación automática del sistema
-:: Versión: 5.3 — Mayo 2026
+:: Versión: 5.4 — Mayo 2026
 :: ============================================================================
 
 title Preparación de Pendrive Instalador - Sistema de Llaves FCEA
@@ -15,7 +15,7 @@ echo.
 echo ╔════════════════════════════════════════════════════════════════════╗
 echo ║                                                                    ║
 echo ║     PREPARACIÓN DE PENDRIVE INSTALADOR                             ║
-echo ║     Sistema de Gestión de Llaves - FCEA  v5.3                      ║
+echo ║     Sistema de Gestión de Llaves - FCEA  v5.4                      ║
 echo ║                                                                    ║
 echo ╚════════════════════════════════════════════════════════════════════╝
 echo.
@@ -257,7 +257,7 @@ echo    - Guardar como: %PENDRIVE%\instaladores\node-setup.msi
 echo.
 echo 2. Etiquetar el pendrive físicamente:
 echo    "INSTALADOR SISTEMA LLAVES FCEA"
-echo    "Versión 5.3 - Mayo 2026"
+echo    "Versión 5.4 - Mayo 2026"
 echo    "NO BORRAR - SOLO LECTURA"
 echo.
 echo 3. Guardar el pendrive en lugar seguro

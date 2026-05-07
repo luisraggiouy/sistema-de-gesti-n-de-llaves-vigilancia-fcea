@@ -1623,6 +1623,7 @@ RECUPERACION_SISTEMA_LLAVES_FCEA\
 | 5.1 | Mayo 2026 | Luis Raggio | RF-018 ampliado: webcam obligatoria para fotos de objetos, fechas con día de semana. Dependencias: webcam en Monitor de Vigilancia. |
 | 5.2 | 06/05/2026 | Luis Raggio | RF-018: botón "Ver fotos" oculto cuando el objeto no tiene fotos registradas. Fix filtro de fechas en búsqueda (desfase UTC/Uruguay). Descripción completa sin truncar en listados. |
 | 5.3 | 06/05/2026 | Luis Raggio | CSV exportable incluye columnas Rol (Vigilante/Jefe de Turno) y Estado (Activo/Licencia/Licencia Médica) por vigilante. Sección "PERSONAL EN LICENCIA" aparece automáticamente si hay ausentes. |
+| 5.4 | 07/05/2026 | Luis Raggio | UI: campo "Departamento" renombrado a "Departamento o sección" en formulario de registro y agenda. Listado de departamentos/secciones del Personal TAS ampliado con: Asistencia académica, Biblioteca, Personal docente, Rendiciones, Reproducciones (26 opciones + Otro). |
 
 ---
 
