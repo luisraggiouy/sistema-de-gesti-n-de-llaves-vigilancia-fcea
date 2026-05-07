@@ -1,4 +1,4 @@
-﻿import { RegistroActividad, EstadisticasTurno } from '@/types/estadisticas';
+﻿ import { RegistroActividad, EstadisticasTurno } from '@/types/estadisticas';
 import { Turno, EstadoLicencia } from '@/data/fceaData';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -475,10 +475,10 @@ function svgBarChart(items: { label: string; value: number; color: string }[], m
 function badgeRendimiento(total: number, max: number): string {
   if (max === 0) return '<span style="background:#e2e8f0;color:#64748b;padding:2px 10px;border-radius:12px;font-size:12px">Sin datos</span>';
   const pct = total / max;
-  if (pct >= 0.8) return '<span style="background:#dcfce7;color:#166534;padding:2px 10px;border-radius:12px;font-size:12px">⭐ Excelente</span>';
-  if (pct >= 0.5) return '<span style="background:#fef9c3;color:#854d0e;padding:2px 10px;border-radius:12px;font-size:12px">✅ Bueno</span>';
-  if (pct >= 0.2) return '<span style="background:#ffedd5;color:#9a3412;padding:2px 10px;border-radius:12px;font-size:12px">⚠️ Regular</span>';
-  return '<span style="background:#fee2e2;color:#991b1b;padding:2px 10px;border-radius:12px;font-size:12px">🔴 Bajo</span>';
+  if (pct >= 0.8) return '<span style="background:#dcfce7;color:#166534;padding:2px 10px;border-radius:12px;font-size:12px">Excelente</span>';
+  if (pct >= 0.5) return '<span style="background:#fef9c3;color:#854d0e;padding:2px 10px;border-radius:12px;font-size:12px">Bueno</span>';
+  if (pct >= 0.2) return '<span style="background:#ffedd5;color:#9a3412;padding:2px 10px;border-radius:12px;font-size:12px">Regular</span>';
+  return '<span style="background:#fee2e2;color:#991b1b;padding:2px 10px;border-radius:12px;font-size:12px">Bajo</span>';
 }
 
 function generarInformeHTML(data: any, options: any): string {
@@ -557,7 +557,7 @@ function generarInformeHTML(data: any, options: any): string {
 
   // ── Tabla de ranking de vigilantes ──────────────────────────────────────────
   const rankingRows = vigilantes.map((v, i) => {
-    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}°`;
+    const medal = `${i + 1}`;
     const badge = badgeRendimiento(v.total, maxTotal);
     const pct = maxTotal > 0 ? Math.round((v.total / maxTotal) * 100) : 0;
     return `<tr style="border-bottom:1px solid #f1f5f9">
@@ -580,9 +580,8 @@ function generarInformeHTML(data: any, options: any): string {
   const turnoRows = Object.entries(turnos).map(([nombre, stat]) => {
     const badge = badgeRendimiento(stat.total, maxTurno);
     const pct = maxTurno > 0 ? Math.round((stat.total / maxTurno) * 100) : 0;
-    const icon = nombre === 'Matutino' ? '🌅' : nombre === 'Vespertino' ? '🌆' : '🌙';
     return `<tr style="border-bottom:1px solid #f1f5f9">
-      <td style="padding:10px 8px;font-weight:700;font-size:15px">${icon} ${nombre}</td>
+      <td style="padding:10px 8px;font-weight:700;font-size:15px">${nombre}</td>
       <td style="padding:10px 8px;text-align:center;color:#16a34a;font-weight:700">${stat.entregas}</td>
       <td style="padding:10px 8px;text-align:center;color:#2563eb;font-weight:700">${stat.devoluciones}</td>
       <td style="padding:10px 8px;text-align:center;font-weight:800;font-size:16px">${stat.total}</td>
@@ -676,9 +675,9 @@ function generarInformeHTML(data: any, options: any): string {
 
   <!-- PORTADA -->
   <div class="portada">
-    <h1>📊 Informe de Desempeño del Personal</h1>
+    <h1>Informe de Desempeño del Personal</h1>
     <p>Sistema de Gestión de Llaves — FCEA UdelaR</p>
-    <p style="margin-top:16px;font-size:14px">📅 Período: <strong style="color:white">${periodo}</strong> &nbsp;|&nbsp; 🕐 Generado: ${ahora}</p>
+    <p style="margin-top:16px;font-size:14px">Período: <strong style="color:white">${periodo}</strong> &nbsp;|&nbsp; Generado: ${ahora}</p>
   </div>
 
   <!-- KPIs -->
@@ -691,7 +690,7 @@ function generarInformeHTML(data: any, options: any): string {
   </div>
 
   <!-- SECCIÓN 1: RANKING DE VIGILANTES -->
-  <h2>🏆 Ranking de Desempeño — Vigilantes</h2>
+  <h2>Ranking de Desempeño — Vigilantes</h2>
   <div class="card">
     <h3>Gráfica de actividad por vigilante (top ${top10.length})</h3>
     <div class="chart-wrap">${svgVigilantes}</div>
@@ -712,7 +711,7 @@ function generarInformeHTML(data: any, options: any): string {
   </div>
 
   <!-- SECCIÓN 2: DESEMPEÑO POR TURNO -->
-  <h2>🕐 Desempeño por Turno</h2>
+  <h2>Desempeño por Turno</h2>
   <div class="card">
     <h3>Actividad total por turno</h3>
     <div class="chart-wrap">${svgTurnos}</div>
@@ -733,7 +732,7 @@ function generarInformeHTML(data: any, options: any): string {
 
   <!-- SECCIÓN 3 (SECUNDARIA): DETALLE DE SOLICITUDES -->
   ${detalleSolicitudesRows ? `
-  <h2>📋 Detalle de Solicitudes (últimas 50)</h2>
+  <h2>Detalle de Solicitudes (últimas 50)</h2>
   <div class="card">
     <table>
       <thead><tr><th>Fecha/Hora</th><th>Usuario</th><th>Lugar</th><th>Vigilante</th><th>Estado</th></tr></thead>
@@ -743,7 +742,7 @@ function generarInformeHTML(data: any, options: any): string {
 
   <!-- SECCIÓN 4 (SECUNDARIA): OBJETOS OLVIDADOS -->
   ${detalleObjetosRows ? `
-  <h2>📦 Objetos Olvidados</h2>
+  <h2>Objetos Olvidados</h2>
   <div class="card">
     <table>
       <thead><tr><th>Fecha</th><th>Descripción</th><th>Lugar</th><th>Registrado Por</th><th>Estado</th></tr></thead>
@@ -753,7 +752,7 @@ function generarInformeHTML(data: any, options: any): string {
 
   <!-- SECCIÓN 5 (SECUNDARIA): AUTORIZACIONES -->
   ${detalleAutorizacionesRows ? `
-  <h2>✅ Autorizaciones</h2>
+  <h2>Autorizaciones</h2>
   <div class="card">
     <table>
       <thead><tr><th>Fecha</th><th>Persona</th><th>CI</th><th>Lugar</th><th>Autorizado Por</th></tr></thead>
