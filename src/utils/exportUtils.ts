@@ -638,8 +638,20 @@ function generarInformeHTML(data: any, options: any): string {
     }
   });
 
+  // ── Agregar vigilantes en licencia sin actividad al ranking ─────────────────
+  // Para que aparezcan en la tabla aunque no hayan trabajado en el período
+  (data.vigilantes || []).forEach((v: any) => {
+    if (v.estadoLicencia && v.estadoLicencia !== 'activo' && !vigMap[v.nombre]) {
+      vigMap[v.nombre] = { nombre: v.nombre, turno: v.turno || '', entregas: 0, devoluciones: 0, objetos: 0, total: 0 };
+    }
+  });
+  // Re-ordenar: primero los que tienen actividad, luego los que no (en licencia)
+  const vigilantesConActividad = Object.values(vigMap).filter(v => v.total > 0).sort((a, b) => b.total - a.total);
+  const vigilantesSinActividad = Object.values(vigMap).filter(v => v.total === 0);
+  const vigilantesOrdenados = [...vigilantesConActividad, ...vigilantesSinActividad];
+
   // ── Tabla de ranking de vigilantes ──────────────────────────────────────────
-  const rankingRows = vigilantes.map((v, i) => {
+  const rankingRows = vigilantesOrdenados.map((v, i) => {
     const medal = `${i + 1}`;
     const badge = badgeRendimiento(v.total, maxTotal);
     const pct = maxTotal > 0 ? Math.round((v.total / maxTotal) * 100) : 0;
@@ -752,15 +764,14 @@ function generarInformeHTML(data: any, options: any): string {
     </tr>`;
   }).join('');
 
-  // ── Vigilantes en licencia (sin actividad en el período) ─────────────────────
-  const licenciaMap: Record<string, string> = {};
-  [...(data.solicitudesEntregadas || []), ...(data.solicitudesDevueltas || [])].forEach((s: any) => {
-    if (s.estadoLicenciaVigilante && s.estadoLicenciaVigilante !== 'activo') {
-      const nombre = s.entregadoPor || s.recibidoPor;
-      if (nombre) licenciaMap[nombre] = s.estadoLicenciaVigilante === 'licencia' ? 'Licencia' : 'Licencia Médica';
-    }
-  });
-  const vigilantesEnLicencia = Object.entries(licenciaMap);
+  // ── Vigilantes en licencia (tomados de data.vigilantes, no solo de solicitudes) ──
+  const vigilantesEnLicencia: [string, string, string][] = (data.vigilantes || [])
+    .filter((v: any) => v.estadoLicencia && v.estadoLicencia !== 'activo')
+    .map((v: any) => [
+      v.nombre,
+      v.estadoLicencia === 'licencia_medica' ? 'Licencia Médica' : 'Licencia',
+      v.turno || ''
+    ]);
 
   // ── Tabla de desempeño por turno ─────────────────────────────────────────────
   const turnoRows = Object.entries(turnos).map(([nombre, stat]) => {
