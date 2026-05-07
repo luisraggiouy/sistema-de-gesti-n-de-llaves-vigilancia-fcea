@@ -205,7 +205,7 @@ export default function TerminalUsuario() {
       <div className="bg-primary/5 border-b border-primary/10 py-3 px-4">
         <div className="container max-w-4xl mx-auto text-center">
           <p className="text-primary font-bold text-lg tracking-wide">¡BIENVENIDOS!</p>
-          <p className="text-muted-foreground text-base font-medium">
+          <p className="text-muted-foreground text-xl font-medium">
             Software diseñado y desarrollado 100% por Sección Vigilancia de FCEA
           </p>
         </div>
