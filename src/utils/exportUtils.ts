@@ -1,4 +1,4 @@
-import { RegistroActividad, EstadisticasTurno } from '@/types/estadisticas';
+﻿import { RegistroActividad, EstadisticasTurno } from '@/types/estadisticas';
 import { Turno, EstadoLicencia } from '@/data/fceaData';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -444,171 +444,333 @@ function downloadFile(content: string, filename: string, mimeType: string): void
   window.URL.revokeObjectURL(url);
 }
 
-export async function exportToExcel(data: any, filename: string, options: any = {}) {
-  // Para una implementación completa de Excel, necesitaríamos una librería como xlsx
-  // Por ahora, exportamos como CSV que se puede abrir en Excel
-  
-  const sheets: { [key: string]: any[] } = {};
-  
-  // Hoja de resumen
-  if (options.includeStats) {
-    const stats = [
-      ['Estadísticas del Sistema de Gestión de Llaves FCEA'],
-      [''],
-      ['Período:', `${options.dateRange?.start || 'N/A'} - ${options.dateRange?.end || 'N/A'}`],
-      ['Generado:', new Date().toLocaleString('es-UY')],
-      ['Generado por:', data.generatedBy || 'Sistema'],
-      [''],
-      ['Resumen de Datos:'],
-      ['Solicitudes Pendientes:', data.solicitudesPendientes?.length || 0],
-      ['Llaves Entregadas:', data.solicitudesEntregadas?.length || 0],
-      ['Llaves Devueltas:', data.solicitudesDevueltas?.length || 0],
-      ['Objetos Olvidados:', data.objetosOlvidados?.length || 0],
-      ['Autorizaciones:', data.autorizaciones?.length || 0],
-      ['Total de Registros:', (data.solicitudesPendientes?.length || 0) + (data.solicitudesEntregadas?.length || 0) + (data.solicitudesDevueltas?.length || 0) + (data.objetosOlvidados?.length || 0) + (data.autorizaciones?.length || 0)]
-    ];
-    sheets['Resumen'] = stats;
-  }
-  
-  // Hoja de solicitudes pendientes
-  if (data.solicitudesPendientes && data.solicitudesPendientes.length > 0) {
-    const pendientes = data.solicitudesPendientes.map((s: any) => ({
-      'Fecha Solicitud': new Date(s.horaSolicitud).toLocaleDateString('es-UY'),
-      'Hora Solicitud': new Date(s.horaSolicitud).toLocaleTimeString('es-UY'),
-      'Usuario': s.usuario.nombre,
-      'Celular': s.usuario.celular,
-      'Tipo Usuario': s.usuario.tipo,
-      'Departamento': s.usuario.departamento || 'N/A',
-      'Empresa': s.usuario.nombreEmpresa || 'N/A',
-      'Lugar': s.lugar.nombre,
-      'Tipo Lugar': s.lugar.tipo,
-      'Edificio': s.lugar.edificio,
-      'Piso': s.lugar.piso,
-      'Estado': 'Pendiente'
-    }));
-    sheets['Solicitudes Pendientes'] = pendientes;
-  }
-  
-  // Hoja de llaves entregadas
-  if (data.solicitudesEntregadas && data.solicitudesEntregadas.length > 0) {
-    const entregadas = data.solicitudesEntregadas.map((s: any) => ({
-      'Fecha Solicitud': new Date(s.horaSolicitud).toLocaleDateString('es-UY'),
-      'Hora Solicitud': new Date(s.horaSolicitud).toLocaleTimeString('es-UY'),
-      'Fecha Entrega': s.horaEntrega ? new Date(s.horaEntrega).toLocaleDateString('es-UY') : 'N/A',
-      'Hora Entrega': s.horaEntrega ? new Date(s.horaEntrega).toLocaleTimeString('es-UY') : 'N/A',
-      'Usuario': s.usuario.nombre,
-      'Celular': s.usuario.celular,
-      'Tipo Usuario': s.usuario.tipo,
-      'Departamento': s.usuario.departamento || 'N/A',
-      'Empresa': s.usuario.nombreEmpresa || 'N/A',
-      'Lugar': s.lugar.nombre,
-      'Tipo Lugar': s.lugar.tipo,
-      'Edificio': s.lugar.edificio,
-      'Piso': s.lugar.piso,
-      'Entregado Por': s.entregadoPor || 'N/A',
-      'Tiempo en Uso': s.horaEntrega ? `${Math.round((Date.now() - new Date(s.horaEntrega).getTime()) / (1000 * 60))} min` : 'N/A',
-      'Notas': s.notas || '',
-      'Estado': 'En Uso'
-    }));
-    sheets['Llaves Entregadas'] = entregadas;
-  }
-  
-  // Hoja de llaves devueltas
-  if (data.solicitudesDevueltas && data.solicitudesDevueltas.length > 0) {
-    const devueltas = data.solicitudesDevueltas.map((s: any) => ({
-      'Fecha Solicitud': new Date(s.horaSolicitud).toLocaleDateString('es-UY'),
-      'Hora Solicitud': new Date(s.horaSolicitud).toLocaleTimeString('es-UY'),
-      'Fecha Entrega': s.horaEntrega ? new Date(s.horaEntrega).toLocaleDateString('es-UY') : 'N/A',
-      'Hora Entrega': s.horaEntrega ? new Date(s.horaEntrega).toLocaleTimeString('es-UY') : 'N/A',
-      'Fecha Devolución': s.horaDevolucion ? new Date(s.horaDevolucion).toLocaleDateString('es-UY') : 'N/A',
-      'Hora Devolución': s.horaDevolucion ? new Date(s.horaDevolucion).toLocaleTimeString('es-UY') : 'N/A',
-      'Usuario': s.usuario.nombre,
-      'Celular': s.usuario.celular,
-      'Tipo Usuario': s.usuario.tipo,
-      'Departamento': s.usuario.departamento || 'N/A',
-      'Empresa': s.usuario.nombreEmpresa || 'N/A',
-      'Lugar': s.lugar.nombre,
-      'Tipo Lugar': s.lugar.tipo,
-      'Edificio': s.lugar.edificio,
-      'Piso': s.lugar.piso,
-      'Entregado Por': s.entregadoPor || 'N/A',
-      'Recibido Por': s.recibidoPor || 'N/A',
-      'Tiempo Total': s.horaEntrega && s.horaDevolucion ? 
-        `${Math.round((new Date(s.horaDevolucion).getTime() - new Date(s.horaEntrega).getTime()) / (1000 * 60))} min` : 'N/A',
-      'Notas': s.notas || '',
-      'Estado': 'Devuelta'
-    }));
-    sheets['Llaves Devueltas'] = devueltas;
-  }
+// ─── Generador de informe HTML con gráficas SVG ───────────────────────────────
 
-  // Hoja de objetos olvidados
-  if (data.objetosOlvidados && data.objetosOlvidados.length > 0) {
-    const objetos = data.objetosOlvidados.map((o: any) => ({
-      'Fecha Registro': new Date(o.fechaRegistro).toLocaleDateString('es-UY'),
-      'Hora Registro': new Date(o.fechaRegistro).toLocaleTimeString('es-UY'),
-      'Descripción': o.descripcion,
-      'Lugar Encontrado': o.lugarEncontrado,
-      'Registrado Por': o.registradoPor,
-      'Estado': o.estado === 'pendiente' ? 'Pendiente' : 'Devuelto',
-      'Fecha Devolución': o.fechaDevolucion ? new Date(o.fechaDevolucion).toLocaleDateString('es-UY') : 'N/A',
-      'Hora Devolución': o.fechaDevolucion ? new Date(o.fechaDevolucion).toLocaleTimeString('es-UY') : 'N/A',
-      'Devuelto A': o.devueltoA || 'N/A',
-      'CI Receptor': o.ciReceptor || 'N/A',
-      'Devuelto Por': o.devueltoPor || 'N/A',
-      'Observaciones': o.observaciones || ''
-    }));
-    sheets['Objetos Olvidados'] = objetos;
-  }
+function svgBarChart(items: { label: string; value: number; color: string }[], maxVal: number, height = 180): string {
+  const barW = 48;
+  const gap = 16;
+  const totalW = items.length * (barW + gap) + gap;
+  const chartH = height;
+  const labelH = 56;
+  const svgH = chartH + labelH + 24;
 
-  // Hoja de autorizaciones
-  if (data.autorizaciones && data.autorizaciones.length > 0) {
-    const autorizaciones = data.autorizaciones.map((a: any) => ({
-      'Fecha Autorización': new Date(a.fechaAutorizacion).toLocaleDateString('es-UY'),
-      'Hora Autorización': new Date(a.fechaAutorizacion).toLocaleTimeString('es-UY'),
-      'Persona Nombre': a.personaNombre,
-      'Persona CI': a.personaCI,
-      'Lugar Autorizado': a.lugarAutorizado,
-      'Autorizado Por': a.autorizadoPor,
-      'Fecha Desde': a.fechaDesde ? new Date(a.fechaDesde).toLocaleDateString('es-UY') : 'N/A',
-      'Fecha Hasta': a.fechaHasta ? new Date(a.fechaHasta).toLocaleDateString('es-UY') : 'N/A',
-      'Horario': a.horario || 'N/A',
-      'Email Referencia': a.emailReferencia || 'N/A',
-      'Observaciones': a.observaciones || ''
-    }));
-    sheets['Autorizaciones'] = autorizaciones;
-  }
-  
-  // Construir un único CSV combinado con todas las secciones
-  const allData: any[] = [];
-  
-  // Agregar encabezado del resumen
-  if (sheets['Resumen']) {
-    allData.push(...sheets['Resumen']);
-    allData.push(['']); // Línea vacía
-  }
-  
-  // Agregar datos de cada hoja
-  for (const [sheetName, sheetData] of Object.entries(sheets)) {
-    if (sheetName !== 'Resumen' && Array.isArray(sheetData) && sheetData.length > 0) {
-      allData.push([`=== ${sheetName.toUpperCase()} ===`]);
-      allData.push(['']);
-      
-      // Agregar encabezados
-      if (typeof sheetData[0] === 'object') {
-        allData.push(Object.keys(sheetData[0]));
-        // Agregar datos
-        sheetData.forEach(row => {
-          allData.push(Object.values(row));
-        });
-      } else {
-        allData.push(...sheetData);
-      }
-      
-      allData.push(['']); // Línea vacía entre secciones
+  const bars = items.map((item, i) => {
+    const x = gap + i * (barW + gap);
+    const barH = maxVal > 0 ? Math.round((item.value / maxVal) * chartH) : 0;
+    const y = chartH - barH;
+    const labelLines = item.label.split(' ');
+    return `
+      <rect x="${x}" y="${y}" width="${barW}" height="${barH}" fill="${item.color}" rx="4"/>
+      <text x="${x + barW / 2}" y="${y - 6}" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e293b">${item.value}</text>
+      ${labelLines.map((l, li) => `<text x="${x + barW / 2}" y="${chartH + 18 + li * 16}" text-anchor="middle" font-size="11" fill="#475569">${l}</text>`).join('')}
+    `;
+  }).join('');
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${svgH}" style="overflow:visible">
+    <line x1="0" y1="${chartH}" x2="${totalW}" y2="${chartH}" stroke="#e2e8f0" stroke-width="2"/>
+    ${bars}
+  </svg>`;
+}
+
+function badgeRendimiento(total: number, max: number): string {
+  if (max === 0) return '<span style="background:#e2e8f0;color:#64748b;padding:2px 10px;border-radius:12px;font-size:12px">Sin datos</span>';
+  const pct = total / max;
+  if (pct >= 0.8) return '<span style="background:#dcfce7;color:#166534;padding:2px 10px;border-radius:12px;font-size:12px">⭐ Excelente</span>';
+  if (pct >= 0.5) return '<span style="background:#fef9c3;color:#854d0e;padding:2px 10px;border-radius:12px;font-size:12px">✅ Bueno</span>';
+  if (pct >= 0.2) return '<span style="background:#ffedd5;color:#9a3412;padding:2px 10px;border-radius:12px;font-size:12px">⚠️ Regular</span>';
+  return '<span style="background:#fee2e2;color:#991b1b;padding:2px 10px;border-radius:12px;font-size:12px">🔴 Bajo</span>';
+}
+
+function generarInformeHTML(data: any, options: any): string {
+  const periodo = `${options.dateRange?.start || ''} al ${options.dateRange?.end || ''}`;
+  const ahora = new Date().toLocaleString('es-UY');
+
+  // ── Calcular estadísticas por vigilante ──────────────────────────────────────
+  type VigStat = { nombre: string; turno: string; entregas: number; devoluciones: number; objetos: number; total: number };
+  const vigMap: Record<string, VigStat> = {};
+
+  const todasSolicitudes = [
+    ...(data.solicitudesEntregadas || []),
+    ...(data.solicitudesDevueltas || []),
+  ];
+
+  todasSolicitudes.forEach((s: any) => {
+    if (s.entregadoPor) {
+      if (!vigMap[s.entregadoPor]) vigMap[s.entregadoPor] = { nombre: s.entregadoPor, turno: s.turno || '', entregas: 0, devoluciones: 0, objetos: 0, total: 0 };
+      vigMap[s.entregadoPor].entregas++;
+      vigMap[s.entregadoPor].total++;
     }
-  }
-  
-  const combinedCsv = convertToCSV(allData);
-  // Usar File System Access API (abre diálogo del SO para elegir dónde guardar)
-  await guardarArchivo(combinedCsv, `${filename}_Completo.csv`, 'text/csv');
+    if (s.recibidoPor) {
+      if (!vigMap[s.recibidoPor]) vigMap[s.recibidoPor] = { nombre: s.recibidoPor, turno: s.turno || '', entregas: 0, devoluciones: 0, objetos: 0, total: 0 };
+      vigMap[s.recibidoPor].devoluciones++;
+      vigMap[s.recibidoPor].total++;
+    }
+  });
+
+  (data.objetosOlvidados || []).forEach((o: any) => {
+    if (o.registradoPor) {
+      if (!vigMap[o.registradoPor]) vigMap[o.registradoPor] = { nombre: o.registradoPor, turno: '', entregas: 0, devoluciones: 0, objetos: 0, total: 0 };
+      vigMap[o.registradoPor].objetos++;
+      vigMap[o.registradoPor].total++;
+    }
+  });
+
+  const vigilantes = Object.values(vigMap).sort((a, b) => b.total - a.total);
+  const maxTotal = vigilantes.length > 0 ? vigilantes[0].total : 1;
+
+  // ── Estadísticas por turno ───────────────────────────────────────────────────
+  type TurnoStat = { entregas: number; devoluciones: number; total: number };
+  const turnos: Record<string, TurnoStat> = {
+    'Matutino': { entregas: 0, devoluciones: 0, total: 0 },
+    'Vespertino': { entregas: 0, devoluciones: 0, total: 0 },
+    'Nocturno': { entregas: 0, devoluciones: 0, total: 0 },
+  };
+
+  (data.solicitudesEntregadas || []).forEach((s: any) => {
+    const h = s.horaEntrega ? new Date(s.horaEntrega).getHours() : -1;
+    const t = h >= 6 && h < 14 ? 'Matutino' : h >= 14 && h < 22 ? 'Vespertino' : h >= 0 ? 'Nocturno' : null;
+    if (t) { turnos[t].entregas++; turnos[t].total++; }
+  });
+  (data.solicitudesDevueltas || []).forEach((s: any) => {
+    const h = s.horaDevolucion ? new Date(s.horaDevolucion).getHours() : -1;
+    const t = h >= 6 && h < 14 ? 'Matutino' : h >= 14 && h < 22 ? 'Vespertino' : h >= 0 ? 'Nocturno' : null;
+    if (t) { turnos[t].devoluciones++; turnos[t].total++; }
+  });
+
+  const maxTurno = Math.max(...Object.values(turnos).map(t => t.total), 1);
+
+  // ── Gráfica de turnos ────────────────────────────────────────────────────────
+  const turnoColors: Record<string, string> = { Matutino: '#f59e0b', Vespertino: '#3b82f6', Nocturno: '#6366f1' };
+  const turnoItems = Object.entries(turnos).map(([nombre, stat]) => ({
+    label: nombre, value: stat.total, color: turnoColors[nombre]
+  }));
+  const svgTurnos = svgBarChart(turnoItems, maxTurno, 160);
+
+  // ── Gráfica de vigilantes (top 10) ──────────────────────────────────────────
+  const top10 = vigilantes.slice(0, 10);
+  const vigItems = top10.map((v, i) => ({
+    label: v.nombre.split(' ').slice(0, 2).join(' '),
+    value: v.total,
+    color: i === 0 ? '#16a34a' : i === 1 ? '#2563eb' : i === 2 ? '#7c3aed' : '#64748b'
+  }));
+  const svgVigilantes = vigItems.length > 0 ? svgBarChart(vigItems, maxTotal, 180) : '<p style="color:#94a3b8">Sin datos en el período</p>';
+
+  // ── Tabla de ranking de vigilantes ──────────────────────────────────────────
+  const rankingRows = vigilantes.map((v, i) => {
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}°`;
+    const badge = badgeRendimiento(v.total, maxTotal);
+    const pct = maxTotal > 0 ? Math.round((v.total / maxTotal) * 100) : 0;
+    return `<tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:10px 8px;font-weight:600;font-size:15px">${medal}</td>
+      <td style="padding:10px 8px;font-weight:600">${v.nombre}</td>
+      <td style="padding:10px 8px;text-align:center;color:#16a34a;font-weight:700">${v.entregas}</td>
+      <td style="padding:10px 8px;text-align:center;color:#2563eb;font-weight:700">${v.devoluciones}</td>
+      <td style="padding:10px 8px;text-align:center;color:#7c3aed;font-weight:700">${v.objetos}</td>
+      <td style="padding:10px 8px;text-align:center;font-weight:800;font-size:16px">${v.total}</td>
+      <td style="padding:10px 8px">
+        <div style="background:#e2e8f0;border-radius:8px;height:10px;width:120px;display:inline-block;vertical-align:middle">
+          <div style="background:#3b82f6;border-radius:8px;height:10px;width:${pct}%"></div>
+        </div>
+      </td>
+      <td style="padding:10px 8px">${badge}</td>
+    </tr>`;
+  }).join('');
+
+  // ── Tabla de desempeño por turno ─────────────────────────────────────────────
+  const turnoRows = Object.entries(turnos).map(([nombre, stat]) => {
+    const badge = badgeRendimiento(stat.total, maxTurno);
+    const pct = maxTurno > 0 ? Math.round((stat.total / maxTurno) * 100) : 0;
+    const icon = nombre === 'Matutino' ? '🌅' : nombre === 'Vespertino' ? '🌆' : '🌙';
+    return `<tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:10px 8px;font-weight:700;font-size:15px">${icon} ${nombre}</td>
+      <td style="padding:10px 8px;text-align:center;color:#16a34a;font-weight:700">${stat.entregas}</td>
+      <td style="padding:10px 8px;text-align:center;color:#2563eb;font-weight:700">${stat.devoluciones}</td>
+      <td style="padding:10px 8px;text-align:center;font-weight:800;font-size:16px">${stat.total}</td>
+      <td style="padding:10px 8px">
+        <div style="background:#e2e8f0;border-radius:8px;height:10px;width:160px;display:inline-block;vertical-align:middle">
+          <div style="background:${turnoColors[nombre]};border-radius:8px;height:10px;width:${pct}%"></div>
+        </div>
+      </td>
+      <td style="padding:10px 8px">${badge}</td>
+    </tr>`;
+  }).join('');
+
+  // ── Datos secundarios: solicitudes ──────────────────────────────────────────
+  const totalPendientes = (data.solicitudesPendientes || []).length;
+  const totalEntregadas = (data.solicitudesEntregadas || []).length;
+  const totalDevueltas = (data.solicitudesDevueltas || []).length;
+  const totalObjetos = (data.objetosOlvidados || []).length;
+  const totalAutorizaciones = (data.autorizaciones || []).length;
+
+  const detalleSolicitudesRows = [...(data.solicitudesEntregadas || []), ...(data.solicitudesDevueltas || [])]
+    .sort((a: any, b: any) => new Date(b.horaSolicitud).getTime() - new Date(a.horaSolicitud).getTime())
+    .slice(0, 50)
+    .map((s: any) => {
+      const fecha = new Date(s.horaSolicitud).toLocaleDateString('es-UY');
+      const hora = new Date(s.horaSolicitud).toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' });
+      const estado = s.estado === 'devuelta' ? '<span style="color:#16a34a">Devuelta</span>' : '<span style="color:#2563eb">Entregada</span>';
+      return `<tr style="border-bottom:1px solid #f8fafc">
+        <td style="padding:6px 8px">${fecha} ${hora}</td>
+        <td style="padding:6px 8px">${s.usuario?.nombre || '-'}</td>
+        <td style="padding:6px 8px">${s.lugar?.nombre || '-'}</td>
+        <td style="padding:6px 8px">${s.entregadoPor || '-'}</td>
+        <td style="padding:6px 8px">${estado}</td>
+      </tr>`;
+    }).join('');
+
+  const detalleObjetosRows = (data.objetosOlvidados || []).map((o: any) => {
+    const fecha = new Date(o.fechaRegistro).toLocaleDateString('es-UY');
+    const estado = o.estado === 'devuelto' ? '<span style="color:#16a34a">Devuelto</span>' : '<span style="color:#f59e0b">En custodia</span>';
+    return `<tr style="border-bottom:1px solid #f8fafc">
+      <td style="padding:6px 8px">${fecha}</td>
+      <td style="padding:6px 8px">${o.descripcion || '-'}</td>
+      <td style="padding:6px 8px">${o.lugarEncontrado || '-'}</td>
+      <td style="padding:6px 8px">${o.registradoPor || '-'}</td>
+      <td style="padding:6px 8px">${estado}</td>
+    </tr>`;
+  }).join('');
+
+  const detalleAutorizacionesRows = (data.autorizaciones || []).map((a: any) => {
+    const fecha = new Date(a.fechaAutorizacion).toLocaleDateString('es-UY');
+    return `<tr style="border-bottom:1px solid #f8fafc">
+      <td style="padding:6px 8px">${fecha}</td>
+      <td style="padding:6px 8px">${a.personaNombre || '-'}</td>
+      <td style="padding:6px 8px">${a.personaCI || '-'}</td>
+      <td style="padding:6px 8px">${a.lugarAutorizado || '-'}</td>
+      <td style="padding:6px 8px">${a.autorizadoPor || '-'}</td>
+    </tr>`;
+  }).join('');
+
+  // ── HTML final ───────────────────────────────────────────────────────────────
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Informe de Desempeño — FCEA</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8fafc; color: #1e293b; }
+  .page { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
+  h1 { font-size: 28px; font-weight: 800; color: #0f172a; }
+  h2 { font-size: 20px; font-weight: 700; color: #1e293b; margin: 32px 0 12px; border-left: 4px solid #3b82f6; padding-left: 12px; }
+  h3 { font-size: 15px; font-weight: 600; color: #475569; margin: 20px 0 8px; }
+  .portada { background: linear-gradient(135deg,#1e3a5f,#2563eb); color: white; border-radius: 16px; padding: 36px 40px; margin-bottom: 32px; }
+  .portada h1 { color: white; font-size: 32px; }
+  .portada p { color: #bfdbfe; margin-top: 8px; font-size: 15px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-bottom: 24px; }
+  .kpi { background: white; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .kpi .num { font-size: 32px; font-weight: 800; }
+  .kpi .lbl { font-size: 12px; color: #64748b; margin-top: 4px; }
+  .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-bottom: 20px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: #f1f5f9; }
+  thead th { padding: 10px 8px; text-align: left; font-weight: 600; color: #475569; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  .chart-wrap { overflow-x: auto; padding-bottom: 8px; }
+  .footer { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+  @media print { body { background: white; } .page { padding: 16px; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- PORTADA -->
+  <div class="portada">
+    <h1>📊 Informe de Desempeño del Personal</h1>
+    <p>Sistema de Gestión de Llaves — FCEA UdelaR</p>
+    <p style="margin-top:16px;font-size:14px">📅 Período: <strong style="color:white">${periodo}</strong> &nbsp;|&nbsp; 🕐 Generado: ${ahora}</p>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi"><div class="num" style="color:#16a34a">${totalEntregadas}</div><div class="lbl">Llaves Entregadas</div></div>
+    <div class="kpi"><div class="num" style="color:#2563eb">${totalDevueltas}</div><div class="lbl">Llaves Devueltas</div></div>
+    <div class="kpi"><div class="num" style="color:#f59e0b">${totalPendientes}</div><div class="lbl">Pendientes</div></div>
+    <div class="kpi"><div class="num" style="color:#7c3aed">${totalObjetos}</div><div class="lbl">Objetos Olvidados</div></div>
+    <div class="kpi"><div class="num" style="color:#0891b2">${totalAutorizaciones}</div><div class="lbl">Autorizaciones</div></div>
+  </div>
+
+  <!-- SECCIÓN 1: RANKING DE VIGILANTES -->
+  <h2>🏆 Ranking de Desempeño — Vigilantes</h2>
+  <div class="card">
+    <h3>Gráfica de actividad por vigilante (top ${top10.length})</h3>
+    <div class="chart-wrap">${svgVigilantes}</div>
+  </div>
+  <div class="card">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Vigilante</th>
+        <th style="text-align:center;color:#16a34a">Entregas</th>
+        <th style="text-align:center;color:#2563eb">Devoluciones</th>
+        <th style="text-align:center;color:#7c3aed">Objetos</th>
+        <th style="text-align:center">Total</th>
+        <th>Actividad</th>
+        <th>Rendimiento</th>
+      </tr></thead>
+      <tbody>${rankingRows || '<tr><td colspan="8" style="padding:20px;text-align:center;color:#94a3b8">Sin actividad en el período seleccionado</td></tr>'}</tbody>
+    </table>
+  </div>
+
+  <!-- SECCIÓN 2: DESEMPEÑO POR TURNO -->
+  <h2>🕐 Desempeño por Turno</h2>
+  <div class="card">
+    <h3>Actividad total por turno</h3>
+    <div class="chart-wrap">${svgTurnos}</div>
+  </div>
+  <div class="card">
+    <table>
+      <thead><tr>
+        <th>Turno</th>
+        <th style="text-align:center;color:#16a34a">Entregas</th>
+        <th style="text-align:center;color:#2563eb">Devoluciones</th>
+        <th style="text-align:center">Total</th>
+        <th>Carga de trabajo</th>
+        <th>Nivel</th>
+      </tr></thead>
+      <tbody>${turnoRows}</tbody>
+    </table>
+  </div>
+
+  <!-- SECCIÓN 3 (SECUNDARIA): DETALLE DE SOLICITUDES -->
+  ${detalleSolicitudesRows ? `
+  <h2>📋 Detalle de Solicitudes (últimas 50)</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>Fecha/Hora</th><th>Usuario</th><th>Lugar</th><th>Vigilante</th><th>Estado</th></tr></thead>
+      <tbody>${detalleSolicitudesRows}</tbody>
+    </table>
+  </div>` : ''}
+
+  <!-- SECCIÓN 4 (SECUNDARIA): OBJETOS OLVIDADOS -->
+  ${detalleObjetosRows ? `
+  <h2>📦 Objetos Olvidados</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>Fecha</th><th>Descripción</th><th>Lugar</th><th>Registrado Por</th><th>Estado</th></tr></thead>
+      <tbody>${detalleObjetosRows}</tbody>
+    </table>
+  </div>` : ''}
+
+  <!-- SECCIÓN 5 (SECUNDARIA): AUTORIZACIONES -->
+  ${detalleAutorizacionesRows ? `
+  <h2>✅ Autorizaciones</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>Fecha</th><th>Persona</th><th>CI</th><th>Lugar</th><th>Autorizado Por</th></tr></thead>
+      <tbody>${detalleAutorizacionesRows}</tbody>
+    </table>
+  </div>` : ''}
+
+  <div class="footer">
+    <p>Informe generado automáticamente por el Sistema de Gestión de Llaves — FCEA UdelaR</p>
+    <p style="margin-top:4px">Para imprimir: Ctrl+P → Guardar como PDF</p>
+  </div>
+</div>
+</body>
+</html>`;
+}
+
+export async function exportToExcel(data: any, filename: string, options: any = {}) {
+  const htmlContent = generarInformeHTML(data, options);
+  return await guardarArchivo(htmlContent, `${filename}_Informe.html`, 'text/html');
 }
