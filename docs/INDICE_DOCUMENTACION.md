@@ -49,6 +49,7 @@
 | Documento | Descripción |
 |-----------|-------------|
 | [procedimiento_reinstalacion_sistema.md](procedimiento_reinstalacion_sistema.md) | Pasos para reinstalar el sistema completo desde cero. |
+| [resolucion_pantalla_en_blanco_watchdog.md](resolucion_pantalla_en_blanco_watchdog.md) | ⭐ **NUEVO** Solución al error crítico de pantalla en blanco causado por el watchdog al reiniciar la PC. |
 | [SOLUCION_PROBLEMA_REINICIO_5_MAYO.md](SOLUCION_PROBLEMA_REINICIO_5_MAYO.md) | Solución al problema de inicio automático tras reinicio del equipo. |
 | [SOLUCION_ERROR_404_PUERTO_INCORRECTO.md](SOLUCION_ERROR_404_PUERTO_INCORRECTO.md) | Solución al error 404 por puerto incorrecto. |
 | [SOLUCION_ERROR_PUERTO_8080.md](SOLUCION_ERROR_PUERTO_8080.md) | Solución cuando el puerto 8080 está ocupado. |
@@ -109,5 +110,5 @@ Ver: [SOLUCION_PROBLEMA_REINICIO_5_MAYO.md](SOLUCION_PROBLEMA_REINICIO_5_MAYO.md
 
 ---
 
-*Última actualización: 06/05/2026 — v5.3*  
+*Última actualización: 07/05/2026 — v5.4 (fix pantalla en blanco watchdog)*  
 *Contacto técnico: Luis Raggio — luisraggiouy@gmail.com — 099 600 873*

@@ -64,9 +64,9 @@ $Action = New-ScheduledTaskAction `
     -Argument "-WindowStyle Normal -Command `"Start-Process -FilePath 'cmd.exe' -ArgumentList '/c `"$ScriptPath`"' -WorkingDirectory '$ProjectRoot' -Verb RunAs`"" `
     -WorkingDirectory $ProjectRoot
 
-# Crear el trigger (al iniciar sesion con delay de 10 segundos)
+# Crear el trigger (al iniciar sesion con delay de 30 segundos)
 $Trigger = New-ScheduledTaskTrigger -AtLogOn -User "$env:USERDOMAIN\$env:USERNAME"
-$Trigger.Delay = "PT10S"  # Delay de 10 segundos
+$Trigger.Delay = "PT30S"  # Delay de 30 segundos para que Windows cargue completamente
 
 # Configurar para ejecutar con privilegios mas altos
 $Principal = New-ScheduledTaskPrincipal `

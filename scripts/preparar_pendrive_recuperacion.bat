@@ -40,6 +40,11 @@ echo [3/7] Copiando codigo fuente del sistema...
 echo     (esto puede tardar unos minutos)
 xcopy "." "%USB_DRIVE%\RECUPERACION_SISTEMA_LLAVES_FCEA\sistema\" /E /I /Q /Y /EXCLUDE:scripts\excluir_pendrive.txt
 echo     Codigo fuente copiado.
+REM Asegurar que los archivos criticos del fix pantalla-en-blanco esten incluidos
+copy /Y "actualizar_tarea_30s.ps1" "%USB_DRIVE%\RECUPERACION_SISTEMA_LLAVES_FCEA\sistema\" >nul 2>&1
+copy /Y "ACTUALIZAR_TAREA_INICIO.bat" "%USB_DRIVE%\RECUPERACION_SISTEMA_LLAVES_FCEA\sistema\" >nul 2>&1
+copy /Y "scripts\watchdog_completo.ps1" "%USB_DRIVE%\RECUPERACION_SISTEMA_LLAVES_FCEA\sistema\scripts\" >nul 2>&1
+copy /Y "src\lib\cors-fix.js" "%USB_DRIVE%\RECUPERACION_SISTEMA_LLAVES_FCEA\sistema\src\lib\" >nul 2>&1
 
 echo.
 echo [4/7] Copiando node_modules (dependencias pre-instaladas)...

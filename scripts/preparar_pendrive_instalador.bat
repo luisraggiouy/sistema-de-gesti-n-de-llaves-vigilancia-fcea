@@ -145,6 +145,8 @@ copy /Y "%~dp0..\components.json" "%PENDRIVE%\sistema\" >nul
 copy /Y "%~dp0..\README.md" "%PENDRIVE%\sistema\" >nul
 copy /Y "%~dp0..\iniciar_sistema.bat" "%PENDRIVE%\sistema\" >nul
 copy /Y "%~dp0..\.env.example" "%PENDRIVE%\sistema\" >nul
+copy /Y "%~dp0..\actualizar_tarea_30s.ps1" "%PENDRIVE%\sistema\" >nul
+copy /Y "%~dp0..\ACTUALIZAR_TAREA_INICIO.bat" "%PENDRIVE%\sistema\" >nul
 
 echo [OK] Sistema copiado
 echo.
