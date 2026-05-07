@@ -129,8 +129,8 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  // Estado para el período de las tarjetas por turno
-  const [periodoTarjetas, setPeriodoTarjetas] = useState<'hoy' | 'mensual' | 'semestral'>('hoy');
+  // Estado para el período de las tarjetas por turno — por defecto mensual para que siempre haya datos
+  const [periodoTarjetas, setPeriodoTarjetas] = useState<'hoy' | 'mensual' | 'semestral'>('mensual');
 
   // Filtrar registros según el período seleccionado
   const registrosFiltrados = useMemo(() => {
