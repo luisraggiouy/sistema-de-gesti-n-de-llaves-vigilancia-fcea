@@ -1,22 +1,116 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart3, ArrowLeft, Clock, Users, Key, ArrowUpRight, ArrowDownLeft, Sun, Sunset, Moon, Palmtree, Stethoscope, Package, Usb, DatabaseBackup, CalendarDays, CalendarRange, Lock } from 'lucide-react';
+import { BarChart3, ArrowLeft, Clock, Users, Key, ArrowUpRight, ArrowDownLeft, Sun, Sunset, Moon, Palmtree, Stethoscope, Package, Usb, DatabaseBackup, CalendarDays, CalendarRange, Lock, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
 import { Turno } from '@/data/fceaData';
 import { useVigilantes } from '@/hooks/useVigilantes';
 import { EstadisticasTurno, EstadisticasVigilante } from '@/types/estadisticas';
-import { AdminLogin } from '@/components/admin/AdminLogin';
 import { AdvancedExportModal } from '@/components/admin/AdvancedExportModal';
 import { useObjetosOlvidados } from '@/hooks/useObjetosOlvidados';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useToast } from '@/hooks/use-toast';
-import { hayUSBConectado, obtenerUSBsConectados } from '@/utils/exportUtils';
 import AdvancedChartVisualizations from '@/components/dashboard/AdvancedChartVisualizations';
+
+// ── Modal de cambio de contraseña ──────────────────────────────────────────
+function ChangePasswordDialog({
+  open,
+  onOpenChange,
+  onChangePassword,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onChangePassword: (oldPwd: string, newPwd: string) => Promise<boolean>;
+}) {
+  const [oldPwd, setOldPwd] = useState('');
+  const [newPwd, setNewPwd] = useState('');
+  const [confirmPwd, setConfirmPwd] = useState('');
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const reset = () => {
+    setOldPwd(''); setNewPwd(''); setConfirmPwd('');
+    setError(''); setLoading(false);
+    setShowOld(false); setShowNew(false); setShowConfirm(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!oldPwd || !newPwd || !confirmPwd) { setError('Todos los campos son obligatorios'); return; }
+    if (newPwd !== confirmPwd) { setError('Las contraseñas nuevas no coinciden'); return; }
+    if (newPwd.length < 6) { setError('La nueva contraseña debe tener al menos 6 caracteres'); return; }
+    setError('');
+    setLoading(true);
+    const ok = await onChangePassword(oldPwd, newPwd);
+    setLoading(false);
+    if (ok) { reset(); onOpenChange(false); }
+    else { setError('La contraseña actual es incorrecta'); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Lock className="w-5 h-5" />
+            Cambiar Contraseña de Exportación
+          </DialogTitle>
+          <DialogDescription>
+            Ingrese la contraseña actual y la nueva contraseña para el acceso a exportación.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+          {error && <p className="text-sm text-destructive bg-destructive/10 rounded p-2">{error}</p>}
+          <div className="space-y-2">
+            <Label>Contraseña actual</Label>
+            <div className="relative">
+              <Input type={showOld ? 'text' : 'password'} value={oldPwd} onChange={e => setOldPwd(e.target.value)} placeholder="Contraseña actual" className="pr-10" autoFocus />
+              <button type="button" tabIndex={-1} className="absolute right-0 top-0 h-full px-3 text-muted-foreground" onClick={() => setShowOld(!showOld)}>
+                {showOld ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Nueva contraseña</Label>
+            <div className="relative">
+              <Input type={showNew ? 'text' : 'password'} value={newPwd} onChange={e => setNewPwd(e.target.value)} placeholder="Nueva contraseña (mín. 6 caracteres)" className="pr-10" />
+              <button type="button" tabIndex={-1} className="absolute right-0 top-0 h-full px-3 text-muted-foreground" onClick={() => setShowNew(!showNew)}>
+                {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Confirmar nueva contraseña</Label>
+            <div className="relative">
+              <Input type={showConfirm ? 'text' : 'password'} value={confirmPwd} onChange={e => setConfirmPwd(e.target.value)} placeholder="Repita la nueva contraseña" className="pr-10" />
+              <button type="button" tabIndex={-1} className="absolute right-0 top-0 h-full px-3 text-muted-foreground" onClick={() => setShowConfirm(!showConfirm)}>
+                {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          <div className="flex gap-2 pt-2">
+            <Button type="submit" className="flex-1" disabled={loading}>
+              {loading ? 'Guardando...' : 'Cambiar Contraseña'}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => { reset(); onOpenChange(false); }}>
+              Cancelar
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 const turnosConfig: Record<Turno, { label: string; horario: string; color: string; icon: typeof Sun }> = {
   'Matutino': { label: 'Turno Matutino', horario: '06:00 - 14:00', color: 'bg-amber-500', icon: Sun },
@@ -611,20 +705,11 @@ export default function Dashboard() {
         onOpenChange={setAdvancedExportOpen}
       />
 
-      {isChangingPassword && (
-        <AdminLogin
-          onLogin={() => {}}
-          onChangePassword={async (oldPass, newPass) => {
-            const success = await changePassword(oldPass, newPass);
-            if (success) {
-              setIsChangingPassword(false);
-            }
-          }}
-          isChangingPassword={true}
-          onToggleChangePassword={() => setIsChangingPassword(false)}
-          isCustodian={isCustodian}
-        />
-      )}
+      <ChangePasswordDialog
+        open={isChangingPassword}
+        onOpenChange={setIsChangingPassword}
+        onChangePassword={changePassword}
+      />
 
       <footer className="py-4 text-center text-sm text-muted-foreground border-t mt-8">
         <p>Dashboard de Actividad • FCEA UdelaR • Sistema de Gestión de Llaves v4.3</p>
