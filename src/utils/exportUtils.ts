@@ -556,14 +556,54 @@ function generarInformeHTML(data: any, options: any): string {
   }));
   const svgVigilantes = vigItems.length > 0 ? svgBarChart(vigItems, maxTotal, 180) : '<p style="color:#94a3b8">Sin datos en el período</p>';
 
+  // ── Calcular días del período exportado ──────────────────────────────────────
+  const fechaInicioStr = options.dateRange?.start || '';
+  const fechaFinStr = options.dateRange?.end || '';
+  let diasPeriodo = 0;
+  let diasActividadPorVigilante: Record<string, Set<string>> = {};
+
+  if (fechaInicioStr && fechaFinStr) {
+    const fi = new Date(fechaInicioStr.split('/').reverse().join('-'));
+    const ff = new Date(fechaFinStr.split('/').reverse().join('-'));
+    diasPeriodo = Math.max(1, Math.round((ff.getTime() - fi.getTime()) / 86400000) + 1);
+  } else {
+    // Inferir período desde las fechas de las solicitudes
+    const todasFechas = todasSolicitudes.map((s: any) => new Date(s.horaEntrega || s.horaDevolucion || s.horaSolicitud)).filter(d => !isNaN(d.getTime()));
+    if (todasFechas.length > 0) {
+      const minF = new Date(Math.min(...todasFechas.map(d => d.getTime())));
+      const maxF = new Date(Math.max(...todasFechas.map(d => d.getTime())));
+      diasPeriodo = Math.max(1, Math.round((maxF.getTime() - minF.getTime()) / 86400000) + 1);
+    } else {
+      diasPeriodo = 1;
+    }
+  }
+
+  // Calcular días únicos con actividad por vigilante
+  todasSolicitudes.forEach((s: any) => {
+    const ts = s.horaEntrega || s.horaDevolucion || s.horaSolicitud;
+    if (!ts) return;
+    const dia = new Date(ts).toISOString().slice(0, 10);
+    if (s.entregadoPor) {
+      if (!diasActividadPorVigilante[s.entregadoPor]) diasActividadPorVigilante[s.entregadoPor] = new Set();
+      diasActividadPorVigilante[s.entregadoPor].add(dia);
+    }
+    if (s.recibidoPor) {
+      if (!diasActividadPorVigilante[s.recibidoPor]) diasActividadPorVigilante[s.recibidoPor] = new Set();
+      diasActividadPorVigilante[s.recibidoPor].add(dia);
+    }
+  });
+
   // ── Tabla de ranking de vigilantes ──────────────────────────────────────────
-  // Construir mapa de estado de licencia desde las solicitudes (campo vigilante → estado)
-  // Como los datos de solicitudes no traen estadoLicencia, lo dejamos vacío por defecto
-  // pero sí podemos detectar si el vigilante NO tiene actividad (posible licencia)
   const rankingRows = vigilantes.map((v, i) => {
     const medal = `${i + 1}`;
     const badge = badgeRendimiento(v.total, maxTotal);
     const pct = maxTotal > 0 ? Math.round((v.total / maxTotal) * 100) : 0;
+    const diasConActividad = diasActividadPorVigilante[v.nombre]?.size || 0;
+    const diasSinActividad = Math.max(0, diasPeriodo - diasConActividad);
+    const pctLicencia = diasPeriodo > 0 ? Math.round((diasSinActividad / diasPeriodo) * 100) : 0;
+    const licenciaLabel = diasPeriodo > 0
+      ? `<span style="font-size:12px;color:#64748b">${diasSinActividad}/${diasPeriodo} días <span style="color:${pctLicencia > 30 ? '#dc2626' : pctLicencia > 10 ? '#f59e0b' : '#16a34a'};font-weight:700">(${pctLicencia}%)</span></span>`
+      : '<span style="font-size:12px;color:#94a3b8">—</span>';
     return `<tr style="border-bottom:1px solid #f1f5f9">
       <td style="padding:10px 8px;font-weight:600;font-size:15px">${medal}</td>
       <td style="padding:10px 8px;font-weight:600">${v.nombre}</td>
@@ -576,12 +616,12 @@ function generarInformeHTML(data: any, options: any): string {
           <div style="background:#3b82f6;border-radius:8px;height:10px;width:${pct}%"></div>
         </div>
       </td>
+      <td style="padding:10px 8px">${licenciaLabel}</td>
       <td style="padding:10px 8px">${badge}</td>
     </tr>`;
   }).join('');
 
   // ── Vigilantes en licencia (sin actividad en el período) ─────────────────────
-  // Detectar vigilantes que aparecen en solicitudes con estado de licencia
   const licenciaMap: Record<string, string> = {};
   [...(data.solicitudesEntregadas || []), ...(data.solicitudesDevueltas || [])].forEach((s: any) => {
     if (s.estadoLicenciaVigilante && s.estadoLicenciaVigilante !== 'activo') {
@@ -719,9 +759,10 @@ function generarInformeHTML(data: any, options: any): string {
         <th style="text-align:center;color:#7c3aed">Objetos</th>
         <th style="text-align:center">Total</th>
         <th>Actividad</th>
+        <th>Días sin actividad / Total período</th>
         <th>Rendimiento</th>
       </tr></thead>
-      <tbody>${rankingRows || '<tr><td colspan="8" style="padding:20px;text-align:center;color:#94a3b8">Sin actividad en el período seleccionado</td></tr>'}</tbody>
+      <tbody>${rankingRows || '<tr><td colspan="9" style="padding:20px;text-align:center;color:#94a3b8">Sin actividad en el período seleccionado</td></tr>'}</tbody>
     </table>
   </div>
 
