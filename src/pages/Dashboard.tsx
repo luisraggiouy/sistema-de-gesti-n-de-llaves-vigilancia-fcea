@@ -288,7 +288,7 @@ export default function Dashboard() {
                 onClick={() => setIsChangingPassword(true)}
               >
                 <Lock className="w-4 h-4" />
-                <span className="hidden md:inline">Cambiar Contrasena Exportacion</span>
+                <span className="hidden md:inline">Cambiar Contraseña Exportación</span>
               </Button>
             </div>
           </div>

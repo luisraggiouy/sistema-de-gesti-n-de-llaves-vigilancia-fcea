@@ -77,7 +77,7 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
 
   const handleLoginExport = async () => {
     if (!passwordInput.trim()) {
-      setPasswordError('Debe ingresar la contrasena');
+      setPasswordError('Debe ingresar la contraseña');
       return;
     }
     const ok = await login(passwordInput);
@@ -85,7 +85,7 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
       setAutenticado(true);
       setPasswordError('');
     } else {
-      setPasswordError('Contrasena incorrecta');
+      setPasswordError('Contraseña incorrecta');
     }
   };
 
@@ -319,18 +319,18 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
           <div className="space-y-4 py-4">
             <Alert className="bg-blue-50 border-blue-200">
               <AlertDescription className="text-blue-700">
-                Para exportar datos debe ingresar la contrasena de acceso autorizado.
+                Para exportar datos debe ingresar la contraseña de acceso autorizado.
               </AlertDescription>
             </Alert>
             <div className="space-y-2">
-              <Label htmlFor="export-password">Contrasena de exportacion</Label>
+              <Label htmlFor="export-password">Contraseña de exportación</Label>
               <Input
                 id="export-password"
                 type="password"
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleLoginExport()}
-                placeholder="Ingrese la contrasena"
+                placeholder="Ingrese la contraseña"
                 autoFocus
               />
               {passwordError && (
