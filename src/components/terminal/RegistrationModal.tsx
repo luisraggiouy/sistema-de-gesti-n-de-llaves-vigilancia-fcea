@@ -216,14 +216,14 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <Building2 className="w-4 h-4 text-muted-foreground" />
-                  Departamento
+                  Departamento o sección
                 </Label>
                 <Select value={departamento} onValueChange={(val) => {
                   setDepartamento(val as DepartamentoTAS);
                   if (val !== 'Otro') setDepartamentoOtro('');
                 }}>
                   <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Seleccione departamento" />
+                    <SelectValue placeholder="Seleccione departamento o sección" />
                   </SelectTrigger>
                   <SelectContent className="max-h-60">
                     {departamentosTAS.map((dep) => (
@@ -236,11 +236,11 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
                 <div className="space-y-2">
                   <Label htmlFor="reg-depto-otro" className="flex items-center gap-2">
                     <Building2 className="w-4 h-4 text-muted-foreground" />
-                    Especifique el departamento *
+                    Especifique el departamento o sección *
                   </Label>
                   <Input
                     id="reg-depto-otro"
-                    placeholder="Escriba el nombre del departamento"
+                    placeholder="Escriba el nombre del departamento o sección"
                     value={departamentoOtro}
                     onChange={(e) => setDepartamentoOtro(e.target.value)}
                     className="h-11"

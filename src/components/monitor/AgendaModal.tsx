@@ -197,9 +197,9 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
                           </div>
                           {editData.tipo === 'Personal TAS' && (
                             <div className="space-y-1">
-                              <Label className="text-xs">Departamento</Label>
+                              <Label className="text-xs">Departamento o sección</Label>
                               <Select value={editData.departamento || ''} onValueChange={v => setEditData(d => ({ ...d, departamento: v as DepartamentoTAS }))}>
-                                <SelectTrigger className="h-9"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                                <SelectTrigger className="h-9"><SelectValue placeholder="Seleccionar departamento o sección" /></SelectTrigger>
                                 <SelectContent className="max-h-48">
                                   {departamentosTAS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                                 </SelectContent>
