@@ -661,6 +661,75 @@ function generarInformeHTML(data: any, options: any): string {
     </tr>`;
   }).join('');
 
+  // ── Sección: Estado del Personal (días laborales, descanso, licencia) ────────
+  const personalRows = (data.vigilantes || []).map((v: any) => {
+    const diasLab: number[] | undefined = v.diasLaborales;
+    const tieneDias = diasLab && diasLab.length > 0 && diasLab.length < 7;
+    const diasNombres = ['Do','Lu','Ma','Mi','Ju','Vi','Sá'];
+    // Chips de días
+    const chipsHtml = diasNombres.map((d, i) => {
+      const esLaboral = !tieneDias || (diasLab?.includes(i) ?? true);
+      const esFinde = i === 0 || i === 6;
+      const bg = esLaboral
+        ? esFinde ? '#ffedd5' : '#dbeafe'
+        : '#f1f5f9';
+      const color = esLaboral
+        ? esFinde ? '#9a3412' : '#1d4ed8'
+        : '#94a3b8';
+      const border = esLaboral
+        ? esFinde ? '#fed7aa' : '#bfdbfe'
+        : '#e2e8f0';
+      const textDecoration = esLaboral ? 'none' : 'line-through';
+      return `<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:9px;font-weight:700;background:${bg};color:${color};border:1px solid ${border};text-decoration:${textDecoration};margin-right:2px">${d}</span>`;
+    }).join('');
+    // Calcular días laborales en el período
+    let diasLaboralesEnPeriodo = 0;
+    let totalDiasPeriodo = 0;
+    if (fechaInicioStr && fechaFinStr) {
+      const parseFecha = (s: string) => {
+        // Soporta tanto yyyy-MM-dd como dd/MM/yyyy
+        if (s.includes('-')) return new Date(s);
+        const [d, m, y] = s.split('/');
+        return new Date(Number(y), Number(m) - 1, Number(d));
+      };
+      const fi = parseFecha(fechaInicioStr);
+      const ff = parseFecha(fechaFinStr);
+      if (!isNaN(fi.getTime()) && !isNaN(ff.getTime())) {
+        totalDiasPeriodo = Math.max(1, Math.round((ff.getTime() - fi.getTime()) / 86400000) + 1);
+        const diasActivos = tieneDias ? diasLab! : [0,1,2,3,4,5,6];
+        const cur = new Date(fi);
+        while (cur <= ff) {
+          if (diasActivos.includes(cur.getDay())) diasLaboralesEnPeriodo++;
+          cur.setDate(cur.getDate() + 1);
+        }
+      }
+    }
+    const diasDescanso = totalDiasPeriodo - diasLaboralesEnPeriodo;
+    const licencia = v.estadoLicencia && v.estadoLicencia !== 'activo' ? v.estadoLicencia : null;
+    const licenciaHtml = licencia
+      ? licencia === 'licencia_medica'
+        ? '<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">🏥 Lic. Médica</span>'
+        : '<span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">🌴 Licencia</span>'
+      : '<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">✅ Activo</span>';
+    const rolHtml = v.esJefe
+      ? '<span style="background:#ede9fe;color:#5b21b6;padding:2px 8px;border-radius:10px;font-size:11px">⭐ Jefe de Turno</span>'
+      : '<span style="background:#f1f5f9;color:#475569;padding:2px 8px;border-radius:10px;font-size:11px">Vigilante</span>';
+    const turnoColor: Record<string, string> = { Matutino: '#f59e0b', Vespertino: '#3b82f6', Nocturno: '#6366f1' };
+    const tc = turnoColor[v.turno] || '#64748b';
+    return `<tr style="border-bottom:1px solid #f1f5f9">
+      <td style="padding:10px 8px;font-weight:600">${v.nombre}</td>
+      <td style="padding:10px 8px"><span style="background:${tc}22;color:${tc};padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">${v.turno}</span></td>
+      <td style="padding:10px 8px">${rolHtml}</td>
+      <td style="padding:10px 8px">${chipsHtml}</td>
+      <td style="padding:10px 8px;text-align:center">
+        <span style="font-weight:700;color:#2563eb">${diasLaboralesEnPeriodo}</span>
+        <span style="color:#94a3b8;font-size:11px"> lab</span>
+        ${diasDescanso > 0 ? `<span style="color:#94a3b8;font-size:11px"> · </span><span style="font-weight:700;color:#94a3b8">${diasDescanso}</span><span style="color:#94a3b8;font-size:11px"> desc</span>` : ''}
+      </td>
+      <td style="padding:10px 8px">${licenciaHtml}</td>
+    </tr>`;
+  }).join('');
+
   // ── Vigilantes en licencia (sin actividad en el período) ─────────────────────
   const licenciaMap: Record<string, string> = {};
   [...(data.solicitudesEntregadas || []), ...(data.solicitudesDevueltas || [])].forEach((s: any) => {
@@ -856,7 +925,30 @@ function generarInformeHTML(data: any, options: any): string {
     </table>
   </div>` : ''}
 
-  <!-- SECCIÓN 6 (SECUNDARIA): VIGILANTES EN LICENCIA -->
+  <!-- SECCIÓN 6: ESTADO DEL PERSONAL (días laborales, descanso, licencia) -->
+  ${personalRows ? `
+  <h2>Estado del Personal — Días Laborales y Licencias</h2>
+  <div class="card">
+    <p style="font-size:13px;color:#64748b;margin-bottom:12px">
+      Muestra los días de trabajo configurados para cada vigilante, los días laborales y de descanso en el período exportado, y su estado de licencia actual.
+      <br><span style="color:#1d4ed8">■</span> Azul = día laboral entre semana &nbsp;
+      <span style="color:#9a3412">■</span> Naranja = día laboral fin de semana &nbsp;
+      <span style="color:#94a3b8">■</span> Gris tachado = día de descanso
+    </p>
+    <table>
+      <thead><tr>
+        <th>Vigilante</th>
+        <th>Turno</th>
+        <th>Rol</th>
+        <th>Días de trabajo</th>
+        <th style="text-align:center">Días en el período</th>
+        <th>Estado actual</th>
+      </tr></thead>
+      <tbody>${personalRows}</tbody>
+    </table>
+  </div>` : ''}
+
+  <!-- SECCIÓN 7 (SECUNDARIA): VIGILANTES EN LICENCIA -->
   ${vigilantesEnLicencia.length > 0 ? `
   <h2>Personal en Licencia durante el Período</h2>
   <div class="card">

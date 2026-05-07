@@ -14,6 +14,7 @@ import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useObjetosOlvidados } from '@/hooks/useObjetosOlvidados';
 import { getAutorizaciones } from '@/data/fceaData';
+import { useVigilantes } from '@/hooks/useVigilantes';
 
 interface AdvancedExportModalProps {
   open: boolean;
@@ -61,6 +62,7 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
   const { solicitudesPendientes, solicitudesEntregadas, solicitudesDevueltas } = useSolicitudesContext();
   const { isAuthenticated, login } = useAdminAuth();
   const { objetos } = useObjetosOlvidados();
+  const { vigilantes } = useVigilantes();
   const [autenticado, setAutenticado] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
@@ -165,6 +167,14 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
       // Preparar datos para exportación
       const exportData = {
         ...filteredData,
+        // Incluir vigilantes con diasLaborales y estadoLicencia para el informe de personal
+        vigilantes: vigilantes.map(v => ({
+          nombre: v.nombre,
+          turno: v.turno,
+          esJefe: v.esJefe,
+          estadoLicencia: v.estadoLicencia || 'activo',
+          diasLaborales: v.diasLaborales,
+        })),
         dateRange: {
           start: startDate,
           end: endDate
