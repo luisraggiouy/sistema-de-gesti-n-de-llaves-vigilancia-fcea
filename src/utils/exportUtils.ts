@@ -482,6 +482,31 @@ function badgeRendimiento(total: number, max: number): string {
   return '<span style="background:#fee2e2;color:#991b1b;padding:2px 10px;border-radius:12px;font-size:12px">Bajo</span>';
 }
 
+// Calcula cuántos días dentro de un rango de fechas corresponden a los días laborales de un vigilante
+function calcularDiasEsperados(fechaInicioStr: string, fechaFinStr: string, diasLaborales?: number[]): number {
+  if (!fechaInicioStr || !fechaFinStr) return 0;
+  // Parsear dd/MM/yyyy
+  const parseFecha = (s: string) => {
+    const [d, m, y] = s.split('/');
+    return new Date(Number(y), Number(m) - 1, Number(d));
+  };
+  const fi = parseFecha(fechaInicioStr);
+  const ff = parseFecha(fechaFinStr);
+  if (isNaN(fi.getTime()) || isNaN(ff.getTime())) return 0;
+  // Si no tiene días laborales configurados → trabaja todos los días
+  if (!diasLaborales || diasLaborales.length === 0 || diasLaborales.length === 7) {
+    return Math.max(1, Math.round((ff.getTime() - fi.getTime()) / 86400000) + 1);
+  }
+  // Contar días del período que coinciden con los días laborales
+  let count = 0;
+  const cur = new Date(fi);
+  while (cur <= ff) {
+    if (diasLaborales.includes(cur.getDay())) count++;
+    cur.setDate(cur.getDate() + 1);
+  }
+  return count;
+}
+
 function generarInformeHTML(data: any, options: any): string {
   const periodo = `${options.dateRange?.start || ''} al ${options.dateRange?.end || ''}`;
   const ahora = new Date().toLocaleString('es-UY');
@@ -593,16 +618,31 @@ function generarInformeHTML(data: any, options: any): string {
     }
   });
 
+  // ── Mapa de diasLaborales por nombre de vigilante (si se pasan en data.vigilantes) ──
+  const diasLaboralesMap: Record<string, number[] | undefined> = {};
+  (data.vigilantes || []).forEach((v: any) => {
+    if (v.nombre && v.diasLaborales) diasLaboralesMap[v.nombre] = v.diasLaborales;
+  });
+
   // ── Tabla de ranking de vigilantes ──────────────────────────────────────────
   const rankingRows = vigilantes.map((v, i) => {
     const medal = `${i + 1}`;
     const badge = badgeRendimiento(v.total, maxTotal);
     const pct = maxTotal > 0 ? Math.round((v.total / maxTotal) * 100) : 0;
     const diasConActividad = diasActividadPorVigilante[v.nombre]?.size || 0;
-    const diasSinActividad = Math.max(0, diasPeriodo - diasConActividad);
-    const pctLicencia = diasPeriodo > 0 ? Math.round((diasSinActividad / diasPeriodo) * 100) : 0;
-    const licenciaLabel = diasPeriodo > 0
-      ? `<span style="font-size:12px;color:#64748b">${diasSinActividad}/${diasPeriodo} días <span style="color:${pctLicencia > 30 ? '#dc2626' : pctLicencia > 10 ? '#f59e0b' : '#16a34a'};font-weight:700">(${pctLicencia}%)</span></span>`
+    // Usar diasLaborales del vigilante para calcular días esperados en el período
+    const diasLaboralesVig = diasLaboralesMap[v.nombre];
+    const diasEsperados = (fechaInicioStr && fechaFinStr)
+      ? calcularDiasEsperados(fechaInicioStr, fechaFinStr, diasLaboralesVig)
+      : diasPeriodo;
+    const diasSinActividad = Math.max(0, diasEsperados - diasConActividad);
+    const pctLicencia = diasEsperados > 0 ? Math.round((diasSinActividad / diasEsperados) * 100) : 0;
+    // Mostrar días laborales configurados como chips pequeños
+    const diasChips = diasLaboralesVig && diasLaboralesVig.length > 0 && diasLaboralesVig.length < 7
+      ? `<br><span style="font-size:10px;color:#94a3b8">${['Do','Lu','Ma','Mi','Ju','Vi','Sá'].filter((_,idx) => diasLaboralesVig.includes(idx === 0 ? 0 : idx)).join(' ')}</span>`
+      : '';
+    const licenciaLabel = diasEsperados > 0
+      ? `<span style="font-size:12px;color:#64748b">${diasSinActividad}/${diasEsperados} días <span style="color:${pctLicencia > 30 ? '#dc2626' : pctLicencia > 10 ? '#f59e0b' : '#16a34a'};font-weight:700">(${pctLicencia}%)</span>${diasChips}</span>`
       : '<span style="font-size:12px;color:#94a3b8">—</span>';
     return `<tr style="border-bottom:1px solid #f1f5f9">
       <td style="padding:10px 8px;font-weight:600;font-size:15px">${medal}</td>

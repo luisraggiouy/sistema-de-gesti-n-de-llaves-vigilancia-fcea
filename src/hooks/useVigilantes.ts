@@ -1,5 +1,5 @@
 ﻿import { useState, useCallback, useEffect } from 'react';
-import { Vigilante, Turno, EstadoLicencia, obtenerTurnoActual } from '@/data/fceaData';
+import { Vigilante, Turno, EstadoLicencia, DiaSemana, obtenerTurnoActual } from '@/data/fceaData';
 import pb from '@/lib/pocketbase';
 
 function obtenerTurnoAnterior(turnoActual: Turno): Turno {
@@ -29,8 +29,13 @@ export function useVigilantes() {
         nombre: r.nombre,
         turno: r.turno as Turno,
         esJefe: r.es_jefe ?? false,
-        // estadoLicencia: leer desde PocketBase; si no existe o es vacío → 'activo'
         estadoLicencia: (r.estadoLicencia as EstadoLicencia) || 'activo',
+        // diasLaborales: array JSON guardado en PocketBase; null/vacío → trabaja todos los días
+        diasLaborales: r.diasLaborales
+          ? (typeof r.diasLaborales === 'string'
+              ? JSON.parse(r.diasLaborales)
+              : r.diasLaborales) as DiaSemana[]
+          : undefined,
       }));
       setVigilantes(lista);
     } catch (e) {
@@ -69,6 +74,12 @@ export function useVigilantes() {
       if (datos.esJefe !== undefined) payload.es_jefe = datos.esJefe;
       // estadoLicencia se guarda en PocketBase para que persista entre recargas
       if (datos.estadoLicencia !== undefined) payload.estadoLicencia = datos.estadoLicencia;
+      // diasLaborales se guarda como JSON string en PocketBase
+      if (datos.diasLaborales !== undefined) {
+        payload.diasLaborales = datos.diasLaborales && datos.diasLaborales.length > 0
+          ? JSON.stringify(datos.diasLaborales)
+          : null;
+      }
 
       await pb.collection('vigilante').update(vigilanteId, payload);
       setVigilantes(prev => prev.map(v => v.id === vigilanteId ? { ...v, ...datos } : v));

@@ -73,6 +73,19 @@ export const estadosLicencia: { value: EstadoLicencia; label: string }[] = [
 
 export type Turno = 'Matutino' | 'Vespertino' | 'Nocturno';
 
+// Días de la semana: 0=Domingo, 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado
+export type DiaSemana = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+export const diasSemanaLabels: { value: DiaSemana; label: string; abrev: string }[] = [
+  { value: 1, label: 'Lunes',     abrev: 'Lu' },
+  { value: 2, label: 'Martes',    abrev: 'Ma' },
+  { value: 3, label: 'Miércoles', abrev: 'Mi' },
+  { value: 4, label: 'Jueves',    abrev: 'Ju' },
+  { value: 5, label: 'Viernes',   abrev: 'Vi' },
+  { value: 6, label: 'Sábado',    abrev: 'Sá' },
+  { value: 0, label: 'Domingo',   abrev: 'Do' },
+];
+
 export interface Lugar {
   id: string;
   nombre: string;
@@ -94,6 +107,9 @@ export interface Vigilante {
   esJefe: boolean;
   turno: Turno;
   estadoLicencia?: EstadoLicencia;
+  // Días de la semana que trabaja: 0=Dom, 1=Lun, 2=Mar, 3=Mié, 4=Jue, 5=Vie, 6=Sáb
+  // Si está vacío/undefined → se asume que trabaja todos los días
+  diasLaborales?: DiaSemana[];
 }
 
 export interface UsuarioRegistrado {

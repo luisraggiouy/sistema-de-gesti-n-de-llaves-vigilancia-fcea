@@ -15,8 +15,8 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Vigilante, Turno, EstadoLicencia, estadosLicencia } from '@/data/fceaData';
-import { UserPlus, Trash2, Crown, Sun, Sunset, Moon, Maximize2, Minimize2, CheckCircle2, Palmtree, Stethoscope } from 'lucide-react';
+import { Vigilante, Turno, EstadoLicencia, DiaSemana, estadosLicencia, diasSemanaLabels } from '@/data/fceaData';
+import { UserPlus, Trash2, Crown, Sun, Sunset, Moon, Maximize2, Minimize2, CheckCircle2, Palmtree, Stethoscope, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface GuardManagementModalProps {
@@ -105,8 +105,9 @@ export function GuardManagementModal({
           <div className="space-y-2">
             {lista.map(v => (
               <Card key={v.id} className={`p-3 ${v.estadoLicencia && v.estadoLicencia !== 'activo' ? 'opacity-60 bg-muted/50' : ''}`}>
+                {/* Fila superior: nombre + controles */}
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {v.esJefe && <Crown className="w-4 h-4 text-warning" />}
                     <span className="font-medium">{v.nombre}</span>
                     {v.esJefe && (
@@ -166,6 +167,59 @@ export function GuardManagementModal({
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
+                  </div>
+                </div>
+
+                {/* Fila inferior: selector de días laborales */}
+                <div className="mt-2 pt-2 border-t border-dashed border-muted-foreground/20">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Calendar className="w-3 h-3 text-muted-foreground shrink-0" />
+                    <span className="text-xs text-muted-foreground shrink-0">Días de trabajo:</span>
+                    <div className="flex gap-1 flex-wrap">
+                      {diasSemanaLabels.map(dia => {
+                        const activo = !v.diasLaborales || v.diasLaborales.length === 0
+                          ? true
+                          : v.diasLaborales.includes(dia.value);
+                        const esFinde = dia.value === 0 || dia.value === 6;
+                        return (
+                          <button
+                            key={dia.value}
+                            type="button"
+                            title={dia.label}
+                            onClick={() => {
+                              // Calcular nuevo array de días
+                              const actual: DiaSemana[] = v.diasLaborales && v.diasLaborales.length > 0
+                                ? [...v.diasLaborales]
+                                : [1, 2, 3, 4, 5, 6, 0] as DiaSemana[];
+                              const nuevo = actual.includes(dia.value)
+                                ? actual.filter(d => d !== dia.value)
+                                : [...actual, dia.value].sort() as DiaSemana[];
+                              // Si todos los días están activos, guardar undefined (trabaja todos)
+                              const todosActivos = nuevo.length === 7;
+                              onActualizar(v.id, { diasLaborales: todosActivos ? undefined : nuevo });
+                              setCambiosRealizados(prev => prev + 1);
+                            }}
+                            className={`w-7 h-7 rounded-full text-[10px] font-bold border transition-colors ${
+                              activo
+                                ? esFinde
+                                  ? 'bg-orange-100 border-orange-400 text-orange-700'
+                                  : 'bg-blue-100 border-blue-400 text-blue-700'
+                                : 'bg-muted border-muted-foreground/20 text-muted-foreground line-through'
+                            }`}
+                          >
+                            {dia.abrev}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {v.diasLaborales && v.diasLaborales.length > 0 && v.diasLaborales.length < 7 && (
+                      <span className="text-xs text-muted-foreground ml-1">
+                        ({v.diasLaborales.length} días/sem)
+                      </span>
+                    )}
+                    {(!v.diasLaborales || v.diasLaborales.length === 0 || v.diasLaborales.length === 7) && (
+                      <span className="text-xs text-green-600 ml-1">Todos los días</span>
+                    )}
                   </div>
                 </div>
               </Card>
