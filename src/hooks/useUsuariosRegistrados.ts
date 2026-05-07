@@ -52,6 +52,49 @@ export function UsuariosRegistradosProvider({ children }: { children: React.Reac
 
   useEffect(() => { cargar(); }, [cargar]);
 
+  // Suscripción en tiempo real: si un usuario es creado, editado o borrado
+  // desde la agenda del monitor, la terminal se actualiza automáticamente.
+  useEffect(() => {
+    let unsubscribe: (() => void) | null = null;
+
+    const suscribir = async () => {
+      try {
+        unsubscribe = await pb.collection('usuarios_registrados').subscribe('*', (e) => {
+          if (e.action === 'delete') {
+            // Eliminar el usuario borrado de la lista en memoria
+            const updated = usuariosRef.current.filter(u => u.id !== e.record.id);
+            setUsuarios(updated);
+            usuariosRef.current = updated;
+            console.log('[Usuarios] Usuario eliminado de la agenda, actualizado en terminal:', e.record.id);
+          } else if (e.action === 'create') {
+            // Agregar el nuevo usuario
+            const nuevo = mapRecord(e.record);
+            const updated = [...usuariosRef.current, nuevo].sort((a, b) => a.nombre.localeCompare(b.nombre));
+            setUsuarios(updated);
+            usuariosRef.current = updated;
+          } else if (e.action === 'update') {
+            // Actualizar el usuario modificado
+            const updated = usuariosRef.current
+              .map(u => u.id === e.record.id ? mapRecord(e.record) : u)
+              .sort((a, b) => a.nombre.localeCompare(b.nombre));
+            setUsuarios(updated);
+            usuariosRef.current = updated;
+          }
+        }) as unknown as () => void;
+      } catch (e) {
+        console.warn('[Usuarios] No se pudo suscribir a cambios en tiempo real:', e);
+      }
+    };
+
+    suscribir();
+
+    return () => {
+      if (unsubscribe) {
+        try { unsubscribe(); } catch (_) {}
+      }
+    };
+  }, []);
+
   const registrarUsuario = useCallback(async (datos: {
     nombre: string;
     celular: string;

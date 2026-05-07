@@ -29,7 +29,7 @@ export default function TerminalUsuario() {
     lastUpdated,
     refrescarDatos
   } = useSolicitudesContext();
-  const { buscarPorTexto } = useUsuariosRegistrados();
+  const { buscarPorTexto, usuarios } = useUsuariosRegistrados();
   const [step, setStep] = useState<TerminalStep>('main');
   const [currentUser, setCurrentUser] = useState<UsuarioRegistrado | null>(null);
   const [selectedKeys, setSelectedKeys] = useState<Lugar[]>([]);
@@ -47,6 +47,23 @@ export default function TerminalUsuario() {
       console.log("Usuario seleccionado, cargando llaves frecuentes:", currentUser.nombre);
     }
   }, [currentUser]);
+
+  // Si el usuario actualmente seleccionado es eliminado de la agenda,
+  // desseleccionarlo automáticamente y mostrar un aviso.
+  useEffect(() => {
+    if (!currentUser) return;
+    const sigueExistiendo = usuarios.some(u => u.id === currentUser.id);
+    if (!sigueExistiendo) {
+      toast({
+        title: "Usuario eliminado de la agenda",
+        description: `${currentUser.nombre} fue eliminado por el vigilante y ya no puede solicitar llaves.`,
+        variant: "destructive",
+      });
+      setCurrentUser(null);
+      setSelectedKeys([]);
+      setStep('main');
+    }
+  }, [usuarios, currentUser]);
 
   const handleToggleKey = (lugar: Lugar) => {
     setSelectedKeys(prev => {
