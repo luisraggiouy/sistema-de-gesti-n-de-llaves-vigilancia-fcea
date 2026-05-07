@@ -179,8 +179,8 @@ export default function Dashboard() {
     login(password);
   };
 
-  const handleChangePassword = (oldPassword: string, newPassword: string) => {
-    changePassword(oldPassword, newPassword);
+  const handleChangePassword = async (oldPassword: string, newPassword: string) => {
+    await changePassword(oldPassword, newPassword);
   };
 
   const estadisticas = calcularEstadisticas(registrosFiltrados);
@@ -614,8 +614,8 @@ export default function Dashboard() {
       {isChangingPassword && (
         <AdminLogin
           onLogin={() => {}}
-          onChangePassword={(oldPass, newPass) => {
-            const success = changePassword(oldPass, newPass);
+          onChangePassword={async (oldPass, newPass) => {
+            const success = await changePassword(oldPass, newPass);
             if (success) {
               setIsChangingPassword(false);
             }

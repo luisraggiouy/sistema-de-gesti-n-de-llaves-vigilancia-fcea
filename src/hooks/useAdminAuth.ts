@@ -10,6 +10,7 @@ interface AdminAuthState {
 
 const DEFAULT_CUSTODIAN_PASSWORD = 'custodio2026'; // Contraseña compartida por defecto
 const SESSION_DURATION = 5 * 60 * 1000; // 5 minutos en milisegundos
+const PASSWORD_STORAGE_KEY = 'admin_custodian_password'; // clave localStorage para la contraseña
 
 export function useAdminAuth() {
   const [authState, setAuthState] = useState<AdminAuthState>({
@@ -55,19 +56,31 @@ export function useAdminAuth() {
   }, []);
 
   const getStoredPassword = useCallback(async (): Promise<string> => {
+    // 1. Primero intentar localStorage (siempre disponible)
+    const localPwd = localStorage.getItem(PASSWORD_STORAGE_KEY);
+    if (localPwd) return localPwd;
+
+    // 2. Intentar PocketBase como fuente secundaria
     try {
       const records = await pb.collection('admin_config').getFullList();
       const config = records.find(r => r.key === 'custodian_password');
       if (config && config.value) {
+        // Sincronizar a localStorage para próximas consultas
+        localStorage.setItem(PASSWORD_STORAGE_KEY, config.value);
         return config.value;
       }
     } catch (error) {
-      console.warn('No se pudo obtener contraseña de la base de datos, usando por defecto');
+      console.warn('No se pudo obtener contraseña de PocketBase, usando por defecto');
     }
+
     return DEFAULT_CUSTODIAN_PASSWORD;
   }, []);
 
   const savePassword = useCallback(async (newPassword: string): Promise<void> => {
+    // 1. Guardar siempre en localStorage (fuente primaria, nunca falla)
+    localStorage.setItem(PASSWORD_STORAGE_KEY, newPassword);
+
+    // 2. Intentar sincronizar con PocketBase (opcional, no bloquea)
     try {
       const records = await pb.collection('admin_config').getFullList();
       const config = records.find(r => r.key === 'custodian_password');
@@ -86,8 +99,8 @@ export function useAdminAuth() {
         });
       }
     } catch (error) {
-      console.error('Error saving password:', error);
-      throw new Error('No se pudo guardar la nueva contraseña');
+      // No lanzar error — localStorage ya guardó la contraseña
+      console.warn('No se pudo sincronizar contraseña con PocketBase (guardada localmente)');
     }
   }, []);
 
