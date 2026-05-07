@@ -254,7 +254,18 @@ export default function TerminalUsuario() {
         {!isFormValid && (
           <Card className="mt-6 p-6 bg-muted/50 border-dashed">
             <p className="text-center text-muted-foreground">
-              {!currentUser ? "Identifíquese con su celular o regístrese para continuar" : "Seleccione una o más llaves disponibles para continuar"}
+              {!currentUser ? (
+                <>
+                  Identifíquese con su número de celular o con su email, de lo contrario{' '}
+                  <button
+                    onClick={() => setShowRegistration(true)}
+                    className="text-blue-600 hover:text-blue-800 underline font-medium cursor-pointer"
+                  >
+                    regístrese
+                  </button>
+                  {' '}para continuar.
+                </>
+              ) : "Seleccione una o más llaves disponibles para continuar"}
             </p>
           </Card>
         )}
