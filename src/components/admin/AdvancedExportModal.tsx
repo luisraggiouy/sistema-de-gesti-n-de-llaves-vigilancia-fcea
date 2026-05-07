@@ -174,11 +174,19 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
         generatedBy: 'Autorizado FCEA'
       };
 
-      // Generar nombre de archivo con fecha y hora
+      // Generar nombre de archivo legible con fechas y hora
       const now = new Date();
-      const formattedDate = now.toISOString().split('T')[0];
-      const formattedTime = now.toTimeString().split(' ')[0].replace(/:/g, '-');
-      const fileName = `Dashboard_FCEA_${startDate}_${endDate}_${formattedDate}_${formattedTime}`;
+      const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+      const fmtFechaLegible = (iso: string) => {
+        const [y, m, d] = iso.split('-');
+        return `${parseInt(d)} de ${meses[parseInt(m) - 1]}`;
+      };
+      const diaGen = now.getDate();
+      const mesGen = now.getMonth() + 1;
+      const anioGen = String(now.getFullYear()).slice(2);
+      const horaGen = String(now.getHours()).padStart(2, '0');
+      const minGen = String(now.getMinutes()).padStart(2, '0');
+      const fileName = `Datos Dashboard Vigilancia, desde ${fmtFechaLegible(startDate)} hasta ${fmtFechaLegible(endDate)}, generado ${diaGen}-${mesGen}-${anioGen} hora ${horaGen}.${minGen}`;
 
       // Exportar a Excel - TODOS exportan directo a USB
       await exportToExcel(exportData, fileName, {
@@ -200,7 +208,7 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
       // Mostrar confirmación de que puede retirar el pendrive
       setTimeout(() => {
         toast({
-          title: "✅ Pendrive Listo",
+          title: "Pendrive Listo",
           description: "Puede retirar el pendrive de forma segura. Los datos ya están guardados.",
           duration: 8000
         });
@@ -460,7 +468,7 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
                     onCheckedChange={(checked) => handleOptionChange('includeObjetos', checked as boolean)}
                   />
                   <Label htmlFor="includeObjetos" className="text-sm font-medium">
-                    📦 Objetos Olvidados (Registro y Devolución)
+                    Objetos Olvidados (Registro y Devolución)
                   </Label>
                 </div>
 
@@ -471,7 +479,7 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
                     onCheckedChange={(checked) => handleOptionChange('includeAutorizaciones', checked as boolean)}
                   />
                   <Label htmlFor="includeAutorizaciones" className="text-sm font-medium">
-                    ✅ Autorizaciones Ingresadas
+                    Autorizaciones Ingresadas
                   </Label>
                 </div>
               </div>
