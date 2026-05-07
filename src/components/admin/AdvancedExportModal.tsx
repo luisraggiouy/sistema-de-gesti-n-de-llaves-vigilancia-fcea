@@ -60,17 +60,43 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
   });
   const { toast } = useToast();
   const { solicitudesPendientes, solicitudesEntregadas, solicitudesDevueltas } = useSolicitudesContext();
-  const { isCustodian } = useAdminAuth();
+  const { isAuthenticated, login } = useAdminAuth();
   const { objetos } = useObjetosOlvidados();
+  const [autenticado, setAutenticado] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  // Resetear autenticacion al cerrar el modal
+  useEffect(() => {
+    if (!open) {
+      setAutenticado(false);
+      setPasswordInput('');
+      setPasswordError('');
+    }
+  }, [open]);
+
+  const handleLoginExport = async () => {
+    if (!passwordInput.trim()) {
+      setPasswordError('Debe ingresar la contrasena');
+      return;
+    }
+    const ok = await login(passwordInput);
+    if (ok) {
+      setAutenticado(true);
+      setPasswordError('');
+    } else {
+      setPasswordError('Contrasena incorrecta');
+    }
+  };
 
   // Verificar si hay un USB conectado cuando se abre el modal
   useEffect(() => {
-    if (open) {
+    if (open && autenticado) {
       checkUsbStatus();
       const interval = setInterval(checkUsbStatus, 2000);
       return () => clearInterval(interval);
     }
-  }, [open]);
+  }, [open, autenticado]);
 
   const checkUsbStatus = () => {
     const connected = hayUSBConectado();
@@ -171,7 +197,7 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
         },
         exportOptions,
         generatedAt: new Date().toISOString(),
-        generatedBy: isCustodian ? 'Custodio FCEA' : 'Administrador FCEA'
+        generatedBy: 'Autorizado FCEA'
       };
 
       // Generar nombre de archivo con fecha y hora
@@ -280,20 +306,47 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {isCustodian ? (
-              <Usb className="w-5 h-5 text-amber-600" />
-            ) : (
-              <FileSpreadsheet className="w-5 h-5 text-green-600" />
-            )}
-            {isCustodian ? 'Exportación Segura a USB' : 'Exportación Avanzada a Excel'}
+            <Usb className="w-5 h-5 text-green-600" />
+            Exportar Datos a Pendrive
           </DialogTitle>
           <DialogDescription>
-            {isCustodian 
-              ? "Seleccione el rango de fechas y los datos que desea exportar. Los datos se guardarán directamente en su pendrive."
-              : "Seleccione el rango de fechas y los datos que desea exportar. El archivo se descargará automáticamente y podrá copiarlo a un pendrive."}
+            Seleccione el rango de fechas y los datos que desea exportar. Los datos se guardaran directamente en su pendrive.
           </DialogDescription>
         </DialogHeader>
 
+        {/* Pantalla de login — solo si no esta autenticado */}
+        {!autenticado ? (
+          <div className="space-y-4 py-4">
+            <Alert className="bg-blue-50 border-blue-200">
+              <AlertDescription className="text-blue-700">
+                Para exportar datos debe ingresar la contrasena de acceso autorizado.
+              </AlertDescription>
+            </Alert>
+            <div className="space-y-2">
+              <Label htmlFor="export-password">Contrasena de exportacion</Label>
+              <Input
+                id="export-password"
+                type="password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLoginExport()}
+                placeholder="Ingrese la contrasena"
+                autoFocus
+              />
+              {passwordError && (
+                <p className="text-sm text-destructive">{passwordError}</p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleLoginExport} className="flex-1">
+                Verificar y Continuar
+              </Button>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        ) : (
         <div className="space-y-6">
           {/* Estado del USB - PARA TODOS (custodios Y administradores) */}
           <Alert className={usbStatus.connected ? "bg-green-50 border-green-200 text-green-800" : "bg-amber-50 border-amber-200 text-amber-800"}>
@@ -493,6 +546,7 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
             </Button>
           </div>
         </div>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -1,214 +1,156 @@
-# Documentación: Sistema de Administración con Rol de Custodio y Estadísticas Avanzadas
+# Documentacion: Dashboard de Estadisticas y Exportacion a Pendrive
 
-## Introducción
+## Introduccion
 
-Este documento describe las nuevas funcionalidades implementadas en el Sistema de Gestión de Llaves de FCEA para permitir la existencia de un rol de custodio que puede autenticar, cambiar sus credenciales y exportar datos a dispositivos USB, así como las estadísticas avanzadas con gráficos para el análisis de datos.
+Este documento describe el funcionamiento del Dashboard de Actividad del Sistema de Gestion de Llaves de FCEA. El Dashboard es visible para todos sin contrasena. La contrasena solo se requiere para exportar datos a un pendrive USB.
 
-## Índice
+## Indice
 
-1. [Sistema de credenciales dual](#1-sistema-de-credenciales-dual)
-2. [Cambio de contraseñas](#2-cambio-de-contraseñas)
-3. [Exportación directa a USB](#3-exportación-directa-a-usb)
-4. [Interfaz de usuario para el custodio](#4-interfaz-de-usuario-para-el-custodio)
-5. [Estadísticas con gráficos de torta](#5-estadísticas-con-gráficos-de-torta)
-6. [Consideraciones técnicas](#6-consideraciones-técnicas)
-7. [Guía para administradores](#7-guía-para-administradores)
+1. [Acceso al Dashboard](#1-acceso-al-dashboard)
+2. [Exportacion a pendrive](#2-exportacion-a-pendrive)
+3. [Cambio de contrasena de exportacion](#3-cambio-de-contrasena-de-exportacion)
+4. [Estadisticas con graficos de torta](#4-estadisticas-con-graficos-de-torta)
+5. [Consideraciones tecnicas](#5-consideraciones-tecnicas)
 
-## 1. Sistema de Credenciales Dual
+## 1. Acceso al Dashboard
 
-### Descripción General
+### Descripcion General
 
-El sistema ahora soporta dos tipos de usuarios administrativos:
+El Dashboard es accesible para todos sin necesidad de contrasena. Cualquier persona frente a la pantalla puede ver:
 
-- **Administrador**: Acceso completo a todas las funcionalidades del sistema. El rol de administrador es asignado al **Intendente**.
-- **Custodio**: Acceso específico para exportar datos a un dispositivo USB. Los custodios son los **Jefes de Apoyo y Jefes de Turno**.
+- Graficas de actividad por turno (matutino, vespertino, nocturno)
+- Estadisticas de entregas y devoluciones de llaves
+- Actividad reciente (ultimas 30 operaciones)
+- Estado de objetos olvidados
+- Estadisticas avanzadas con graficos de barras y torta
 
-### Funcionamiento
+### Como acceder
 
-- Ambos roles utilizan el mismo formulario de inicio de sesión con una pestaña para seleccionar el tipo.
-- Las credenciales se almacenan por separado en la base de datos.
-- Por defecto, las credenciales iniciales son:
-  - Administrador: `admin123`
-  - Custodio: `custodio2026`
+URL directa: `http://localhost:8080/dashboard`
 
-### Implementación Técnica
+Tambien desde el Monitor de Vigilancia: boton "Dashboard" en la esquina superior.
 
-- Las credenciales se guardan en la colección `admin_config` de PocketBase con diferentes keys:
-  - `admin_password` para el administrador
-  - `custodian_password` para el custodio
-- La sesión almacenada en `localStorage` guarda el tipo de usuario autenticado.
+El Dashboard se abre directamente sin pedir contrasena.
 
-## 2. Cambio de Contraseñas
+## 2. Exportacion a Pendrive
 
-### Funcionalidad
+### Descripcion de la Funcionalidad
 
-- Tanto el administrador como el custodio pueden cambiar sus propias contraseñas.
-- El sistema verifica que la contraseña actual sea correcta antes de permitir el cambio.
-- Las nuevas contraseñas deben tener al menos 6 caracteres.
+La exportacion de datos a pendrive requiere una contrasena. Esto protege que cualquier persona pueda llevarse los datos del sistema.
 
-### Proceso de Cambio
+Solo las personas autorizadas (jefes de turno, jefes de apoyo, intendencia, autoridades) conocen la contrasena de exportacion.
 
-1. El usuario hace clic en el botón "Cambiar Contraseña" en el dashboard.
-2. Introduce su contraseña actual.
-3. Introduce y confirma la nueva contraseña.
-4. El sistema verifica y actualiza la contraseña en la base de datos.
+### Proceso de Exportacion
 
-### Consideraciones de Seguridad
+1. Conectar un pendrive comun al puerto USB del equipo.
+2. El sistema detecta el pendrive automaticamente y muestra una barra verde.
+3. Hacer clic en "Exportar a Pendrive" en el encabezado del Dashboard.
+4. Ingresar la contrasena de exportacion (por defecto: `custodio2026`).
+5. Seleccionar el rango de fechas y los datos a incluir.
+6. Hacer clic en "Exportar a USB".
+7. Los datos se guardan directamente en el pendrive.
+8. Cuando aparece el mensaje de confirmacion, se puede retirar el pendrive.
 
-- Se recomienda cambiar las contraseñas por defecto inmediatamente después de la instalación.
-- Solo el tipo de usuario correspondiente puede cambiar su propia contraseña.
-- Las sesiones tienen una duración máxima de 5 minutos por motivos de seguridad.
-- **Importante:** Las contraseñas por defecto se restablecen automáticamente cada vez que se restaura el sistema con el pendrive restaurador.
+### Contrasena por defecto
 
-## 3. Exportación Directa a USB
+`custodio2026`
 
-### Descripción de la Funcionalidad
+Se recomienda cambiarla inmediatamente despues de la instalacion.
 
-**TODOS los usuarios** (administradores Y custodios) pueden exportar los datos del sistema directamente a un dispositivo USB. Esta funcionalidad está diseñada específicamente para ser compatible con el modo kiosk, evitando la necesidad de acceder a la carpeta de Descargas.
+### Caracteristicas de la Exportacion
 
-### Características
-
-- **Detección automática de USB**: El sistema detecta automáticamente cuando se conecta un dispositivo USB.
-- **Notificación visual**: Se muestra una barra de estado que indica si hay un dispositivo conectado.
-- **Exportación configurable**: Permite seleccionar:
-  - Rango de fechas para los datos
-  - Tipos de datos a incluir (solicitudes pendientes, llaves entregadas, devueltas, estadísticas, etc.)
-- **Exportación directa**: Los datos se guardan directamente en el USB sin pasos intermedios.
-- **Compatible con modo kiosk**: NO requiere salir del modo kiosk ni acceder a carpetas del sistema.
-- **Pendrive común**: Funciona con cualquier pendrive estándar, sin necesidad de software especial.
-
-### Proceso de Exportación (Administradores Y Custodios)
-
-1. El usuario conecta un dispositivo USB (pendrive común) al equipo.
-2. El usuario inicia sesión con sus credenciales (admin o custodio).
-3. El sistema detecta el USB automáticamente y habilita el botón de exportación.
-4. El usuario selecciona el rango de fechas y los datos a exportar.
-5. Hace clic en "Exportar a USB" y los datos se guardan directamente en el pendrive.
-6. El sistema muestra un mensaje de confirmación cuando puede retirar el pendrive.
-
-> **Nota sobre modo kiosk:** El navegador funciona en modo kiosk, lo que significa que los archivos se exportan directamente al pendrive USB conectado. Esto simplifica el proceso y evita la necesidad de navegar por el sistema de archivos de Windows o acceder a la carpeta de Descargas. Simplemente conecte el pendrive antes de exportar y el sistema lo detectará automáticamente.
-
-> ⚠️ **Importante:** Tanto administradores como custodios REQUIEREN un pendrive USB conectado para exportar datos. Esto garantiza compatibilidad total con el modo kiosk y evita tener que salir del modo kiosk para acceder a archivos descargados.
+- Deteccion automatica de USB: el sistema detecta cuando se conecta un pendrive.
+- Notificacion visual: barra de estado que indica si hay un dispositivo conectado (verde) o no (ambar).
+- Exportacion configurable: permite seleccionar rango de fechas y tipos de datos.
+- Compatible con modo kiosk: no requiere salir del modo kiosk ni acceder a carpetas del sistema.
+- Pendrive comun: funciona con cualquier pendrive estandar (FAT32 o NTFS), sin software especial.
 
 ### Formato de Archivos Exportados
 
 - Los datos se exportan en formato CSV compatible con Excel.
-- Se generan múltiples archivos según la configuración seleccionada:
+- Se generan multiples archivos segun la configuracion seleccionada:
   - Resumen general
   - Solicitudes pendientes
   - Llaves entregadas
   - Llaves devueltas
-  - Estadísticas (si se seleccionó)
-  - Datos de usuarios (si se seleccionó)
-  - Catálogo de llaves (si se seleccionó)
-- Cada archivo incluye metadatos con fecha de generación y otros detalles relevantes.
+  - Estadisticas (si se selecciono)
+  - Usuarios registrados (si se selecciono)
+  - Catalogo de llaves (si se selecciono)
+  - Objetos olvidados (si se selecciono)
+  - Autorizaciones (si se selecciono)
 
-## 4. Interfaz de Usuario para el Custodio
+## 3. Cambio de Contrasena de Exportacion
 
-### Personalización del Dashboard
+### Funcionalidad
 
-Para diferenciar claramente el modo custodio del modo administrador, se implementaron las siguientes características visuales:
+Cualquier persona que conozca la contrasena actual puede cambiarla desde el boton "Cambiar Contrasena Exportacion" en el encabezado del Dashboard.
 
-- **Tema específico**: Fondo ámbar para el encabezado cuando se accede como custodio
-- **Iconografía distintiva**: Icono de llave en lugar del icono de gráfica para el custodio
-- **Etiqueta de modo**: Se muestra "Modo Custodio" junto a la fecha actual
-- **Barra de estado USB**: Muestra el estado de conexión del dispositivo USB
+### Proceso de Cambio
 
-### Elementos Exclusivos
+1. Hacer clic en "Cambiar Contrasena Exportacion" en el encabezado del Dashboard.
+2. Ingresar la contrasena actual.
+3. Ingresar la nueva contrasena (minimo 6 caracteres).
+4. Confirmar la nueva contrasena.
+5. El sistema actualiza la contrasena en la base de datos.
 
-- **Botón de exportación a USB**: Visible solo para el custodio
-- **Notificaciones USB**: Avisos específicos sobre el estado de la conexión USB
-- **Instrucciones contextuales**: Mensajes que guían al custodio en el proceso de exportación
+### Consideraciones de Seguridad
 
-## 5. Estadísticas con gráficos de torta
+- Se recomienda cambiar la contrasena por defecto inmediatamente despues de la instalacion.
+- Cambiar la contrasena cada vez que un jefe de turno deje su cargo.
+- Las contrasenas por defecto se restablecen automaticamente cada vez que se restaura el sistema con el pendrive restaurador.
 
-### Descripción General
+## 4. Estadisticas con Graficos de Torta
 
-El dashboard ahora cuenta con un panel de estadísticas que muestra gráficos de torta para cada turno, indicando la tasa de devoluciones de llaves. Esta visualización permite evaluar rápidamente qué porcentaje de las llaves entregadas en cada turno fueron devueltas satisfactoriamente.
+### Descripcion General
 
-### Características del Panel Estadístico
+El Dashboard cuenta con un panel de estadisticas que muestra graficos de torta para cada turno, indicando la tasa de devoluciones de llaves.
 
-- **Gráficos de torta interactivos** para cada turno (Matutino, Vespertino, Nocturno)
-- **Códigos de color** para facilitar la interpretación:
+### Caracteristicas del Panel Estadistico
+
+- Graficos de torta interactivos para cada turno (Matutino, Vespertino, Nocturno)
+- Codigos de color para facilitar la interpretacion:
   - Verde: Llaves devueltas
-  - Rojo: Llaves pendientes de devolución
-- **Filtros de tiempo** para visualizar estadísticas en diferentes períodos:
+  - Rojo: Llaves pendientes de devolucion
+- Filtros de tiempo para visualizar estadisticas en diferentes periodos:
+  - Hoy
   - Mensual
   - Semestral
-  - Anual
-- **Indicadores de desempeño** que muestran:
-  - Número total de llaves entregadas
-  - Número de llaves devueltas
-  - Número de llaves pendientes
-  - Porcentaje de devolución (con códigos de color según el nivel)
+- Indicadores de desempeno que muestran:
+  - Numero total de llaves entregadas
+  - Numero de llaves devueltas
+  - Numero de llaves pendientes
+  - Porcentaje de devolucion (con codigos de color segun el nivel)
 
-### Métricas de Desempeño
+### Metricas de Desempeno
 
-Se implementó un sistema visual con códigos de color para indicar el nivel de desempeño:
-- **Verde (≥98%)**: Excelente tasa de devolución
-- **Ámbar (90-97.9%)**: Tasa de devolución aceptable
-- **Rojo (<90%)**: Tasa de devolución por debajo del estándar esperado
+- Verde (mayor o igual a 98%): Excelente tasa de devolucion
+- Ambar (90-97.9%): Tasa de devolucion aceptable
+- Rojo (menor a 90%): Tasa de devolucion por debajo del estandar esperado
 
-### Beneficios
+## 5. Consideraciones Tecnicas
 
-- Proporciona una visión clara del desempeño de cada turno
-- Facilita la identificación de patrones o problemas en la gestión de llaves
-- Permite hacer seguimiento de mejoras a través del tiempo
-- Ayuda a identificar turnos que podrían necesitar ajustes en sus procedimientos
+### Arquitectura de la Solucion
 
-### Implementación Técnica
-
-- Utiliza la biblioteca Recharts para gráficos interactivos
-- Cálculo automático de estadísticas basado en los datos históricos
-- Actualización automática de datos cuando se producen cambios en el sistema
-
-## 6. Consideraciones Técnicas
-
-### Arquitectura de la Solución
-
-- **Hook useAdminAuth**: Se amplió para soportar el modo custodio con la propiedad `isCustodian`.
-- **Detección de USB**: Se implementó un sistema de polling que verifica periódicamente la conexión de dispositivos USB.
-- **Exportación de datos**: Se amplió el sistema existente para permitir la exportación directa al USB.
-- **Componente de gráficos**: Se implementó un componente reutilizable que gestiona los diferentes tipos de visualización con Recharts.
+- El Dashboard no requiere autenticacion para visualizacion.
+- La autenticacion se realiza unicamente en el modal de exportacion, al momento de exportar.
+- La contrasena de exportacion se almacena en la coleccion `admin_config` de PocketBase con la clave `custodian_password`.
+- La deteccion de USB se implementa mediante un sistema de polling que verifica periodicamente la conexion de dispositivos.
+- Los graficos utilizan la biblioteca Recharts para visualizaciones interactivas.
 
 ### Limitaciones Conocidas
 
-- **Compatibilidad USB**: El sistema detecta dispositivos USB según el API del navegador y el modo kiosk.
-- **Navegadores soportados**: La funcionalidad USB depende de las capacidades del navegador y los permisos del sistema.
-- **Rendimiento de gráficos**: Con grandes volúmenes de datos, la carga y renderizado de los gráficos podría ser más lenta.
+- Compatibilidad USB: el sistema detecta dispositivos USB segun el API del navegador y el modo kiosk.
+- Navegadores soportados: la funcionalidad USB depende de las capacidades del navegador y los permisos del sistema.
+- Rendimiento de graficos: con grandes volumenes de datos, la carga y renderizado de los graficos podria ser mas lenta.
 
-## 7. Guía para Administradores
+### Resolucion de Problemas Comunes
 
-### Configuración Inicial
-
-1. **Contraseñas**: Cambiar las contraseñas por defecto tanto del administrador como del custodio.
-2. **Designación de custodio**: Designar a una persona responsable para el rol de custodio.
-3. **Configuración de objetivos**: Establecer objetivos de tasa de devolución para cada turno.
-
-### Recomendaciones de Uso
-
-- **Exportaciones periódicas**: Establecer un calendario para la exportación periódica de los datos.
-- **Rotación de contraseñas**: Cambiar las contraseñas periódicamente.
-- **Verificación de datos**: Verificar periódicamente la integridad de los datos exportados.
-- **Revisión de estadísticas**: Revisar regularmente las estadísticas de devoluciones para identificar tendencias o problemas.
-- **Establecer objetivos de desempeño**: Utilizar las estadísticas para establecer metas claras de porcentaje de devoluciones para cada turno.
-
-### Resolución de Problemas Comunes
-
-- **USB no detectado**: Verificar que el dispositivo USB esté formateado adecuadamente (preferentemente FAT32) y tenga suficiente espacio libre.
-- **Error en exportación**: Verificar que el dispositivo USB no esté protegido contra escritura y que no esté lleno.
-- **Sesión expirada**: La sesión caduca automáticamente después de 5 minutos de inactividad. Volver a iniciar sesión.
-- **Gráficos no actualizados**: Si los gráficos no reflejan los últimos cambios, intentar recargar la página.
+- USB no detectado: verificar que el dispositivo USB este formateado adecuadamente (FAT32 o NTFS) y tenga suficiente espacio libre.
+- Error en exportacion: verificar que el dispositivo USB no este protegido contra escritura y que no este lleno.
+- Contrasena incorrecta: verificar que se este usando la contrasena correcta. Si se olvido, restablecer desde PocketBase (coleccion `admin_config`, clave `custodian_password`).
+- Graficos no actualizados: si los graficos no reflejan los ultimos cambios, intentar recargar la pagina.
 
 ---
 
-## Notas Adicionales
-
-- Esta funcionalidad está diseñada para facilitar la portabilidad de los datos para su revisión por parte de las autoridades.
-- La exportación USB se realiza en un formato que garantiza la integridad y facilita la interpretación de los datos.
-- Todos los archivos exportados incluyen metadatos que identifican claramente la fuente, la fecha de generación y el custodio que realizó la exportación.
-- Los gráficos estadísticos proporcionan una herramienta valiosa para la toma de decisiones operativas y para el establecimiento de estándares de calidad en el servicio.
-
----
-
+*Ultima actualizacion: 06/05/2026 — v5.5*
 *Documento preparado para archivo y custodia autoridades de FCEA.*

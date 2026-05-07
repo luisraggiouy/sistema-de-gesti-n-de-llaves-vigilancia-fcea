@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart3, ArrowLeft, Clock, Users, Key, ArrowUpRight, ArrowDownLeft, Sun, Sunset, Moon, Palmtree, Stethoscope, Package, LogOut, Settings, Usb, DatabaseBackup, CalendarDays, CalendarRange } from 'lucide-react';
+import { BarChart3, ArrowLeft, Clock, Users, Key, ArrowUpRight, ArrowDownLeft, Sun, Sunset, Moon, Palmtree, Stethoscope, Package, Usb, DatabaseBackup, CalendarDays, CalendarRange, Lock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -222,19 +222,8 @@ export default function Dashboard() {
     year: 'numeric'
   });
 
-  // Si no está autenticado, mostrar el login
-  if (!isAuthenticated && !isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <AdminLogin
-          onLogin={handleLogin}
-          onChangePassword={handleChangePassword}
-          isChangingPassword={false}
-          onToggleChangePassword={() => {}}
-        />
-      </div>
-    );
-  }
+  // El Dashboard es visible para todos sin contraseña.
+  // La contraseña solo se requiere para exportar a pendrive (se pide en el modal de exportacion).
 
   return (
     <div className="min-h-screen bg-background">
@@ -292,26 +281,15 @@ export default function Dashboard() {
                 <p className="text-sm text-muted-foreground capitalize">{fecha}</p>
               </div>
               
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-2"
-                  onClick={() => setIsChangingPassword(true)}
-                >
-                  <Settings className="w-4 h-4" />
-                  <span className="hidden md:inline">Cambiar Contraseña</span>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-2"
-                  onClick={logout}
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span className="hidden md:inline">Cerrar Sesión</span>
-                </Button>
-              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={() => setIsChangingPassword(true)}
+              >
+                <Lock className="w-4 h-4" />
+                <span className="hidden md:inline">Cambiar Contrasena Exportacion</span>
+              </Button>
             </div>
           </div>
         </div>

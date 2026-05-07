@@ -1,178 +1,123 @@
-# INSTRUCTIVO: Acceso al Dashboard de Estadísticas
-## Sistema de Gestión de Llaves — FCEA
+# INSTRUCTIVO: Dashboard de Estadisticas y Exportacion de Datos
+## Sistema de Gestion de Llaves — FCEA
 
-**Versión:** 1.0  
-**Fecha:** Abril 2026  
-**Destinatarios:** Autoridades de la Facultad, Jefes de Vigilancia habilitados
-
----
-
-## 1. ¿Qué es el Dashboard?
-
-El **Dashboard** (Panel de Estadísticas) es una pantalla especial del sistema que muestra información resumida sobre el uso de llaves en la Facultad: cuántas llaves se prestaron, a quién, en qué horarios, qué salones son los más solicitados, etc.
-
-Esta información es **confidencial** y solo puede ser consultada por personas autorizadas.
+Version: 2.0
+Fecha: Mayo 2026
+Destinatarios: Todo el personal de vigilancia, jefes de turno, intendencia y autoridades de la Facultad
 
 ---
 
-## 2. ¿Quiénes pueden acceder?
+## 1. Que es el Dashboard?
 
-El sistema tiene **dos niveles de acceso** protegidos por contraseña:
-
-| Nivel | ¿Quién lo usa? | ¿Qué puede hacer? |
-|-------|----------------|-------------------|
-| **Administrador** | Intendente | Ver estadísticas, exportar reportes completos (Excel, PDF), cambiar contraseñas, gestionar configuración |
-| **Custodio** | Jefes de Apoyo y Jefes de Turno | Ver estadísticas, exportar reportes básicos. **No puede** cambiar contraseñas ni configuración avanzada |
-
-> ⚠️ **IMPORTANTE:** Los vigilantes comunes que operan la pantalla del monitor de vigilancia **SÍ pueden ver el Dashboard** para consultar estadísticas, pero **NO pueden** grabar información ni extraerla en un pendrive. Solo pueden visualizar los datos.
+El Dashboard (Panel de Estadisticas) es una pantalla del sistema que muestra informacion resumida sobre el uso de llaves en la Facultad: cuantas llaves se prestaron, a quien, en que horarios, que salones son los mas solicitados, estadisticas por turno, actividad reciente, etc.
 
 ---
 
-## 3. Paso a paso: Cómo acceder al Dashboard
+## 2. Quien puede ver el Dashboard?
 
-### Paso 1 — Abrir el navegador
+El Dashboard es visible para todos sin necesidad de contrasena. Cualquier persona frente a la pantalla puede consultar las estadisticas.
 
-En la computadora donde está instalado el sistema, abra el navegador web (Google Chrome recomendado) y escriba en la barra de direcciones:
+Para llevarse los datos en un pendrive (exportar), si se requiere una contrasena. Esto protege que cualquiera pueda extraer informacion del sistema.
+
+| Accion | Requiere contrasena? |
+|--------|---------------------|
+| Ver estadisticas y graficas | No |
+| Ver actividad reciente | No |
+| Ver estadisticas por turno | No |
+| Exportar datos a pendrive | Si |
+| Cambiar contrasena de exportacion | Si (la contrasena actual) |
+
+---
+
+## 3. Como acceder al Dashboard
+
+En la computadora donde esta instalado el sistema, abra el navegador web (Google Chrome recomendado) y escriba en la barra de direcciones:
 
 ```
 http://localhost:8080/dashboard
 ```
 
-También puede acceder desde la pantalla del Monitor de Vigilancia haciendo clic en el botón **"Dashboard"** que aparece en la esquina superior.
+Tambien puede acceder desde la pantalla del Monitor de Vigilancia haciendo clic en el boton "Dashboard" que aparece en la esquina superior.
 
-### Paso 2 — Pantalla de inicio de sesión
-
-Al intentar acceder al Dashboard, el sistema mostrará una **pantalla de contraseña**:
-
-```
-┌─────────────────────────────────────┐
-│                                     │
-│   Acceso al Dashboard               │
-│                                     │
-│   Ingrese la contraseña:            │
-│   ┌───────────────────────────┐     │
-│   │ ••••••••                  │     │
-│   └───────────────────────────┘     │
-│                                     │
-│   [ ] Ingresar como Custodio        │
-│                                     │
-│   [ Iniciar Sesión ]                │
-│                                     │
-└─────────────────────────────────────┘
-```
-
-### Paso 3 — Ingresar la contraseña
-
-- Si usted es **Administrador**: escriba la contraseña de administrador y presione "Iniciar Sesión".
-- Si usted es **Custodio (Jefe de turno)**: marque la casilla "Ingresar como Custodio", escriba la contraseña de custodio y presione "Iniciar Sesión".
-
-### Paso 4 — Usar el Dashboard
-
-Una vez dentro, verá:
-
-- **Gráficos de torta** con estadísticas del turno actual
-- **Gráficos de barras** con los salones más solicitados
-- **Tablas** con el historial de préstamos
-- **Botón "Exportar Reporte"** para descargar la información
-
-### Paso 5 — Cerrar sesión
-
-Cuando termine de consultar, presione el botón **"Cerrar Sesión"** en la esquina superior derecha. La sesión también se cierra automáticamente después de **5 minutos** de inactividad.
+El Dashboard se abre directamente, sin pedir contrasena.
 
 ---
 
-## 4. ¿Cómo funciona la protección?
+## 4. Como exportar datos a un pendrive
 
-El sistema implementa las siguientes medidas de seguridad:
+Solo las personas autorizadas (jefes de turno, jefes de apoyo, intendencia) pueden llevarse los datos en un pendrive.
 
-### 4.1 Contraseñas separadas
-- Existe una contraseña para **Administrador** y otra diferente para **Custodio**.
-- Cada una otorga permisos distintos.
-- Las contraseñas se almacenan en la base de datos del sistema (no en un archivo de texto).
+### Paso 1 — Conectar el pendrive
 
-### 4.2 Sesión con tiempo limitado
-- Al iniciar sesión, el sistema crea una "sesión" que dura **máximo 5 minutos**.
-- Pasados los 5 minutos, el sistema cierra la sesión automáticamente y pide la contraseña nuevamente.
-- Esto evita que alguien acceda si el administrador o custodio se olvida de cerrar sesión.
+Conecte un pendrive comun al puerto USB de la computadora. El sistema lo detectara automaticamente y mostrara una barra verde en la parte superior del Dashboard.
 
-### 4.3 Verificación continua
-- Cada **60 segundos**, el sistema verifica internamente si la sesión sigue siendo válida.
-- Si detecta que expiró, muestra un mensaje de "Sesión expirada" y redirige a la pantalla de contraseña.
+### Paso 2 — Presionar "Exportar a Pendrive"
 
-### 4.4 Sin acceso desde la terminal de usuarios
-- La pantalla que usan los usuarios para solicitar llaves (Terminal de Usuario) **no tiene ningún enlace ni botón** que lleve al Dashboard.
-- Solo se puede acceder escribiendo la dirección directamente o desde el Monitor de Vigilancia.
+Haga clic en el boton "Exportar a Pendrive" en el encabezado del Dashboard.
 
----
+### Paso 3 — Ingresar la contrasena
 
-## 5. Exportación de reportes
+El sistema pedira la contrasena de exportacion. Ingresela y presione "Verificar y Continuar".
 
-### ¿Qué se puede exportar?
+Contrasena por defecto: `custodio2026`
 
-| Formato | Contenido |
-|---------|-----------|
-| **Excel (.xlsx)** | Tabla completa con todos los préstamos del período seleccionado, filtrable por fecha, turno, tipo de lugar |
-| **PDF** | Reporte formateado con gráficos y resumen, listo para imprimir |
+### Paso 4 — Seleccionar fechas y datos
 
-### ¿Quién puede exportar?
+Una vez verificada la contrasena, seleccione:
+- Rango de fechas (por defecto los ultimos 30 dias)
+- Que datos incluir (llaves entregadas, devueltas, objetos olvidados, autorizaciones, etc.)
 
-- **Administrador**: Puede exportar reportes completos con todos los filtros avanzados.
-- **Custodio**: Puede exportar reportes básicos del turno actual.
+### Paso 5 — Exportar
 
-### Pasos para exportar:
+Haga clic en "Exportar a USB". Los datos se guardaran directamente en el pendrive.
 
-1. **Conecte un pendrive** al puerto USB de la computadora
-2. Dentro del Dashboard, haga clic en **"Exportar Reporte"**
-3. Seleccione el **rango de fechas** deseado
-4. Seleccione el **formato** (Excel o PDF)
-5. Haga clic en **"Descargar"**
-6. El archivo se guardará **directamente en el pendrive** conectado
+### Paso 6 — Retirar el pendrive
 
-> **Nota importante:** El navegador funciona en modo kiosk, por lo que los archivos se exportan directamente al pendrive USB conectado. Asegúrese de tener un pendrive insertado antes de iniciar la exportación. Si necesita acceder a otras ubicaciones de Windows, consulte con el personal de sistemas.
+Cuando aparezca el mensaje de confirmacion, puede retirar el pendrive de forma segura.
 
 ---
 
-## 6. Cambio de contraseñas
+## 5. Cambio de contrasena de exportacion
 
-Solo el **Administrador** puede cambiar las contraseñas. Para hacerlo:
+Para cambiar la contrasena de exportacion:
 
-1. Acceda al Dashboard con la contraseña de Administrador
-2. Haga clic en el ícono de **Configuración**
-3. Seleccione **"Cambiar contraseña"**
-4. Ingrese la contraseña actual
-5. Ingrese la nueva contraseña
-6. Confirme
+1. En el encabezado del Dashboard, haga clic en "Cambiar Contrasena Exportacion"
+2. Ingrese la contrasena actual
+3. Ingrese la nueva contrasena (minimo 6 caracteres)
+4. Confirme la nueva contrasena
 
-> **Recomendación:** Cambie las contraseñas al menos una vez por semestre y cada vez que un jefe de turno deje su cargo.
+Recomendacion: Cambiar la contrasena al menos una vez por semestre y cada vez que un jefe de turno deje su cargo.
 
 ---
 
-## 7. Contraseñas iniciales del sistema
+## 6. Contrasena por defecto
 
-| Tipo | Contraseña por defecto |
-|------|----------------------|
-| Administrador | `admin123` |
-| Custodio | `custodio2026` |
+| Funcion | Contrasena por defecto |
+|---------|----------------------|
+| Exportacion a pendrive | `custodio2026` |
 
-> ⚠️ **Se recomienda encarecidamente cambiar estas contraseñas inmediatamente después de la primera instalación.**
+Se recomienda cambiar esta contrasena inmediatamente despues de la primera instalacion.
 
-> **Importante:** Estas contraseñas por defecto se restablecerán automáticamente cada vez que se restaure el sistema utilizando el pendrive restaurador. Después de cada restauración, deberá cambiar las contraseñas nuevamente por seguridad.
+Importante: La contrasena por defecto se restablece automaticamente cada vez que se restaura el sistema con el pendrive restaurador. Despues de cada restauracion, cambiar la contrasena nuevamente.
 
 ---
 
-## 8. Preguntas frecuentes
+## 7. Preguntas frecuentes
 
-**P: ¿Qué pasa si olvido la contraseña?**  
-R: Contacte al administrador del sistema (área de Sistemas). La contraseña puede ser restablecida desde la base de datos.
+P: Puedo ver el Dashboard sin contrasena?
+R: Si. El Dashboard es visible para todos. Solo se pide contrasena para exportar datos a un pendrive.
 
-**P: ¿Puede un vigilante común ver las estadísticas?**  
-R: Sí, los vigilantes pueden ver el Dashboard y consultar las estadísticas, pero no pueden exportar datos ni grabar información en pendrives. Solo tienen acceso de visualización.
+P: Que pasa si olvido la contrasena de exportacion?
+R: Contacte al administrador del sistema (area de Sistemas). La contrasena puede ser restablecida desde la base de datos PocketBase.
 
-**P: ¿Los datos exportados incluyen información personal?**  
-R: Los reportes incluyen nombres de quienes retiraron llaves, fechas y horarios. Esta información debe manejarse con confidencialidad.
+P: Los datos exportados incluyen informacion personal?
+R: Los reportes incluyen nombres de quienes retiraron llaves, fechas y horarios. Esta informacion debe manejarse con confidencialidad.
 
-**P: ¿Se puede acceder al Dashboard desde otra computadora?**  
-R: Sí, desde cualquier computadora conectada a la misma red, escribiendo la dirección IP del servidor seguida de `:8080/dashboard`.
+P: Se puede acceder al Dashboard desde otra computadora?
+R: Si, desde cualquier computadora conectada a la misma red, escribiendo la direccion IP del servidor seguida de `:8080/dashboard`.
+
+P: Necesito un pendrive especial?
+R: No. Funciona con cualquier pendrive comun formateado en FAT32 o NTFS.
 
 ---
 
