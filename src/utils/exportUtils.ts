@@ -482,16 +482,26 @@ function badgeRendimiento(total: number, max: number): string {
   return '<span style="background:#fee2e2;color:#991b1b;padding:2px 10px;border-radius:12px;font-size:12px">Bajo</span>';
 }
 
+// Parsea una fecha en formato yyyy-MM-dd o dd/MM/yyyy
+function parseFechaFlexible(s: string): Date {
+  if (!s) return new Date(NaN);
+  if (s.includes('-') && s.indexOf('-') === 4) {
+    // yyyy-MM-dd
+    return new Date(s + 'T00:00:00');
+  }
+  if (s.includes('/')) {
+    // dd/MM/yyyy
+    const [d, m, y] = s.split('/');
+    return new Date(Number(y), Number(m) - 1, Number(d));
+  }
+  return new Date(s);
+}
+
 // Calcula cuántos días dentro de un rango de fechas corresponden a los días laborales de un vigilante
 function calcularDiasEsperados(fechaInicioStr: string, fechaFinStr: string, diasLaborales?: number[]): number {
   if (!fechaInicioStr || !fechaFinStr) return 0;
-  // Parsear dd/MM/yyyy
-  const parseFecha = (s: string) => {
-    const [d, m, y] = s.split('/');
-    return new Date(Number(y), Number(m) - 1, Number(d));
-  };
-  const fi = parseFecha(fechaInicioStr);
-  const ff = parseFecha(fechaFinStr);
+  const fi = parseFechaFlexible(fechaInicioStr);
+  const ff = parseFechaFlexible(fechaFinStr);
   if (isNaN(fi.getTime()) || isNaN(ff.getTime())) return 0;
   // Si no tiene días laborales configurados → trabaja todos los días
   if (!diasLaborales || diasLaborales.length === 0 || diasLaborales.length === 7) {
@@ -588,8 +598,8 @@ function generarInformeHTML(data: any, options: any): string {
   let diasActividadPorVigilante: Record<string, Set<string>> = {};
 
   if (fechaInicioStr && fechaFinStr) {
-    const fi = new Date(fechaInicioStr.split('/').reverse().join('-'));
-    const ff = new Date(fechaFinStr.split('/').reverse().join('-'));
+    const fi = parseFechaFlexible(fechaInicioStr);
+    const ff = parseFechaFlexible(fechaFinStr);
     diasPeriodo = Math.max(1, Math.round((ff.getTime() - fi.getTime()) / 86400000) + 1);
   } else {
     // Inferir período desde las fechas de las solicitudes
@@ -618,10 +628,14 @@ function generarInformeHTML(data: any, options: any): string {
     }
   });
 
-  // ── Mapa de diasLaborales por nombre de vigilante (si se pasan en data.vigilantes) ──
+  // ── Mapa de diasLaborales y estadoLicencia por nombre de vigilante ──────────
   const diasLaboralesMap: Record<string, number[] | undefined> = {};
+  const estadoLicenciaMap: Record<string, string> = {};
   (data.vigilantes || []).forEach((v: any) => {
-    if (v.nombre && v.diasLaborales) diasLaboralesMap[v.nombre] = v.diasLaborales;
+    if (v.nombre) {
+      if (v.diasLaborales) diasLaboralesMap[v.nombre] = v.diasLaborales;
+      if (v.estadoLicencia) estadoLicenciaMap[v.nombre] = v.estadoLicencia;
+    }
   });
 
   // ── Tabla de ranking de vigilantes ──────────────────────────────────────────
@@ -636,15 +650,22 @@ function generarInformeHTML(data: any, options: any): string {
       ? calcularDiasEsperados(fechaInicioStr, fechaFinStr, diasLaboralesVig)
       : diasPeriodo;
     const diasSinActividad = Math.max(0, diasEsperados - diasConActividad);
-    const pctLicencia = diasEsperados > 0 ? Math.round((diasSinActividad / diasEsperados) * 100) : 0;
+    const pctAusencia = diasEsperados > 0 ? Math.round((diasSinActividad / diasEsperados) * 100) : 0;
     // Mostrar días laborales configurados como chips pequeños
     const diasChips = diasLaboralesVig && diasLaboralesVig.length > 0 && diasLaboralesVig.length < 7
       ? `<br><span style="font-size:10px;color:#94a3b8">${['Do','Lu','Ma','Mi','Ju','Vi','Sá'].filter((_,idx) => diasLaboralesVig.includes(idx === 0 ? 0 : idx)).join(' ')}</span>`
       : '';
-    const licenciaLabel = diasEsperados > 0
-      ? `<span style="font-size:12px;color:#64748b">${diasSinActividad}/${diasEsperados} días <span style="color:${pctLicencia > 30 ? '#dc2626' : pctLicencia > 10 ? '#f59e0b' : '#16a34a'};font-weight:700">(${pctLicencia}%)</span>${diasChips}</span>`
+    const ausenciaLabel = diasEsperados > 0
+      ? `<span style="font-size:12px;color:#64748b">${diasSinActividad}/${diasEsperados} días <span style="color:${pctAusencia > 30 ? '#dc2626' : pctAusencia > 10 ? '#f59e0b' : '#16a34a'};font-weight:700">(${pctAusencia}%)</span>${diasChips}</span>`
       : '<span style="font-size:12px;color:#94a3b8">—</span>';
-    return `<tr style="border-bottom:1px solid #f1f5f9">
+    // Estado de licencia
+    const licenciaVig = estadoLicenciaMap[v.nombre] || 'activo';
+    const licenciaBadge = licenciaVig === 'licencia_medica'
+      ? '<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap">🏥 Lic. Médica</span>'
+      : licenciaVig === 'licencia'
+        ? '<span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap">🌴 Licencia</span>'
+        : '<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap">✅ Activo</span>';
+    return `<tr style="border-bottom:1px solid #f1f5f9${licenciaVig !== 'activo' ? ';opacity:0.75;background:#fffbeb' : ''}">
       <td style="padding:10px 8px;font-weight:600;font-size:15px">${medal}</td>
       <td style="padding:10px 8px;font-weight:600">${v.nombre}</td>
       <td style="padding:10px 8px;text-align:center;color:#16a34a;font-weight:700">${v.entregas}</td>
@@ -656,7 +677,8 @@ function generarInformeHTML(data: any, options: any): string {
           <div style="background:#3b82f6;border-radius:8px;height:10px;width:${pct}%"></div>
         </div>
       </td>
-      <td style="padding:10px 8px">${licenciaLabel}</td>
+      <td style="padding:10px 8px">${ausenciaLabel}</td>
+      <td style="padding:10px 8px">${licenciaBadge}</td>
       <td style="padding:10px 8px">${badge}</td>
     </tr>`;
   }).join('');
@@ -869,6 +891,7 @@ function generarInformeHTML(data: any, options: any): string {
         <th style="text-align:center">Total</th>
         <th>Actividad</th>
         <th>Días sin actividad / Total período</th>
+        <th>Licencia</th>
         <th>Rendimiento</th>
       </tr></thead>
       <tbody>${rankingRows || '<tr><td colspan="9" style="padding:20px;text-align:center;color:#94a3b8">Sin actividad en el período seleccionado</td></tr>'}</tbody>
