@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Download, Calendar, FileSpreadsheet, Usb, Info, Check, X } from 'lucide-react';
+import { Download, Calendar, FileSpreadsheet, Usb, Info, Check, X, Eye, EyeOff } from 'lucide-react';
 import { DateInput } from '@/components/ui/date-input';
 import { useToast } from '@/hooks/use-toast';
 import { exportToExcel, hayUSBConectado, obtenerUSBsConectados } from '@/utils/exportUtils';
@@ -54,6 +54,7 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
   });
 
   const [isExporting, setIsExporting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   // USB siempre "conectado" — el diálogo del SO permite elegir el destino (pendrive, escritorio, etc.)
   const usbStatus = { connected: true, drives: [{ mountPoint: '', label: 'Seleccionar al guardar' }] };
   const { toast } = useToast();
@@ -297,15 +298,26 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
             </Alert>
             <div className="space-y-2">
               <Label htmlFor="export-password">Contraseña de exportación</Label>
-              <Input
-                id="export-password"
-                type="password"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleLoginExport()}
-                placeholder="Ingrese la contraseña"
-                autoFocus
-              />
+              <div className="relative">
+                <Input
+                  id="export-password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleLoginExport()}
+                  placeholder="Ingrese la contraseña"
+                  autoFocus
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               {passwordError && (
                 <p className="text-sm text-destructive">{passwordError}</p>
               )}
