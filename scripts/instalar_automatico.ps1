@@ -241,8 +241,22 @@ function Copy-System {
 
 # Función para instalar dependencias
 function Install-Dependencies {
-    Write-Log "Instalando dependencias de Node.js..."
-    Write-Log "Esto puede tardar 5-10 minutos dependiendo de la conexión a internet..."
+    # Verificar si el pendrive trae node_modules (pendrive de recuperación)
+    $nodeModulesInPendrive = "$PendrivePath\sistema\node_modules"
+    if (Test-Path $nodeModulesInPendrive) {
+        Write-Log "✓ node_modules encontrado en el pendrive — copiando sin necesidad de internet..." "SUCCESS"
+        Write-Log "  Esto puede tardar 2-5 minutos..."
+        try {
+            Copy-Item -Path $nodeModulesInPendrive -Destination "$DestinationPath\node_modules" -Recurse -Force
+            Write-Log "✓ Dependencias copiadas exitosamente desde el pendrive" "SUCCESS"
+            return $true
+        } catch {
+            Write-Log "⚠ No se pudo copiar node_modules, intentando npm install..." "WARNING"
+        }
+    }
+
+    Write-Log "Instalando dependencias de Node.js con npm install..."
+    Write-Log "Esto puede tardar 5-10 minutos. Se requiere conexión a internet..."
     
     try {
         Set-Location $DestinationPath
