@@ -1,4 +1,4 @@
-﻿ import { RegistroActividad, EstadisticasTurno } from '@/types/estadisticas';
+﻿import { RegistroActividad, EstadisticasTurno } from '@/types/estadisticas';
 import { Turno, EstadoLicencia } from '@/data/fceaData';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -452,22 +452,23 @@ function svgBarChart(items: { label: string; value: number; color: string }[], m
   const totalW = items.length * (barW + gap) + gap;
   const chartH = height;
   const labelH = 56;
-  const svgH = chartH + labelH + 24;
+  const topPad = 28; // espacio para el número encima de la barra más alta
+  const svgH = chartH + labelH + topPad;
 
   const bars = items.map((item, i) => {
     const x = gap + i * (barW + gap);
     const barH = maxVal > 0 ? Math.round((item.value / maxVal) * chartH) : 0;
-    const y = chartH - barH;
+    const y = topPad + (chartH - barH);
     const labelLines = item.label.split(' ');
     return `
       <rect x="${x}" y="${y}" width="${barW}" height="${barH}" fill="${item.color}" rx="4"/>
       <text x="${x + barW / 2}" y="${y - 6}" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e293b">${item.value}</text>
-      ${labelLines.map((l, li) => `<text x="${x + barW / 2}" y="${chartH + 18 + li * 16}" text-anchor="middle" font-size="11" fill="#475569">${l}</text>`).join('')}
+      ${labelLines.map((l, li) => `<text x="${x + barW / 2}" y="${topPad + chartH + 18 + li * 16}" text-anchor="middle" font-size="11" fill="#475569">${l}</text>`).join('')}
     `;
   }).join('');
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${svgH}" style="overflow:visible">
-    <line x1="0" y1="${chartH}" x2="${totalW}" y2="${chartH}" stroke="#e2e8f0" stroke-width="2"/>
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${svgH}">
+    <line x1="0" y1="${topPad + chartH}" x2="${totalW}" y2="${topPad + chartH}" stroke="#e2e8f0" stroke-width="2"/>
     ${bars}
   </svg>`;
 }
@@ -556,6 +557,9 @@ function generarInformeHTML(data: any, options: any): string {
   const svgVigilantes = vigItems.length > 0 ? svgBarChart(vigItems, maxTotal, 180) : '<p style="color:#94a3b8">Sin datos en el período</p>';
 
   // ── Tabla de ranking de vigilantes ──────────────────────────────────────────
+  // Construir mapa de estado de licencia desde las solicitudes (campo vigilante → estado)
+  // Como los datos de solicitudes no traen estadoLicencia, lo dejamos vacío por defecto
+  // pero sí podemos detectar si el vigilante NO tiene actividad (posible licencia)
   const rankingRows = vigilantes.map((v, i) => {
     const medal = `${i + 1}`;
     const badge = badgeRendimiento(v.total, maxTotal);
@@ -575,6 +579,17 @@ function generarInformeHTML(data: any, options: any): string {
       <td style="padding:10px 8px">${badge}</td>
     </tr>`;
   }).join('');
+
+  // ── Vigilantes en licencia (sin actividad en el período) ─────────────────────
+  // Detectar vigilantes que aparecen en solicitudes con estado de licencia
+  const licenciaMap: Record<string, string> = {};
+  [...(data.solicitudesEntregadas || []), ...(data.solicitudesDevueltas || [])].forEach((s: any) => {
+    if (s.estadoLicenciaVigilante && s.estadoLicenciaVigilante !== 'activo') {
+      const nombre = s.entregadoPor || s.recibidoPor;
+      if (nombre) licenciaMap[nombre] = s.estadoLicenciaVigilante === 'licencia' ? 'Licencia' : 'Licencia Médica';
+    }
+  });
+  const vigilantesEnLicencia = Object.entries(licenciaMap);
 
   // ── Tabla de desempeño por turno ─────────────────────────────────────────────
   const turnoRows = Object.entries(turnos).map(([nombre, stat]) => {
@@ -759,6 +774,96 @@ function generarInformeHTML(data: any, options: any): string {
       <tbody>${detalleAutorizacionesRows}</tbody>
     </table>
   </div>` : ''}
+
+  <!-- SECCIÓN 6 (SECUNDARIA): VIGILANTES EN LICENCIA -->
+  ${vigilantesEnLicencia.length > 0 ? `
+  <h2>Personal en Licencia durante el Período</h2>
+  <div class="card">
+    <table>
+      <thead><tr>
+        <th>Vigilante</th>
+        <th>Tipo de Licencia</th>
+      </tr></thead>
+      <tbody>
+        ${vigilantesEnLicencia.map(([nombre, tipo]) => `
+        <tr style="border-bottom:1px solid #f8fafc">
+          <td style="padding:8px">${nombre}</td>
+          <td style="padding:8px">
+            ${tipo === 'Licencia Médica'
+              ? '<span style="background:#fee2e2;color:#991b1b;padding:2px 10px;border-radius:12px;font-size:12px">🏥 Licencia Médica</span>'
+              : '<span style="background:#fef9c3;color:#854d0e;padding:2px 10px;border-radius:12px;font-size:12px">🌴 Licencia</span>'}
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>` : ''}
+
+  <!-- SECCIÓN 7 (SECUNDARIA): DATOS COMPLETOS CSV -->
+  <h2>Datos Completos del Período (formato tabla)</h2>
+  <div class="card">
+    <h3>Todas las operaciones registradas</h3>
+    <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>Fecha</th><th>Hora</th><th>Tipo</th><th>Lugar / Descripción</th><th>Usuario / Receptor</th><th>Vigilante</th><th>Turno</th>
+      </tr></thead>
+      <tbody>
+        ${[
+          ...(data.solicitudesEntregadas || []).map((s: any) => ({
+            fecha: s.horaEntrega ? new Date(s.horaEntrega).toLocaleDateString('es-UY') : '-',
+            hora: s.horaEntrega ? new Date(s.horaEntrega).toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' }) : '-',
+            tipo: '<span style="color:#16a34a">Entrega Llave</span>',
+            lugar: s.lugar?.nombre || '-',
+            usuario: s.usuario?.nombre || '-',
+            vigilante: s.entregadoPor || '-',
+            turno: (() => { const h = s.horaEntrega ? new Date(s.horaEntrega).getHours() : -1; return h >= 6 && h < 14 ? 'Matutino' : h >= 14 && h < 22 ? 'Vespertino' : h >= 0 ? 'Nocturno' : '-'; })(),
+            ts: s.horaEntrega || '',
+          })),
+          ...(data.solicitudesDevueltas || []).map((s: any) => ({
+            fecha: s.horaDevolucion ? new Date(s.horaDevolucion).toLocaleDateString('es-UY') : '-',
+            hora: s.horaDevolucion ? new Date(s.horaDevolucion).toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' }) : '-',
+            tipo: '<span style="color:#2563eb">Devolución Llave</span>',
+            lugar: s.lugar?.nombre || '-',
+            usuario: s.usuario?.nombre || '-',
+            vigilante: s.recibidoPor || s.entregadoPor || '-',
+            turno: (() => { const h = s.horaDevolucion ? new Date(s.horaDevolucion).getHours() : -1; return h >= 6 && h < 14 ? 'Matutino' : h >= 14 && h < 22 ? 'Vespertino' : h >= 0 ? 'Nocturno' : '-'; })(),
+            ts: s.horaDevolucion || '',
+          })),
+          ...(data.objetosOlvidados || []).map((o: any) => ({
+            fecha: o.fechaRegistro ? new Date(o.fechaRegistro).toLocaleDateString('es-UY') : '-',
+            hora: o.fechaRegistro ? new Date(o.fechaRegistro).toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' }) : '-',
+            tipo: '<span style="color:#f59e0b">📦 Objeto Registrado</span>',
+            lugar: o.lugarEncontrado || '-',
+            usuario: o.descripcion || '-',
+            vigilante: o.registradoPor || '-',
+            turno: (() => { const h = o.fechaRegistro ? new Date(o.fechaRegistro).getHours() : -1; return h >= 6 && h < 14 ? 'Matutino' : h >= 14 && h < 22 ? 'Vespertino' : h >= 0 ? 'Nocturno' : '-'; })(),
+            ts: o.fechaRegistro || '',
+          })),
+          ...(data.autorizaciones || []).map((a: any) => ({
+            fecha: a.fechaAutorizacion ? new Date(a.fechaAutorizacion).toLocaleDateString('es-UY') : '-',
+            hora: a.fechaAutorizacion ? new Date(a.fechaAutorizacion).toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' }) : '-',
+            tipo: '<span style="color:#0891b2">✅ Autorización</span>',
+            lugar: a.lugarAutorizado || '-',
+            usuario: `${a.personaNombre || '-'} (CI: ${a.personaCI || '-'})`,
+            vigilante: a.autorizadoPor || '-',
+            turno: '-',
+            ts: a.fechaAutorizacion || '',
+          })),
+        ]
+        .sort((a: any, b: any) => new Date(b.ts).getTime() - new Date(a.ts).getTime())
+        .map((r: any) => `<tr style="border-bottom:1px solid #f8fafc">
+          <td style="padding:6px 8px;white-space:nowrap">${r.fecha}</td>
+          <td style="padding:6px 8px;white-space:nowrap">${r.hora}</td>
+          <td style="padding:6px 8px;white-space:nowrap">${r.tipo}</td>
+          <td style="padding:6px 8px">${r.lugar}</td>
+          <td style="padding:6px 8px">${r.usuario}</td>
+          <td style="padding:6px 8px;white-space:nowrap">${r.vigilante}</td>
+          <td style="padding:6px 8px;white-space:nowrap">${r.turno}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    </div>
+  </div>
 
   <div class="footer">
     <p>Informe generado automáticamente por el Sistema de Gestión de Llaves — FCEA UdelaR</p>
