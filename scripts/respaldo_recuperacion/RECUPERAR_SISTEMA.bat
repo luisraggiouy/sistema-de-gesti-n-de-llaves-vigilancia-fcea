@@ -17,7 +17,7 @@ set "RECOVERY_DIR=%USB_DRIVE%\RECUPERACION_SISTEMA_LLAVES_FCEA"
 set "SISTEMA_DIR=C:\sistema-de-gesti-n-de-llaves-vigilancia-fcea"
 
 echo.
-echo [1/7] Verificando archivos de recuperacion...
+echo [1/8] Verificando archivos de recuperacion...
 if not exist "%RECOVERY_DIR%\sistema" (
     echo ERROR: No se encontraron los archivos del sistema en el pendrive.
     echo Verifique que el pendrive sea el correcto.
@@ -27,7 +27,7 @@ if not exist "%RECOVERY_DIR%\sistema" (
 echo     Archivos encontrados correctamente.
 
 echo.
-echo [2/7] Verificando Node.js...
+echo [2/8] Verificando Node.js...
 node --version >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo     Node.js NO esta instalado en esta computadora.
@@ -47,7 +47,15 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo.
-echo [3/7] Respaldando datos existentes (si los hay)...
+echo [3/8] Deteniendo procesos anteriores del sistema...
+taskkill /F /IM pocketbase.exe >nul 2>&1
+taskkill /F /FI "WINDOWTITLE eq Frontend-FCEA" >nul 2>&1
+taskkill /F /FI "WINDOWTITLE eq PocketBase-FCEA" >nul 2>&1
+timeout /t 2 /nobreak >nul
+echo     Procesos anteriores detenidos.
+
+echo.
+echo [4/8] Respaldando datos existentes (si los hay)...
 if exist "%SISTEMA_DIR%\pocketbase\pb_data\data.db" (
     echo     Respaldando base de datos existente...
     mkdir "%SISTEMA_DIR%\respaldo_pre_restauracion" 2>nul
@@ -58,14 +66,14 @@ if exist "%SISTEMA_DIR%\pocketbase\pb_data\data.db" (
 )
 
 echo.
-echo [4/7] Copiando archivos del sistema...
+echo [5/8] Copiando archivos del sistema...
 echo     (esto puede tardar unos minutos)
 if not exist "%SISTEMA_DIR%" mkdir "%SISTEMA_DIR%"
 xcopy "%RECOVERY_DIR%\sistema" "%SISTEMA_DIR%" /E /I /Q /Y
 echo     Archivos del sistema copiados.
 
 echo.
-echo [5/7] Restaurando base de datos mas reciente...
+echo [6/8] Restaurando base de datos mas reciente...
 if exist "%RECOVERY_DIR%\respaldos_db\pb_data_ultimo\data.db" (
     echo     Restaurando datos historicos desde el pendrive...
     if not exist "%SISTEMA_DIR%\pocketbase\pb_data" mkdir "%SISTEMA_DIR%\pocketbase\pb_data"
@@ -76,92 +84,37 @@ if exist "%RECOVERY_DIR%\respaldos_db\pb_data_ultimo\data.db" (
 )
 
 echo.
-echo [6/7] Instalando dependencias del frontend...
-cd /d "%SISTEMA_DIR%"
-if not exist "node_modules" (
-    echo     Instalando dependencias (npm install)...
-    echo     Esto puede tardar 2-5 minutos la primera vez...
-    npm install --prefer-offline --no-audit --no-fund
-    if %ERRORLEVEL% NEQ 0 (
-        echo     npm install fallo. Usando build pre-compilado...
-        goto usar_dist
-    )
-    echo     Dependencias instaladas.
-) else (
-    echo     Dependencias ya instaladas.
-)
+echo [7/8] Iniciando el sistema...
 
-echo.
-echo [7/7] Iniciando el sistema...
-goto iniciar_sistema
-
-:usar_dist
-echo.
-echo [7/7] Iniciando sistema con build pre-compilado (dist)...
-if not exist "%SISTEMA_DIR%\dist\index.html" (
-    echo ERROR CRITICO: No se encontro el build del sistema.
-    pause
-    exit /b 1
-)
-
-REM Iniciar PocketBase - SIN cmd /c para que no se cierre
+REM Iniciar PocketBase directamente (sin cmd /c ni cmd /k - es un ejecutable)
 echo     Iniciando PocketBase (backend)...
-tasklist /FI "IMAGENAME eq pocketbase.exe" 2>nul | find /i "pocketbase.exe" > nul
-if %ERRORLEVEL% NEQ 0 (
-    start "PocketBase-FCEA" /MIN "%SISTEMA_DIR%\pocketbase\pocketbase.exe" serve --http=127.0.0.1:8090
-    timeout /t 4 /nobreak >nul
-)
+start "PocketBase-FCEA" /MIN "%SISTEMA_DIR%\pocketbase\pocketbase.exe" serve --http=127.0.0.1:8090
+timeout /t 4 /nobreak >nul
+echo     PocketBase iniciado.
 
-REM Servir el dist con npx serve - cmd /k mantiene la ventana abierta
-echo     Iniciando servidor web (puerto 8080)...
-start "Frontend-FCEA" cmd /k "npx serve %SISTEMA_DIR%\dist -l 8080 -s"
-timeout /t 6 /nobreak >nul
-goto abrir_navegador
-
-:iniciar_sistema
-REM Configurar CORS de PocketBase
-if not exist "pocketbase\pb_config.json" (
-    (
-    echo {
-    echo   "options": {
-    echo     "http": {
-    echo       "cors": {
-    echo         "enabled": true,
-    echo         "allowOrigin": "*"
-    echo       }
-    echo     }
-    echo   }
-    echo }
-    ) > pocketbase\pb_config.json
-)
-
-REM Iniciar PocketBase - SIN cmd /c para que no se cierre
-echo     Iniciando PocketBase (backend)...
-tasklist /FI "IMAGENAME eq pocketbase.exe" 2>nul | find /i "pocketbase.exe" > nul
-if %ERRORLEVEL% NEQ 0 (
-    start "PocketBase-FCEA" /MIN "%SISTEMA_DIR%\pocketbase\pocketbase.exe" serve --http=127.0.0.1:8090
-    timeout /t 4 /nobreak >nul
-)
-
-REM Iniciar Frontend con Vite - cmd /k mantiene la ventana abierta
-echo     Iniciando frontend (Vite dev server)...
+REM Iniciar Vite con cmd /k para que la ventana quede abierta
+echo     Iniciando frontend (Vite)...
 start "Frontend-FCEA" cmd /k "cd /d %SISTEMA_DIR% && npm run dev -- --port 8080 --host"
 
-echo     Esperando que el frontend arranque...
+echo     Esperando que el frontend arranque (max 60 segundos)...
 set /a intentos=0
 :esperar
 set /a intentos+=1
-if %intentos% GTR 12 goto abrir_navegador
+if %intentos% GTR 12 (
+    echo     Tiempo de espera agotado. Abriendo navegador de todas formas...
+    goto abrir_navegador
+)
 netstat -ano 2>nul | findstr ":8080" | findstr "LISTENING" > nul
 if %ERRORLEVEL% NEQ 0 (
-    echo     Esperando... intento %intentos%/12
+    echo     Esperando Vite... intento %intentos%/12
     timeout /t 5 /nobreak >nul
     goto esperar
 )
+echo     Frontend listo en puerto 8080.
 
 :abrir_navegador
 echo.
-echo     Abriendo Chrome...
+echo [8/8] Abriendo Chrome...
 timeout /t 2 /nobreak >nul
 
 if exist "C:\Program Files\Google\Chrome\Application\chrome.exe" (
