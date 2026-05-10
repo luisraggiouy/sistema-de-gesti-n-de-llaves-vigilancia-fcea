@@ -46,13 +46,13 @@ if %ERRORLEVEL% NEQ 0 (
 
 :abrir
 echo.
-echo  Abriendo navegador en 2 segundos...
+echo  Abriendo Chrome en 2 segundos...
 timeout /t 2 /nobreak >nul
 
-REM Abrir con el navegador predeterminado (funciona con Edge, Chrome, cualquiera)
-start "" "http://localhost:8080/monitor"
+REM Forzar Chrome
+start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --new-window "http://localhost:8080/monitor"
 timeout /t 2 /nobreak >nul
-start "" "http://localhost:8080/terminal"
+start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" "http://localhost:8080/terminal"
 
 echo.
 echo ===================================

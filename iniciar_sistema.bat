@@ -69,12 +69,12 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 :abrir_navegador
-echo [5/5] Abriendo navegador...
+echo [5/5] Abriendo Chrome...
 timeout /t 2 /nobreak >nul
 
-start "" "http://localhost:8080/monitor"
+start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --new-window "http://localhost:8080/monitor"
 timeout /t 2 /nobreak >nul
-start "" "http://localhost:8080/terminal"
+start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" "http://localhost:8080/terminal"
 
 echo.
 echo ===================================
