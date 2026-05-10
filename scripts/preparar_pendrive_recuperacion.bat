@@ -96,7 +96,7 @@ echo pause ^> nul
 echo.
 echo set "USB_DRIVE=%%~d0"
 echo set "RECOVERY_DIR=%%USB_DRIVE%%\RECUPERACION_SISTEMA_LLAVES_FCEA"
-echo set "SISTEMA_DIR=C:\sistema-llaves-fcea"
+echo set "SISTEMA_DIR=C:\sistema-de-gesti-n-de-llaves-vigilancia-fcea"
 echo.
 echo echo.
 echo echo [1/6] Verificando archivos de recuperacion...

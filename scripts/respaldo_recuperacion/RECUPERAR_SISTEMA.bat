@@ -58,7 +58,7 @@ echo Iniciando recuperador automatico...
 echo.
 
 cd /d "%~dp0"
-powershell.exe -ExecutionPolicy Bypass -NoProfile -File "%~dp0recuperar_automatico.ps1"
+powershell.exe -ExecutionPolicy Bypass -NoProfile -File "%~dp0recuperar_datos_db.ps1"
 
 if %ERRORLEVEL% equ 0 (
     echo.
