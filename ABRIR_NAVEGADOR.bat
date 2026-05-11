@@ -6,14 +6,15 @@ echo ===================================
 echo  ABRIR SISTEMA DE LLAVES FCEA
 echo ===================================
 echo.
-echo  Verificando que el sistema este corriendo...
-echo.
+
+set "SISTEMA_DIR=C:\sistema-de-gesti-n-de-llaves-vigilancia-fcea"
 
 REM Verificar si PocketBase esta corriendo
+echo  Verificando PocketBase...
 tasklist /FI "IMAGENAME eq pocketbase.exe" 2>nul | find /i "pocketbase.exe" > nul
 if %ERRORLEVEL% NEQ 0 (
     echo  [!] PocketBase NO esta corriendo. Iniciandolo...
-    start "PocketBase-FCEA" /MIN "C:\sistema-de-gesti-n-de-llaves-vigilancia-fcea\pocketbase\pocketbase.exe" serve --http=127.0.0.1:8090
+    start "PocketBase-FCEA" /MIN "%SISTEMA_DIR%\pocketbase\pocketbase.exe" serve --http=127.0.0.1:8090
     timeout /t 4 /nobreak >nul
     echo  [OK] PocketBase iniciado.
 ) else (
@@ -21,11 +22,12 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 REM Verificar si el frontend esta corriendo en el puerto 8080
+echo  Verificando Frontend...
 netstat -ano 2>nul | findstr ":8080" | findstr "LISTENING" > nul
 if %ERRORLEVEL% NEQ 0 (
     echo  [!] Frontend NO esta corriendo. Iniciandolo...
-    start "Frontend-FCEA" cmd /k "cd /d C:\sistema-de-gesti-n-de-llaves-vigilancia-fcea && npm run dev -- --port 8080 --host"
-    echo  [*] Esperando que el frontend arranque (30 segundos max)...
+    start "Frontend-FCEA" cmd /k "cd /d %SISTEMA_DIR% && npm run dev -- --port 8080 --host"
+    echo  [*] Esperando que el frontend arranque...
     set /a intentos=0
     :esperar_frontend
     set /a intentos+=1
@@ -46,13 +48,13 @@ if %ERRORLEVEL% NEQ 0 (
 
 :abrir
 echo.
-echo  Abriendo Chrome en 2 segundos...
+echo  Abriendo el sistema en el navegador...
 timeout /t 2 /nobreak >nul
 
-REM Forzar Chrome
-start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --new-window "http://localhost:8080/monitor"
-timeout /t 2 /nobreak >nul
-start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" "http://localhost:8080/terminal"
+REM Usar explorer.exe para abrir URLs - funciona siempre, incluso como administrador
+explorer.exe "http://localhost:8080/monitor"
+timeout /t 3 /nobreak >nul
+explorer.exe "http://localhost:8080/terminal"
 
 echo.
 echo ===================================
@@ -61,6 +63,9 @@ echo ===================================
 echo.
 echo  Monitor:  http://localhost:8080/monitor
 echo  Terminal: http://localhost:8080/terminal
+echo.
+echo  IMPORTANTE: No cierre la ventana negra "Frontend-FCEA"
+echo  Si la cierra, el sistema dejara de funcionar.
 echo.
 echo  Si el navegador muestra error, espere 15 segundos
 echo  y presione F5 para recargar.

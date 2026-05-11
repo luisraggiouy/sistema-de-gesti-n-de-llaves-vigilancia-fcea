@@ -135,21 +135,12 @@ echo.
 echo [7/7] Abriendo Chrome con el sistema...
 timeout /t 2 /nobreak >nul
 
-if exist "C:\Program Files\Google\Chrome\Application\chrome.exe" (
-    echo     Abriendo Monitor en Chrome...
-    start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --new-window "http://localhost:8080/monitor"
-    timeout /t 2 /nobreak >nul
-    echo     Abriendo Terminal en Chrome...
-    start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" "http://localhost:8080/terminal"
-) else if exist "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" (
-    start "" "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --new-window "http://localhost:8080/monitor"
-    timeout /t 2 /nobreak >nul
-    start "" "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" "http://localhost:8080/terminal"
-) else (
-    start "" "http://localhost:8080/monitor"
-    timeout /t 2 /nobreak >nul
-    start "" "http://localhost:8080/terminal"
-)
+REM Usar explorer.exe para abrir URLs - funciona siempre, incluso como administrador
+echo     Abriendo Monitor...
+explorer.exe "http://localhost:8080/monitor"
+timeout /t 3 /nobreak >nul
+echo     Abriendo Terminal...
+explorer.exe "http://localhost:8080/terminal"
 
 echo.
 echo =====================================================
