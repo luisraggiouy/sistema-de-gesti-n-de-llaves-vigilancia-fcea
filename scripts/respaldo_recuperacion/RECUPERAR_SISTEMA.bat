@@ -23,7 +23,7 @@ echo Carpeta de recuperacion: %RECOVERY_DIR%
 echo Carpeta destino: %SISTEMA_DIR%
 echo.
 
-echo [1/8] Verificando archivos de recuperacion...
+echo [1/7] Verificando archivos de recuperacion...
 if not exist "%RECOVERY_DIR%\sistema" (
     echo.
     echo ERROR: No se encontro la carpeta "%RECOVERY_DIR%\sistema"
@@ -32,10 +32,10 @@ if not exist "%RECOVERY_DIR%\sistema" (
     pause
     exit /b 1
 )
-echo     OK - Archivos encontrados en %RECOVERY_DIR%\sistema
+echo     OK - Archivos encontrados.
 
 echo.
-echo [2/8] Verificando Node.js...
+echo [2/7] Verificando Node.js...
 node --version >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
     echo     Node.js NO esta instalado.
@@ -55,26 +55,18 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo.
-echo [3/8] Deteniendo procesos anteriores del sistema...
-taskkill /F /IM pocketbase.exe >nul 2>&1
-taskkill /F /FI "WINDOWTITLE eq Frontend-FCEA" >nul 2>&1
-taskkill /F /FI "WINDOWTITLE eq PocketBase-FCEA" >nul 2>&1
-timeout /t 3 /nobreak >nul
-echo     OK - Procesos anteriores detenidos.
-
-echo.
-echo [4/8] Respaldando datos existentes (si los hay)...
+echo [3/7] Respaldando datos existentes (si los hay)...
 if exist "%SISTEMA_DIR%\pocketbase\pb_data\data.db" (
     echo     Respaldando base de datos existente...
     mkdir "%SISTEMA_DIR%\respaldo_pre_restauracion" 2>nul
     xcopy "%SISTEMA_DIR%\pocketbase\pb_data" "%SISTEMA_DIR%\respaldo_pre_restauracion\pb_data\" /E /I /Q /Y
     echo     OK - Respaldo guardado.
 ) else (
-    echo     No se encontro instalacion previa (es normal en primera instalacion).
+    echo     No se encontro instalacion previa (normal en primera instalacion).
 )
 
 echo.
-echo [5/8] Copiando archivos del sistema desde el pendrive...
+echo [4/7] Copiando archivos del sistema desde el pendrive...
 echo     (esto puede tardar 1-3 minutos)
 if not exist "%SISTEMA_DIR%" mkdir "%SISTEMA_DIR%"
 xcopy "%RECOVERY_DIR%\sistema" "%SISTEMA_DIR%" /E /I /Q /Y
@@ -87,7 +79,7 @@ if %ERRORLEVEL% NEQ 0 (
 echo     OK - Archivos del sistema copiados.
 
 echo.
-echo [6/8] Restaurando base de datos mas reciente...
+echo [5/7] Restaurando base de datos mas reciente...
 if exist "%RECOVERY_DIR%\respaldos_db\pb_data_ultimo\data.db" (
     echo     Restaurando datos historicos desde el pendrive...
     if not exist "%SISTEMA_DIR%\pocketbase\pb_data" mkdir "%SISTEMA_DIR%\pocketbase\pb_data"
@@ -95,43 +87,52 @@ if exist "%RECOVERY_DIR%\respaldos_db\pb_data_ultimo\data.db" (
     echo     OK - Datos historicos restaurados.
 ) else (
     echo     ADVERTENCIA: No se encontraron datos historicos en el pendrive.
-    echo     El sistema iniciara con base de datos vacia.
 )
 
 echo.
-echo [7/8] Iniciando el sistema...
+echo [6/7] Iniciando el sistema...
 echo.
 
-REM Iniciar PocketBase directamente como ejecutable
-echo     Iniciando PocketBase (backend en puerto 8090)...
-start "PocketBase-FCEA" /MIN "%SISTEMA_DIR%\pocketbase\pocketbase.exe" serve --http=127.0.0.1:8090
-timeout /t 4 /nobreak >nul
-echo     OK - PocketBase iniciado.
-
-REM Iniciar Vite con cmd /k para que la ventana quede abierta
-echo     Iniciando frontend Vite (puerto 8080)...
-start "Frontend-FCEA" cmd /k "cd /d %SISTEMA_DIR% && npm run dev -- --port 8080 --host"
-
-echo.
-echo     Esperando que el frontend arranque (max 60 segundos)...
-set /a intentos=0
-:esperar
-set /a intentos+=1
-if %intentos% GTR 12 (
-    echo     Tiempo de espera agotado. Continuando de todas formas...
-    goto abrir_navegador
+REM Iniciar PocketBase solo si NO esta corriendo
+echo     Verificando PocketBase...
+tasklist /FI "IMAGENAME eq pocketbase.exe" 2>nul | find /i "pocketbase.exe" > nul
+if %ERRORLEVEL% NEQ 0 (
+    echo     Iniciando PocketBase (backend en puerto 8090)...
+    start "PocketBase-FCEA" /MIN "%SISTEMA_DIR%\pocketbase\pocketbase.exe" serve --http=127.0.0.1:8090
+    timeout /t 4 /nobreak >nul
+    echo     OK - PocketBase iniciado.
+) else (
+    echo     OK - PocketBase ya estaba corriendo.
 )
+
+REM Verificar si Vite ya esta corriendo en 8080
 netstat -ano 2>nul | findstr ":8080" | findstr "LISTENING" > nul
 if %ERRORLEVEL% NEQ 0 (
-    echo     Esperando Vite... intento %intentos%/12
-    timeout /t 5 /nobreak >nul
-    goto esperar
+    echo     Iniciando frontend Vite (puerto 8080)...
+    start "Frontend-FCEA" cmd /k "cd /d %SISTEMA_DIR% && npm run dev -- --port 8080 --host"
+    echo.
+    echo     Esperando que el frontend arranque (max 60 segundos)...
+    set /a intentos=0
+    :esperar
+    set /a intentos+=1
+    if %intentos% GTR 12 (
+        echo     Tiempo de espera agotado. Continuando de todas formas...
+        goto abrir_navegador
+    )
+    netstat -ano 2>nul | findstr ":8080" | findstr "LISTENING" > nul
+    if %ERRORLEVEL% NEQ 0 (
+        echo     Esperando Vite... intento %intentos%/12
+        timeout /t 5 /nobreak >nul
+        goto esperar
+    )
+    echo     OK - Frontend listo en puerto 8080.
+) else (
+    echo     OK - Frontend ya estaba corriendo en puerto 8080.
 )
-echo     OK - Frontend listo en puerto 8080.
 
 :abrir_navegador
 echo.
-echo [8/8] Abriendo Chrome con el sistema...
+echo [7/7] Abriendo Chrome con el sistema...
 timeout /t 2 /nobreak >nul
 
 if exist "C:\Program Files\Google\Chrome\Application\chrome.exe" (
