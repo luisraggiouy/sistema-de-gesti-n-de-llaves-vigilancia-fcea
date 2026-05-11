@@ -7,13 +7,13 @@ echo  ABRIR SISTEMA DE LLAVES FCEA
 echo ===================================
 echo.
 echo  Abriendo Monitor de Vigilancia...
-start "" /B "http://localhost:8080/monitor"
+start "" /B "C:\Program Files\Google\Chrome\Application\chrome.exe" --new-window "http://localhost:8080/monitor"
 echo  Monitor abierto.
 echo.
 echo  Esperando 3 segundos...
 ping -n 4 127.0.0.1 >nul
 echo  Abriendo Terminal de Usuarios...
-start "" /B "http://localhost:8080/terminal"
+start "" /B "C:\Program Files\Google\Chrome\Application\chrome.exe" "http://localhost:8080/terminal"
 echo  Terminal abierto.
 echo.
 echo  Si no se abrio alguna ventana, abra Chrome manualmente:
