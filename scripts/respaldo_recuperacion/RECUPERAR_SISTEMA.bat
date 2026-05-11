@@ -99,7 +99,7 @@ tasklist /FI "IMAGENAME eq pocketbase.exe" 2>nul | find /i "pocketbase.exe" > nu
 if %ERRORLEVEL% NEQ 0 (
     echo     Iniciando PocketBase (backend en puerto 8090)...
     start "PocketBase-FCEA" /MIN "%SISTEMA_DIR%\pocketbase\pocketbase.exe" serve --http=127.0.0.1:8090
-    timeout /t 4 /nobreak >nul
+    ping -n 5 127.0.0.1 >nul
     echo     OK - PocketBase iniciado.
 ) else (
     echo     OK - PocketBase ya estaba corriendo.
@@ -122,7 +122,7 @@ if %ERRORLEVEL% NEQ 0 (
     netstat -ano 2>nul | findstr ":8080" | findstr "LISTENING" > nul
     if %ERRORLEVEL% NEQ 0 (
         echo     Esperando Vite... intento %intentos%/12
-        timeout /t 5 /nobreak >nul
+        ping -n 6 127.0.0.1 >nul
         goto esperar
     )
     echo     OK - Frontend listo en puerto 8080.
@@ -133,14 +133,15 @@ if %ERRORLEVEL% NEQ 0 (
 :abrir_navegador
 echo.
 echo [7/7] Abriendo Chrome con el sistema...
-timeout /t 2 /nobreak >nul
+ping -n 3 127.0.0.1 >nul
 
-REM Usar explorer.exe para abrir URLs - funciona siempre, incluso como administrador
-echo     Abriendo Monitor...
-explorer.exe "http://localhost:8080/monitor"
-timeout /t 3 /nobreak >nul
-echo     Abriendo Terminal...
-explorer.exe "http://localhost:8080/terminal"
+echo     Abriendo Monitor de Vigilancia...
+start "" /B "http://localhost:8080/monitor"
+echo     Monitor abierto.
+ping -n 4 127.0.0.1 >nul
+echo     Abriendo Terminal de Usuarios...
+start "" /B "http://localhost:8080/terminal"
+echo     Terminal abierto.
 
 echo.
 echo =====================================================
