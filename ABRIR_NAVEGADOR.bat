@@ -7,11 +7,11 @@ echo  ABRIR SISTEMA DE LLAVES FCEA
 echo ===================================
 echo.
 echo  Abriendo Monitor...
-explorer.exe http://localhost:8080/monitor
+start "" /B "http://localhost:8080/monitor"
 echo  Monitor abierto.
 timeout /t 3 /nobreak >nul
 echo  Abriendo Terminal...
-explorer.exe http://localhost:8080/terminal
+start "" /B "http://localhost:8080/terminal"
 echo  Terminal abierto.
 echo.
 echo  Si no se abrio el navegador, abra Chrome manualmente
