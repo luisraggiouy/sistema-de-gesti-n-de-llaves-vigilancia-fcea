@@ -1,5 +1,0 @@
-[autorun]
-open=RECUPERAR_SISTEMA.bat
-icon=icono.ico
-label=Recuperador Sistema Llaves FCEA
-action=Recuperar Sistema de Gestión de Llaves FCEA
