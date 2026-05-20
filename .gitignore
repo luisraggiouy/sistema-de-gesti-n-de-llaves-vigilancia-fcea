@@ -1,4 +1,8 @@
-# Logs
+# ============================================================
+# Sistema de Gestion de Llaves FCEA v2.0 - .gitignore
+# ============================================================
+
+# --- Logs ---
 logs
 *.log
 npm-debug.log*
@@ -7,12 +11,13 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# --- Build / deps ---
 node_modules
 dist
 dist-ssr
 *.local
 
-# Editor directories and files
+# --- Editor ---
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -22,3 +27,23 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# --- PocketBase (datos volatiles, no commitear) ---
+pocketbase/pb_data/*.db-shm
+pocketbase/pb_data/*.db-wal
+pocketbase/pb_data/logs.db
+pocketbase/pb_data/backups/
+pocketbase/maintenance/logs/
+
+# Backups locales generados por scripts/maintenance/backup_automatico.ps1
+/backups/
+/respaldo_pre_restauracion/
+
+# El public/config.json del repo sirve de plantilla por defecto (modo desarrollo).
+# Cada PC instalada lo sobrescribe localmente via INSTALAR.bat; ese sobrescrito
+# no se commitea porque normalmente trabajamos en el repo en modo desarrollo.
+
+# Archivos sueltos de prueba / temporales
+*.tmp
+*.bak
+test_copia.ps1
