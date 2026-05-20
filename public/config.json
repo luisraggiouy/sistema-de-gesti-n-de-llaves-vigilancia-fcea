@@ -1,0 +1,26 @@
+{
+  "$schema": "./config.schema.json",
+  "version": "2.0.0",
+  "modo": "desarrollo",
+  "rol": "monitor",
+  "pocketbase_url": "http://127.0.0.1:8090",
+  "red": {
+    "ip_servidor": "127.0.0.1",
+    "ip_terminal_a": "127.0.0.1",
+    "ip_terminal_b": "127.0.0.1"
+  },
+  "ui": {
+    "teclado_virtual_forzado": false,
+    "tema": "claro"
+  },
+  "_notas": [
+    "Este archivo es leído en tiempo de ejecución por el frontend.",
+    "modo: 'desarrollo' (1 PC con botón Monitor/Terminal) | 'produccion' (kiosk fijo).",
+    "rol: 'monitor' (cabina/servidor) | 'terminal-a' | 'terminal-b' | 'dashboard'.",
+    "pocketbase_url: URL del servidor PocketBase visible para esta PC.",
+    "  - En modo 'desarrollo' o en la PC servidor: http://127.0.0.1:8090.",
+    "  - En las terminales: http://<ip_servidor>:8090 (ej. http://192.168.50.10:8090).",
+    "teclado_virtual_forzado: si true, muestra el teclado virtual aunque no se detecte touch (útil para pruebas).",
+    "Modificar este archivo NO requiere recompilar el frontend, solo recargar el navegador."
+  ]
+}

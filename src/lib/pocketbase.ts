@@ -1,11 +1,44 @@
 ﻿import PocketBase from 'pocketbase';
 import { create } from 'zustand';
+import { DEFAULT_CONFIG, getRuntimeConfig, loadRuntimeConfig } from '@/lib/runtimeConfig';
 
-// Create a PocketBase instance
-const pb = new PocketBase('http://127.0.0.1:8090');
+/**
+ * Cliente de PocketBase.
+ *
+ * La URL se determina en este orden:
+ *   1. `getRuntimeConfig().pocketbase_url` si la configuración runtime ya fue cargada.
+ *   2. `DEFAULT_CONFIG.pocketbase_url` (http://127.0.0.1:8090) como fallback temprano.
+ *
+ * Llamar a `applyRuntimePocketBaseUrl()` después de `loadRuntimeConfig()` para
+ * que el cliente apunte al servidor correcto en las terminales remotas.
+ */
+
+// Arrancamos con el default; si runtimeConfig ya está cargado lo usamos.
+let initialUrl = DEFAULT_CONFIG.pocketbase_url;
+try {
+  initialUrl = getRuntimeConfig().pocketbase_url;
+} catch {
+  // runtimeConfig todavía no cargó, usamos el default.
+}
+
+const pb = new PocketBase(initialUrl);
 
 // Disable auto cancellation for better control over requests
 pb.autoCancellation(false);
+
+/**
+ * Aplica la URL del runtime config al cliente PocketBase.
+ * Debe llamarse desde el bootstrap de la aplicación, después de
+ * `await loadRuntimeConfig()`.
+ */
+export async function applyRuntimePocketBaseUrl(): Promise<string> {
+  const cfg = await loadRuntimeConfig();
+  if (pb.baseUrl !== cfg.pocketbase_url) {
+    pb.baseUrl = cfg.pocketbase_url;
+    console.info(`[pocketbase] URL actualizada: ${cfg.pocketbase_url}`);
+  }
+  return cfg.pocketbase_url;
+}
 
 // Connection state store
 interface ConnectionState {
@@ -22,9 +55,9 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
   isChecking: false,
   checkConnection: async () => {
     if (get().isChecking) return get().isConnected;
-    
+
     set({ isChecking: true });
-    
+
     try {
       // Try to make a simple request to check connection
       await pb.health.check();
@@ -40,14 +73,14 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
 }));
 
 // Add reconnection logic
-let reconnectInterval: NodeJS.Timeout | null = null;
+let reconnectInterval: ReturnType<typeof setInterval> | null = null;
 
 export const startReconnectionAttempts = () => {
   if (reconnectInterval) return; // Already trying to reconnect
-  
+
   reconnectInterval = setInterval(async () => {
     const { isConnected, checkConnection } = useConnectionStore.getState();
-    
+
     if (!isConnected) {
       const success = await checkConnection();
       if (success && reconnectInterval) {
@@ -59,24 +92,6 @@ export const startReconnectionAttempts = () => {
       reconnectInterval = null;
     }
   }, 5000); // Try to reconnect every 5 seconds
-};
-
-// Add error handler and CORS headers to prevent connection issues
-pb.beforeSend = (url, options) => {
-  // Configuración CORS para evitar problemas de cross-origin
-  if (!options.headers) {
-    options.headers = {};
-  }
-  
-  // Añadir cabeceras CORS necesarias para cada solicitud
-  options.headers = {
-    ...options.headers,
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-  };
-  
-  return { url, options };
 };
 
 // Track consecutive failures to avoid false disconnection on wake from sleep
