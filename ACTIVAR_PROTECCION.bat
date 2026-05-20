@@ -28,9 +28,9 @@ if %errorLevel% neq 0 (
 echo Creando tarea programada del watchdog...
 echo.
 
-REM Crear la tarea usando el script watchdog_pocketbase.ps1
+REM Crear la tarea usando el script watchdog_completo.ps1
 powershell.exe -ExecutionPolicy Bypass -Command ^
-"$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-ExecutionPolicy Bypass -WindowStyle Hidden -File C:\sistema-de-gesti-n-de-llaves-vigilancia-fcea\scripts\watchdog_pocketbase.ps1'; ^
+"$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument '-ExecutionPolicy Bypass -WindowStyle Hidden -File C:\sistema-de-gesti-n-de-llaves-vigilancia-fcea\scripts\watchdog_completo.ps1'; ^
 $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 2) -RepetitionDuration ([TimeSpan]::MaxValue); ^
 $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest; ^
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable; ^

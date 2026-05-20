@@ -1,17 +1,12 @@
 # ============================================================================
 # WATCHDOG COMPLETO - Protege PocketBase Y Frontend (Vite)
-# Sistema de Gestiรณn de Llaves FCEA
-# ============================================================================
-# Este script monitorea AMBOS procesos crรญticos del sistema:
-# 1. PocketBase (backend/base de datos)
-# 2. Node.js/Vite (frontend)
-# Si alguno se cae, lo reinicia automรกticamente
+# Sistema de Gestion de Llaves FCEA
 # ============================================================================
 
 $ErrorActionPreference = "Continue"
 
-# Configuraciรณn
-$ProjectRoot = "c:\sistema-de-gesti-n-de-llaves-vigilancia-fcea"
+# Configuracion - ruta donde se instala el sistema
+$ProjectRoot = "C:\sistema-llaves-fcea"
 $PocketBaseExe = Join-Path $ProjectRoot "pocketbase\pocketbase.exe"
 $LogFile = Join-Path $ProjectRoot "scripts\watchdog_completo.log"
 $CheckInterval = 120 # Verificar cada 2 minutos
@@ -20,16 +15,16 @@ $CheckInterval = 120 # Verificar cada 2 minutos
 $PocketBasePID = $null
 $NodePID = $null
 
-# Funciรณn para escribir en el log
+# Funcion para escribir en el log
 function Write-Log {
     param([string]$Message, [string]$Level = "INFO")
     $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $LogMessage = "[$Timestamp] [$Level] $Message"
-    Add-Content -Path $LogFile -Value $LogMessage
+    try { Add-Content -Path $LogFile -Value $LogMessage -ErrorAction SilentlyContinue } catch {}
     Write-Host $LogMessage
 }
 
-# Funciรณn para iniciar PocketBase
+# Funcion para iniciar PocketBase
 function Start-PocketBase {
     Write-Log "Iniciando PocketBase..." "INFO"
     try {
@@ -38,15 +33,13 @@ function Start-PocketBase {
                                  -WorkingDirectory (Split-Path $PocketBaseExe) `
                                  -WindowStyle Hidden `
                                  -PassThru
-        
         Start-Sleep -Seconds 3
-        
         if ($process -and !$process.HasExited) {
             $script:PocketBasePID = $process.Id
-            Write-Log "PocketBase iniciado correctamente (PID: $($process.Id))" "SUCCESS"
+            Write-Log "PocketBase iniciado (PID: $($process.Id))" "INFO"
             return $true
         } else {
-            Write-Log "PocketBase fallรณ al iniciar" "ERROR"
+            Write-Log "PocketBase fallo al iniciar" "ERROR"
             return $false
         }
     } catch {
@@ -55,53 +48,60 @@ function Start-PocketBase {
     }
 }
 
-# Función para iniciar Frontend (Vite)
+# Funcion para iniciar Frontend (Vite)
 function Start-Frontend {
     Write-Log "Iniciando Frontend (Vite)..." "INFO"
     try {
-        # IMPORTANTE: Solo matar node.exe si el puerto 8080 NO está respondiendo
-        # No matar procesos node que puedan estar sirviendo correctamente
+        # Verificar si ya hay algo en el puerto 8080
         $port8080Check = netstat -ano 2>$null | Select-String ":8080" | Select-String "LISTENING"
         if ($port8080Check) {
-            Write-Log "Puerto 8080 ya está en uso, no se reiniciará el frontend" "WARNING"
+            Write-Log "Puerto 8080 ya esta activo" "INFO"
             return $true
         }
-        
-        # Solo matar node.exe si realmente no hay nada en el puerto 8080
+
+        # Matar procesos node anteriores que no responden
         $nodeProcesses = Get-Process -Name "node" -ErrorAction SilentlyContinue
         if ($nodeProcesses) {
-            Write-Log "Deteniendo procesos node.exe anteriores (puerto 8080 no responde)..." "INFO"
             $nodeProcesses | Stop-Process -Force -ErrorAction SilentlyContinue
-            Start-Sleep -Seconds 3
+            Start-Sleep -Seconds 2
         }
-        
-        # Iniciar npm run dev
-        $process = Start-Process -FilePath "cmd.exe" `
-                                 -ArgumentList "/c", "cd /d `"$ProjectRoot`" && npm run dev" `
-                                 -WindowStyle Hidden `
-                                 -PassThru
-        
-        # Esperar más tiempo para que Vite arranque completamente
-        Start-Sleep -Seconds 10
-        
-        # Verificar que el puerto 8080 esté escuchando
-        $port8080 = netstat -ano 2>$null | Select-String ":8080" | Select-String "LISTENING"
-        if ($port8080) {
-            $nodeProcess = Get-Process -Name "node" -ErrorAction SilentlyContinue | Select-Object -First 1
-            $script:NodePID = if ($nodeProcess) { $nodeProcess.Id } else { 0 }
-            Write-Log "Frontend iniciado correctamente (puerto 8080 activo)" "SUCCESS"
-            return $true
-        } else {
-            Write-Log "Frontend falló al iniciar (puerto 8080 no responde)" "ERROR"
+
+        # Verificar que node_modules existe
+        $nodeModules = Join-Path $ProjectRoot "node_modules"
+        if (-not (Test-Path $nodeModules)) {
+            Write-Log "ERROR: node_modules no existe en $ProjectRoot" "ERROR"
+            Write-Log "Ejecute npm install en $ProjectRoot primero" "ERROR"
             return $false
         }
+
+        # Iniciar npm run dev
+        $process = Start-Process -FilePath "cmd.exe" `
+                                 -ArgumentList "/c", "cd /d `"$ProjectRoot`" && npm run dev -- --port 8080 --host" `
+                                 -WindowStyle Hidden `
+                                 -PassThru
+
+        # Esperar hasta 30 segundos a que Vite arranque
+        $intentos = 0
+        while ($intentos -lt 6) {
+            Start-Sleep -Seconds 5
+            $intentos++
+            $port8080 = netstat -ano 2>$null | Select-String ":8080" | Select-String "LISTENING"
+            if ($port8080) {
+                Write-Log "Frontend iniciado correctamente (puerto 8080 activo)" "INFO"
+                return $true
+            }
+            Write-Log "Esperando que Vite arranque... intento $intentos/6" "INFO"
+        }
+
+        Write-Log "Frontend no respondio en 30 segundos" "ERROR"
+        return $false
     } catch {
         Write-Log "Error al iniciar Frontend: $($_.Exception.Message)" "ERROR"
         return $false
     }
 }
 
-# Funciรณn para verificar si PocketBase estรก corriendo
+# Funcion para verificar si PocketBase esta corriendo
 function Test-PocketBaseRunning {
     $process = Get-Process -Name "pocketbase" -ErrorAction SilentlyContinue
     if ($process) {
@@ -111,13 +111,11 @@ function Test-PocketBaseRunning {
     return $false
 }
 
-# Funciรณn para verificar si Frontend estรก corriendo
+# Funcion para verificar si Frontend esta corriendo
 function Test-FrontendRunning {
-    # Verificar si node.exe estรก corriendo Y escuchando en puerto 8080
     $nodeProcess = Get-Process -Name "node" -ErrorAction SilentlyContinue
     if ($nodeProcess) {
-        # Verificar si el puerto 8080 estรก en uso
-        $port8080 = netstat -ano | Select-String ":8080" | Select-String "LISTENING"
+        $port8080 = netstat -ano 2>$null | Select-String ":8080" | Select-String "LISTENING"
         if ($port8080) {
             $script:NodePID = $nodeProcess.Id
             return $true
@@ -130,25 +128,25 @@ function Test-FrontendRunning {
 # INICIO DEL WATCHDOG
 # ============================================================================
 
-Write-Log "========================================" "INFO"
-Write-Log "WATCHDOG COMPLETO INICIADO" "INFO"
-Write-Log "Monitoreando: PocketBase + Frontend" "INFO"
-Write-Log "Intervalo de verificaciรณn: $CheckInterval segundos" "INFO"
-Write-Log "========================================" "INFO"
+Write-Log "========================================"
+Write-Log "WATCHDOG COMPLETO INICIADO"
+Write-Log "Directorio del sistema: $ProjectRoot"
+Write-Log "Intervalo de verificacion: $CheckInterval segundos"
+Write-Log "========================================"
 
-# Verificar e iniciar procesos si no estรกn corriendo
+# Verificar e iniciar procesos si no estan corriendo
 if (!(Test-PocketBaseRunning)) {
-    Write-Log "PocketBase no estรก corriendo. Iniciando..." "WARNING"
+    Write-Log "PocketBase no esta corriendo. Iniciando..."
     Start-PocketBase
 } else {
-    Write-Log "PocketBase ya estรก corriendo (PID: $PocketBasePID)" "INFO"
+    Write-Log "PocketBase ya esta corriendo (PID: $PocketBasePID)"
 }
 
 if (!(Test-FrontendRunning)) {
-    Write-Log "Frontend no estรก corriendo. Iniciando..." "WARNING"
+    Write-Log "Frontend no esta corriendo. Iniciando..."
     Start-Frontend
 } else {
-    Write-Log "Frontend ya estรก corriendo (PID: $NodePID)" "INFO"
+    Write-Log "Frontend ya esta corriendo (PID: $NodePID)"
 }
 
 # Loop principal de monitoreo
@@ -156,22 +154,20 @@ $iteration = 0
 while ($true) {
     Start-Sleep -Seconds $CheckInterval
     $iteration++
-    
-    Write-Log "--- Verificaciรณn #$iteration ---" "INFO"
-    
-    # Verificar PocketBase
+
+    Write-Log "--- Verificacion #$iteration ---"
+
     if (!(Test-PocketBaseRunning)) {
-        Write-Log "ยกALERTA! PocketBase se cayรณ. Reiniciando..." "ERROR"
+        Write-Log "ALERTA: PocketBase se cayo. Reiniciando..." "ERROR"
         Start-PocketBase
     } else {
-        Write-Log "PocketBase OK (PID: $PocketBasePID)" "INFO"
+        Write-Log "PocketBase OK (PID: $PocketBasePID)"
     }
-    
-    # Verificar Frontend
+
     if (!(Test-FrontendRunning)) {
-        Write-Log "ยกALERTA! Frontend se cayรณ. Reiniciando..." "ERROR"
+        Write-Log "ALERTA: Frontend se cayo. Reiniciando..." "ERROR"
         Start-Frontend
     } else {
-        Write-Log "Frontend OK (PID: $NodePID)" "INFO"
+        Write-Log "Frontend OK (PID: $NodePID)"
     }
 }

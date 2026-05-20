@@ -24,7 +24,7 @@ Write-Host ""
 
 try {
     # Definir la acción
-    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -WindowStyle Hidden -File C:\sistema-de-gesti-n-de-llaves-vigilancia-fcea\scripts\watchdog_pocketbase.ps1"
+    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -WindowStyle Hidden -File C:\sistema-de-gesti-n-de-llaves-vigilancia-fcea\scripts\watchdog_completo.ps1"
     
     # Definir el trigger (cada 2 minutos, para siempre)
     $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 2) -RepetitionDuration ([TimeSpan]::MaxValue)

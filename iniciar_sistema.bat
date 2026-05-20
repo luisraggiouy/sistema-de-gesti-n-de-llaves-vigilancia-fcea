@@ -69,13 +69,57 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 :abrir_navegador
-echo [5/5] Abriendo Chrome...
+echo [5/5] Buscando navegador disponible...
 timeout /t 2 /nobreak >nul
 
-start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --new-window "http://localhost:8080/monitor"
-timeout /t 2 /nobreak >nul
-start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" "http://localhost:8080/terminal"
+REM ============================================================
+REM Detectar navegador disponible (Chrome, Edge, Firefox)
+REM ============================================================
+set "BROWSER="
 
+if exist "C:\Program Files\Google\Chrome\Application\chrome.exe" (
+    set "BROWSER=C:\Program Files\Google\Chrome\Application\chrome.exe"
+    goto :abrir_con_browser
+)
+if exist "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" (
+    set "BROWSER=C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+    goto :abrir_con_browser
+)
+if exist "%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe" (
+    set "BROWSER=%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"
+    goto :abrir_con_browser
+)
+if exist "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" (
+    set "BROWSER=C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+    goto :abrir_con_browser
+)
+if exist "C:\Program Files\Microsoft\Edge\Application\msedge.exe" (
+    set "BROWSER=C:\Program Files\Microsoft\Edge\Application\msedge.exe"
+    goto :abrir_con_browser
+)
+if exist "C:\Program Files\Mozilla Firefox\firefox.exe" (
+    set "BROWSER=C:\Program Files\Mozilla Firefox\firefox.exe"
+    goto :abrir_con_browser
+)
+if exist "C:\Program Files (x86)\Mozilla Firefox\firefox.exe" (
+    set "BROWSER=C:\Program Files (x86)\Mozilla Firefox\firefox.exe"
+    goto :abrir_con_browser
+)
+
+REM Usar navegador predeterminado del sistema
+echo  Usando navegador predeterminado del sistema...
+start "" "http://localhost:8080/monitor"
+timeout /t 2 /nobreak >nul
+start "" "http://localhost:8080/terminal"
+goto :mostrar_fin
+
+:abrir_con_browser
+echo  Navegador: %BROWSER%
+start "" "%BROWSER%" --new-window "http://localhost:8080/monitor"
+timeout /t 2 /nobreak >nul
+start "" "%BROWSER%" "http://localhost:8080/terminal"
+
+:mostrar_fin
 echo.
 echo ===================================
 echo  SISTEMA INICIADO

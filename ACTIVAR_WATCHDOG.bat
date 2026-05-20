@@ -55,7 +55,7 @@ echo Activando watchdog...
 echo.
 
 cd /d "%~dp0"
-powershell.exe -ExecutionPolicy Bypass -NoProfile -File "%~dp0scripts\configurar_mantenimiento_automatico.ps1"
+powershell.exe -ExecutionPolicy Bypass -NoProfile -File "%~dp0activar_watchdog_AHORA.ps1"
 
 if %ERRORLEVEL% equ 0 (
     echo.

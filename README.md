@@ -1,8 +1,8 @@
 # 🔑 Sistema de Gestión de Llaves — FCEA
 ## Facultad de Ciencias Económicas y de Administración
 
-**Versión:** 1.0  
-**Fecha:** Abril 2026  
+**Versión:** 6.0 (Pendrives v2)  
+**Fecha:** Mayo 2026  
 **Estado:** Producción
 
 ---
@@ -33,22 +33,22 @@ Sistema integral de gestión de llaves para el servicio de vigilancia de FCEA, d
 
 ### Para Instalar el Sistema por Primera Vez
 
-1. **Leer la documentación de instalación**:
+1. **Leer la guía única de pendrives**:
    ```
-   docs/INSTRUCCIONES_RAPIDAS_PENDRIVES.md  ← EMPEZAR AQUÍ
+   docs/pendrives_v2_GUIA_DEFINITIVA.md  ← EMPEZAR AQUÍ
    ```
 
-2. **Preparar los pendrives**:
+2. **Preparar los pendrives v2**:
    - Pendrive INSTALADOR (16 GB)
    - Pendrive RECUPERACIÓN (8 GB)
 
 3. **Ejecutar el instalador**:
    - Conectar pendrive INSTALADOR
-   - Ejecutar: `INSTALAR_SISTEMA.bat`
-   - Seguir el menú interactivo
+   - Ejecutar: `REINSTALAR-COMPLETO.bat`
+   - Responder los diálogos (modo + hardware)
    - Esperar 10-15 minutos
 
-4. **¡Listo!** El sistema arranca automáticamente
+4. **¡Listo!** El sistema arranca automáticamente en modo kiosk
 
 ### Para Desarrolladores
 
@@ -83,8 +83,8 @@ Ver: **[docs/INDICE_DOCUMENTACION.md](docs/INDICE_DOCUMENTACION.md)** para el í
 ### 🎯 Documentos Clave por Rol
 
 #### Para Personal de Sistemas:
-1. ⭐ [INSTRUCCIONES_RAPIDAS_PENDRIVES.md](docs/INSTRUCCIONES_RAPIDAS_PENDRIVES.md) - Empezar aquí
-2. [preparacion_pendrives_instalacion.md](docs/preparacion_pendrives_instalacion.md) - Documentación completa
+1. ⭐ [pendrives_v2_GUIA_DEFINITIVA.md](docs/pendrives_v2_GUIA_DEFINITIVA.md) - Guía única para instalar/reparar/desinstalar
+2. [install_config_schema.md](docs/install_config_schema.md) - Esquema de `install_config.json`
 3. [configuracion_produccion.md](docs/configuracion_produccion.md) - Configuración de producción
 4. [guia_mantenimiento_paso_a_paso.md](docs/guia_mantenimiento_paso_a_paso.md) - Mantenimiento del sistema
 
@@ -172,7 +172,7 @@ Después de reinstalar el sistema con el pendrive restaurador:
 sistema-de-gesti-n-de-llaves-vigilancia-fcea/
 ├── docs/                          # Documentación completa
 │   ├── INDICE_DOCUMENTACION.md    # Índice de toda la documentación
-│   ├── INSTRUCCIONES_RAPIDAS_PENDRIVES.md  # Guía rápida instalación
+│   ├── pendrives_v2_GUIA_DEFINITIVA.md  # Guía única de pendrives
 │   └── ...                        # Otros documentos
 ├── src/                           # Código fuente del frontend
 │   ├── components/                # Componentes React
@@ -248,7 +248,7 @@ Ver: [guia_mantenimiento_paso_a_paso.md](docs/guia_mantenimiento_paso_a_paso.md)
 ### Documentación de Soporte
 - [resolucion_error_cors.md](docs/resolucion_error_cors.md)
 - [guia_mantenimiento_paso_a_paso.md](docs/guia_mantenimiento_paso_a_paso.md)
-- [procedimiento_reinstalacion_sistema.md](docs/procedimiento_reinstalacion_sistema.md)
+- [pendrives_v2_GUIA_DEFINITIVA.md](docs/pendrives_v2_GUIA_DEFINITIVA.md) §4 (reparar / reinstalar)
 
 ---
 

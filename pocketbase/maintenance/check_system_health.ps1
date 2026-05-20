@@ -136,7 +136,7 @@ try {
                 level = "critical"
                 title = "No hay backups"
                 message = "No se encontraron backups del sistema. Datos en riesgo."
-                action = "Ejecutar inmediatamente: scripts\configurar_mantenimiento_automatico.ps1"
+                action = "Ejecutar inmediatamente: ACTIVAR_WATCHDOG.bat"
                 icon = "database"
                 documentation = "docs/configuracion_mantenimiento_automatizado.md"
             }

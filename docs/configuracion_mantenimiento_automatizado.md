@@ -35,8 +35,11 @@ El sistema incluye un script que configura automáticamente todas las tareas pro
 
 3. **Ejecutar el script de configuración**:
    ```powershell
-   .\scripts\configurar_mantenimiento_automatico.ps1
+   # Activa el watchdog de PocketBase (tarea programada cada 2 minutos)
+   .\activar_watchdog_AHORA.ps1
    ```
+
+   > **Nota:** El antiguo script `configurar_mantenimiento_automatico.ps1` fue reemplazado por `activar_watchdog_AHORA.ps1` y por `scripts\watchdog_completo.ps1`, que cubren las mismas funciones (backup + watchdog) y ya no presentan los problemas de sintaxis del original.
 
 4. **El script configurará automáticamente**:
    - ✅ Tarea de mantenimiento semanal (Domingos 8:00 AM)

@@ -185,7 +185,6 @@ echo.
 :: Copiar scripts de instalación
 echo [7/9] Copiando scripts de instalación...
 copy /Y "%~dp0instalar_automatico.ps1" "%PENDRIVE%\scripts\" >nul 2>&1
-copy /Y "%~dp0configurar_mantenimiento_automatico.ps1" "%PENDRIVE%\scripts\" >nul 2>&1
 copy /Y "%~dp0watchdog_completo.ps1" "%PENDRIVE%\scripts\" >nul 2>&1
 echo [OK] Scripts copiados
 echo.

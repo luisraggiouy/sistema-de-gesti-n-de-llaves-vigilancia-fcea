@@ -1,6 +1,6 @@
 # Índice de Documentación — Sistema de Gestión de Llaves FCEA
 
-> **Versión del sistema:** 5.3 — Mayo 2026  
+> **Versión del sistema:** 6.0 — Mayo 2026  
 > **Repositorio:** https://github.com/luisraggiouy/sistema-de-gesti-n-de-llaves-vigilancia-fcea
 
 ---
@@ -14,12 +14,11 @@
 
 ---
 
-### Instalación y Puesta en Marcha
+### Instalación y Pendrives — **v2 (vigente)**
 | Documento | Descripción |
 |-----------|-------------|
-| [instructivo_instalacion_paso_a_paso.md](instructivo_instalacion_paso_a_paso.md) | Guía completa de instalación desde cero en un equipo nuevo. |
-| [preparacion_pendrives_instalacion.md](preparacion_pendrives_instalacion.md) | Cómo preparar los pendrives Instalador y Recuperación. |
-| [INSTRUCCIONES_RAPIDAS_PENDRIVES.md](INSTRUCCIONES_RAPIDAS_PENDRIVES.md) | Versión resumida y rápida para preparar los pendrives. |
+| [pendrives_v2_GUIA_DEFINITIVA.md](pendrives_v2_GUIA_DEFINITIVA.md) | ⭐ **Guía única y definitiva** para instalar, reinstalar, reparar y desinstalar el sistema desde los pendrives v2.0. |
+| [install_config_schema.md](install_config_schema.md) | Esquema y API del archivo `install_config.json` (modo + hardware). |
 | [configuracion_produccion.md](configuracion_produccion.md) | Configuración del entorno de producción (puertos, variables, inicio automático). |
 
 ---
@@ -27,7 +26,7 @@
 ### Uso del Sistema
 | Documento | Descripción |
 |-----------|-------------|
-| [instructivo_acceso_dashboard.md](instructivo_acceso_dashboard.md) | Cómo acceder y usar el Dashboard de estadísticas. |
+| [instructivo_acceso_dashboard.md](instructivo_acceso_dashboard.md) | Cómo acceder y usar el Dashboard de estadísticas (pestaña dentro del Monitor de Vigilancia). |
 | [funcionalidad_administracion_custodio.md](funcionalidad_administracion_custodio.md) | Funciones del panel de administración y del modo Custodio. |
 | [funcionalidad_autorizaciones.md](funcionalidad_autorizaciones.md) | Sistema de autorizaciones especiales de acceso. |
 | [estadisticas_avanzadas.md](estadisticas_avanzadas.md) | Gráficas avanzadas, filtros por período y exportación de reportes. |
@@ -48,13 +47,9 @@
 ### Solución de Problemas
 | Documento | Descripción |
 |-----------|-------------|
-| [procedimiento_reinstalacion_sistema.md](procedimiento_reinstalacion_sistema.md) | Pasos para reinstalar el sistema completo desde cero. |
-| [resolucion_pantalla_en_blanco_watchdog.md](resolucion_pantalla_en_blanco_watchdog.md) | ⭐ **NUEVO** Solución al error crítico de pantalla en blanco causado por el watchdog al reiniciar la PC. |
-| [SOLUCION_PROBLEMA_REINICIO_5_MAYO.md](SOLUCION_PROBLEMA_REINICIO_5_MAYO.md) | Solución al problema de inicio automático tras reinicio del equipo. |
-| [SOLUCION_ERROR_404_PUERTO_INCORRECTO.md](SOLUCION_ERROR_404_PUERTO_INCORRECTO.md) | Solución al error 404 por puerto incorrecto. |
-| [SOLUCION_ERROR_PUERTO_8080.md](SOLUCION_ERROR_PUERTO_8080.md) | Solución cuando el puerto 8080 está ocupado. |
+| [pendrives_v2_GUIA_DEFINITIVA.md](pendrives_v2_GUIA_DEFINITIVA.md) | Sección 4 → casos de instalación rota o cambio de hardware. |
+| [resolucion_pantalla_en_blanco_watchdog.md](resolucion_pantalla_en_blanco_watchdog.md) | Solución al error de pantalla en blanco causado por el watchdog. |
 | [resolucion_error_cors.md](resolucion_error_cors.md) | Solución a errores CORS entre el frontend y PocketBase. |
-| [PROBLEMA_PERMISOS_ADMINISTRADOR.md](PROBLEMA_PERMISOS_ADMINISTRADOR.md) | Solución a problemas de permisos al ejecutar scripts. |
 
 ---
 
@@ -64,6 +59,8 @@
 | [SRS_Sistema_Gestion_Llaves_FCEA.md](SRS_Sistema_Gestion_Llaves_FCEA.md) | Especificación de Requisitos del Software (SRS) completa. |
 | [entrega_codigo_fuente.md](entrega_codigo_fuente.md) | Descripción del código fuente entregado y su estructura. |
 | [compatibilidad_navegadores.md](compatibilidad_navegadores.md) | Navegadores compatibles y configuración recomendada. |
+| [seguridad_identificacion_usuarios.md](seguridad_identificacion_usuarios.md) | Seguridad e identificación de usuarios. |
+| [modo_kiosk_instrucciones.md](modo_kiosk_instrucciones.md) | Modo kiosk de Chrome. |
 
 ---
 
@@ -77,17 +74,22 @@
 ## Estructura del Repositorio
 
 ```
-sistema-de-gestion-de-llaves-vigilancia-fcea/
+sistema-de-gesti-n-de-llaves-vigilancia-fcea/
 ├── src/                    — Código fuente del frontend (React + TypeScript)
 ├── pocketbase/             — Base de datos y ejecutable PocketBase
 │   ├── pocketbase.exe      — Servidor de base de datos
 │   ├── pb_data/            — Datos de la base de datos (NO borrar)
 │   └── pb_migrations/      — Migraciones de esquema
 ├── public/                 — Archivos estáticos
-├── scripts/                — Scripts de instalación, mantenimiento y watchdog
+├── scripts/
+│   ├── lib/                — Librerías comunes (hardware, kiosk, config v2)
+│   ├── respaldo_recuperacion/   — Scripts del pendrive recuperador
+│   ├── instalador_automatico/   — Scripts del pendrive instalador
+│   ├── DESINSTALAR_SISTEMA_LIMPIO.ps1
+│   └── …
 ├── docs/                   — Toda la documentación (este directorio)
+├── ACTUALIZAR_PENDRIVE_RECUPERACION_v2.ps1   — Sincroniza el pendrive recuperador
 ├── iniciar_sistema.bat     — Arrancar el sistema manualmente
-├── INICIAR_SISTEMA_AHORA.bat — Arrancar el sistema (alternativo)
 └── README.md               — Descripción general del proyecto
 ```
 
@@ -99,16 +101,17 @@ sistema-de-gestion-de-llaves-vigilancia-fcea/
 ```
 Doble clic en: iniciar_sistema.bat
 ```
-Luego abrir en el navegador:
-- Monitor de Vigilancia: http://localhost:8080/monitor
-- Terminal de Usuario: http://localhost:8080/terminal
-- Dashboard: http://localhost:8080/dashboard
-- Admin PocketBase: http://localhost:8090/_/
+Luego abrir en el navegador (URL únicas para el kiosk):
+- Monitor de Vigilancia: <http://localhost:8080/monitor>
+- Terminal de Usuario:    <http://localhost:8080/terminal>
+- Admin PocketBase:       <http://localhost:8090/_/>
+
+> El **Dashboard** de estadísticas no es una URL aparte: es una pestaña dentro del Monitor de Vigilancia.
 
 ### Si el sistema no arranca
-Ver: [SOLUCION_PROBLEMA_REINICIO_5_MAYO.md](SOLUCION_PROBLEMA_REINICIO_5_MAYO.md)
+Ver: [pendrives_v2_GUIA_DEFINITIVA.md](pendrives_v2_GUIA_DEFINITIVA.md) §4 (Caso B).
 
 ---
 
-*Última actualización: 07/05/2026 — v5.4 (fix pantalla en blanco watchdog)*  
+*Última actualización: 13/05/2026 — v6.0 (pendrives v2.0 con flujo inteligente y desinstalador unificado)*  
 *Contacto técnico: Luis Raggio — luisraggiouy@gmail.com — 099 600 873*

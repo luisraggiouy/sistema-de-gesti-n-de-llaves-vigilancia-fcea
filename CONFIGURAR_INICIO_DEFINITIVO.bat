@@ -70,7 +70,7 @@ pause
 
 cd /d "%~dp0"
 
-powershell -ExecutionPolicy Bypass -File "scripts\crear_tarea_inicio_mejorado.ps1"
+powershell -ExecutionPolicy Bypass -File "scripts\crear_tarea_inicio_CORREGIDA.ps1"
 
 if %errorlevel% equ 0 (
     echo.
