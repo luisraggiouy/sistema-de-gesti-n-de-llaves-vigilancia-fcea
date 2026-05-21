@@ -74,12 +74,19 @@ try {
   Log "[WARN] No se pudo comprimir: $_"
 }
 
-# Limpieza de retencion: borrar backups mas viejos que N dias.
+# Limpieza de retencion: borrar SOLO los archivos ZIP de backup mas viejos
+# que N dias dentro de la carpeta backups\.
+#
+# IMPORTANTE: esto NO afecta a la base de datos productiva ni a ningun dato
+# del sistema. Solo se eliminan copias comprimidas (ZIP) ya obsoletas que
+# fueron generadas por backups anteriores. Los datos en pb_data\ permanecen
+# intactos. Para retencion historica de largo plazo, ver § 5.1 de la guia
+# (archivado anual a pendrive permanente).
 $limite = (Get-Date).AddDays(-$RetencionDias)
 Get-ChildItem -Path $backupsDir -File -Filter "*.zip" |
   Where-Object { $_.LastWriteTime -lt $limite } |
   ForEach-Object {
-    Log "Eliminando backup antiguo: $($_.Name)"
+    Log "Eliminando archivo ZIP de backup obsoleto: $($_.Name)"
     Remove-Item -Force $_.FullName
   }
 

@@ -21,7 +21,7 @@ Esto deja registradas tres tareas programadas de Windows:
 | Tarea de Windows | Cuándo corre | Qué hace |
 |---|---|---|
 | `FCEA-Watchdog` | Al login + cada **30 segundos** | Hace GET a `http://127.0.0.1:8090/api/health`. Si falla, mata `pocketbase.exe` colgado y relanza `pocketbase\start-server.bat` |
-| `FCEA-Backup-Diario` | Todos los días **03:00 AM** | Ejecuta `scripts\maintenance\backup_automatico.ps1`, comprime `pb_data\` a `backups\YYYY-MM-DD_HH-mm-ss.zip`, retiene los últimos 14 días |
+| `FCEA-Backup-Diario` | Todos los días **03:00 AM** | Ejecuta `scripts\maintenance\backup_automatico.ps1`, comprime `pb_data\` a `backups\YYYY-MM-DD_HH-mm-ss.zip`, conserva los **archivos ZIP de los últimos 14 días** en `backups\` (los ZIP más viejos se eliminan; los datos productivos en `pb_data\` no se tocan nunca) |
 | `FCEA-Chequeo-Salud` | Al login + cada **30 minutos** | Ejecuta `pocketbase\maintenance\check_system_health.ps1` y escribe `public\system_health.json` y `dist\system_health.json` |
 
 Las tres tareas corren solo en la **cabina (rol monitor)**. Las terminales no
@@ -224,8 +224,10 @@ aproximadamente un año.
   razón. El watchdog y el backup son la red de seguridad del sistema.
 - ❌ No editar `pb_data\data.db` directamente con un editor de texto. Usar
   siempre la UI o el panel admin de PocketBase (`http://127.0.0.1:8090/_/`).
-- ❌ No borrar `backups\` completo. Si hace falta espacio, conservar siempre
-  los últimos 14 días.
+- ❌ No borrar la carpeta `backups\` completa. Si hace falta espacio,
+  conservar siempre los **últimos 14 archivos ZIP**. Recordá que esos ZIP
+  son copias de seguridad de `pb_data\`; la base productiva sigue viva en
+  `pocketbase\pb_data\data.db` aunque se eliminen ZIPs viejos.
 - ❌ No instalar antivirus que ponga en cuarentena `pocketbase.exe` ni que
   bloquee Node.js: la cabina queda inutilizable.
 

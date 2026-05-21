@@ -16,7 +16,7 @@
 | Tarea | Frecuencia | Mecanismo |
 |---|---|---|
 | Backup de la base de datos | **Diaria** (03:00 AM) | Tarea `FCEA-Backup-Diario` + `scripts/maintenance/backup_automatico.ps1` |
-| Retención de backups | Continua | Se conservan los últimos 14 días, los anteriores se eliminan |
+| Retención de backups | Continua | Se conservan los **archivos ZIP de backup** de los últimos 14 días en `C:\sistema-llaves-fcea\backups\`; los ZIP más viejos que 14 días se eliminan automáticamente. **No se borra ningún dato del sistema** (la base de datos productiva `pb_data\data.db` queda intacta; lo que se elimina son copias de seguridad obsoletas) |
 | Watchdog de PocketBase | Al login + **cada 30 segundos** | Tarea `FCEA-Watchdog` + `scripts/maintenance/watchdog.ps1` |
 | Verificación de salud del sistema | Al login + **cada 30 minutos** | Tarea `FCEA-Chequeo-Salud` + `pocketbase/maintenance/check_system_health.ps1` (escribe `public/system_health.json` y `dist/system_health.json`) |
 | Vacuum / optimización SQLite | Anual (manual) | Procedimiento documentado en `guia_mantenimiento_paso_a_paso.md` § 5 |

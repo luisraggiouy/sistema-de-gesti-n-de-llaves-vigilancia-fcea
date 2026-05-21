@@ -71,9 +71,15 @@ El Sistema de Gestion de Llaves abarca:
 - **Registro historico** de todas las operaciones
 - **Generacion de reportes** para la administracion
 - **Gestion de personal de vigilancia** por turnos
-- **Respaldo automatizado** diario con retención de 14 días en disco local
-  (los respaldos más antiguos se descartan automáticamente). Para retención
-  histórica de largo plazo se utiliza el pendrive de recuperación.
+- **Respaldo automatizado** diario con retención de 14 días en disco local:
+  cada noche a las 03:00 se genera un archivo ZIP comprimido en `backups\`
+  con todo el contenido de `pb_data\`. Los **archivos ZIP** con más de 14
+  días de antigüedad se eliminan automáticamente. Esta limpieza **no
+  afecta a los datos productivos del sistema** (`pb_data\data.db`
+  permanece intacto); solo descarta copias de seguridad obsoletas. Para
+  retención histórica de largo plazo se utiliza el pendrive instalador
+  DRP y el archivado anual al pendrive permanente (ver
+  `docs/guia_mantenimiento_paso_a_paso.md` § 5.1).
 - **Recuperación ante fallos** mediante pendrive de recuperación y pendrive
   instalador DRP (ver `docs/plan_recuperacion_desastres.md`).
 
@@ -1436,7 +1442,7 @@ El sistema actualmente opera en un modelo de confianza basado en la red local de
 El sistema implementa una estrategia de respaldos automáticos que garantiza la seguridad de los datos:
 
 - **Frecuencia:** Respaldos automáticos diarios a las 03:00 AM (tarea `FCEA-Backup-Diario`)
-- **Retención:** 14 días en disco local; los más antiguos se eliminan automáticamente
+- **Retención:** 14 días en disco local; los **archivos ZIP de backup** con más de 14 días de antigüedad se eliminan automáticamente. No se borran datos productivos del sistema en ningún momento.
 - **Retención de largo plazo:** Pendrive instalador DRP con actualización semanal (RPO ≤ 7 días)
 - **Formato:** Archivos comprimidos ZIP de los datos de PocketBase
 - **Ubicación:** Local en subcarpeta `backups\` de la cabina

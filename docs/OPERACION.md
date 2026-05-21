@@ -42,6 +42,11 @@ Sin necesidad de hacer logout:
 
 Retención por defecto: **14 días** (configurable con `-RetencionDias` al script).
 
+> **Qué se elimina con la retención:** únicamente los **archivos ZIP de backup**
+> en `C:\sistema-llaves-fcea\backups\` con más de 14 días de antigüedad.
+> NO se elimina ningún dato del sistema (la base productiva en `pb_data\` queda
+> intacta). Si necesita conservar respaldos más viejos, ver `guia_mantenimiento_paso_a_paso.md` § 5.1 (archivado anual permanente).
+
 ---
 
 ## 4. Watchdog
