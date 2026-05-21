@@ -127,6 +127,22 @@ Select-String -Path pocketbase\maintenance\logs\maintenance.log `
 
 Si no se entiende el error, archivar el log y contactar Personal de Sistemas.
 
+### 3.9. 🟡 / 🔴 "Mantenimiento anual pendiente / vencido"
+
+El sistema avisa cuando hace > 365 días (amarilla) o > 400 días (roja) que
+no se realiza el mantenimiento anual.
+
+**Procedimiento:** ejecutar el procedimiento completo de § 5 abajo. Al
+terminar, correr **`scripts\maintenance\MARCAR_MANTENIMIENTO_ANUAL.ps1`**
+para silenciar la alerta por otro año.
+
+### 3.10. 🟡 "Windows Update pendiente / muy desactualizado"
+
+Avisa cuando hace > 180 días que no se instala ningún parche de Windows
+(amarilla suave) o > 365 días (amarilla fuerte). Es un riesgo de seguridad.
+
+**Procedimiento:** ver § 5.3.
+
 ---
 
 ## 4. Verificación rápida sin alertas (opcional, mensual)
@@ -186,6 +202,19 @@ Stop-Process -Name pocketbase -Force -ErrorAction SilentlyContinue
 `⊞ → Windows Update → Buscar actualizaciones`. Instalar solo críticas y de
 seguridad. Reiniciar. El sistema arranca solo gracias a
 `FCEA-Sistema-Llaves-AutoStart`.
+
+### 5.4. Registrar el mantenimiento anual completado
+
+Al terminar 5.1, 5.2 y 5.3, ejecutar como administrador desde la cabina:
+
+```powershell
+.\scripts\maintenance\MARCAR_MANTENIMIENTO_ANUAL.ps1
+```
+
+Esto deja registrado el día de hoy en
+`pocketbase\maintenance\last_annual_maintenance.txt` y silencia la alerta
+"Mantenimiento anual pendiente" del indicador de salud por
+aproximadamente un año.
 
 ---
 
