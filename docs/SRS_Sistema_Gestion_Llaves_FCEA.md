@@ -71,8 +71,11 @@ El Sistema de Gestion de Llaves abarca:
 - **Registro historico** de todas las operaciones
 - **Generacion de reportes** para la administracion
 - **Gestion de personal de vigilancia** por turnos
-- **Respaldo automatizado** con retención de datos históricos de un año
-- **Recuperación ante fallos** mediante sistema de pendrive de recuperación
+- **Respaldo automatizado** diario con retención de 14 días en disco local
+  (los respaldos más antiguos se descartan automáticamente). Para retención
+  histórica de largo plazo se utiliza el pendrive de recuperación.
+- **Recuperación ante fallos** mediante pendrive de recuperación y pendrive
+  instalador DRP (ver `docs/plan_recuperacion_desastres.md`).
 
 **Limites del sistema:**
 - No incluye control de acceso electronico (cerraduras inteligentes)
@@ -171,8 +174,10 @@ Las funciones principales del sistema son:
    - Clasificación por tipo de espacio
 
 7. **Recuperación ante Fallos**
-   - Respaldos automáticos semanales (retención: 52 semanas)
+   - Respaldos automáticos diarios a las 03:00 (retención: 14 días en disco local)
+   - Pendrive instalador DRP regenerable semanalmente (RPO ≤ 7 días)
    - Sistema de pendrive de recuperación completo
+   - Watchdog que reinicia PocketBase cada 30 s si cae
    - Detección y reconexión automática silenciosa
    - Repositorio de código en GitHub
 
@@ -391,9 +396,10 @@ El sistema contempla tres tipos de usuarios con diferentes perfiles:
 | Nombre | Respaldo Automático |
 | Descripcion | Crear copias de seguridad periódicas de la base de datos |
 | Prioridad | Alta |
-| Frecuencia | Semanal (domingos) |
-| Retención | 52 semanas (1 año) |
-| Formato | Compresión ZIP de base de datos PocketBase |
+| Frecuencia | **Diaria** (03:00 AM) — tarea programada `FCEA-Backup-Diario` |
+| Retención | **14 días** en disco local (los más antiguos se eliminan automáticamente) |
+| Retención larga | Pendrive instalador DRP con actualización semanal (ver `docs/plan_recuperacion_desastres.md`) |
+| Formato | Compresión ZIP de la base de datos PocketBase (`pb_data\`) |
 
 #### RF-018: Registro de Objetos Olvidados
 | Campo | Descripcion |
@@ -455,7 +461,7 @@ El sistema contempla tres tipos de usuarios con diferentes perfiles:
 
 #### RI-002: Interfaz de Datos
 - Almacenamiento en base de datos PocketBase (SQLite)
-- Respaldo automático semanal con retención de un año
+- Respaldo automático diario con retención de 14 días en disco local + pendrive DRP semanal
 - Formato de exportación: CSV compatible con Excel
 
 ---
@@ -1429,10 +1435,11 @@ El sistema actualmente opera en un modelo de confianza basado en la red local de
 
 El sistema implementa una estrategia de respaldos automáticos que garantiza la seguridad de los datos:
 
-- **Frecuencia:** Respaldos automáticos semanales (cada domingo)
-- **Retención:** 52 semanas (1 año completo de historial)
+- **Frecuencia:** Respaldos automáticos diarios a las 03:00 AM (tarea `FCEA-Backup-Diario`)
+- **Retención:** 14 días en disco local; los más antiguos se eliminan automáticamente
+- **Retención de largo plazo:** Pendrive instalador DRP con actualización semanal (RPO ≤ 7 días)
 - **Formato:** Archivos comprimidos ZIP de los datos de PocketBase
-- **Ubicación:** Local en subcarpeta pb_backups
+- **Ubicación:** Local en subcarpeta `backups\` de la cabina
 
 ### 10.2 Recuperación ante Fallos
 
@@ -1463,7 +1470,7 @@ El sistema cuenta con un mecanismo de respaldo completo a través de un pendrive
 El sistema implementa múltiples capas de protección contra pérdida de datos:
 
 1. **Capa 1: Base de datos activa** - SQLite con journaling anti-corrupción
-2. **Capa 2: Respaldos automáticos semanales** - 52 semanas de historial
+2. **Capa 2: Respaldos automáticos diarios** - 14 días en disco local
 3. **Capa 3: Pendrive de recuperación** - Restauración completa independiente
 4. **Capa 4: Repositorio en GitHub** - Código fuente actualizado
 
@@ -1601,7 +1608,7 @@ RECUPERACION_SISTEMA_LLAVES_FCEA\
 │   ├── node_modules\               ← Dependencias pre-instaladas
 │   ├── pocketbase\                 ← Motor de base de datos
 │   ├── src\                        ← Código de la aplicación
-│   └── iniciar_sistema.bat         ← Iniciador del sistema
+│   └── scripts\install\INICIAR.bat ← Iniciador del sistema (lanzado por la tarea FCEA-Sistema-Llaves-AutoStart)
 ├── respaldos_db\                   ← Base de datos
 │   └── pb_data_ultimo\             ← Última copia de los datos
 └── instaladores\                   ← Software necesario

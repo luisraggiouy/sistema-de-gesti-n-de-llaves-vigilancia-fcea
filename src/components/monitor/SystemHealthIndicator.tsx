@@ -46,27 +46,57 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 
 export function SystemHealthIndicator() {
   const [healthData, setHealthData] = useState<SystemHealth | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const fetchHealthData = async () => {
     try {
       const response = await fetch(`/system_health.json?t=${Date.now()}`);
-      if (response.ok) {
-        const data = await response.json();
-        setHealthData(data);
+      if (!response.ok) {
+        setFetchError(`HTTP ${response.status}`);
+        return;
       }
+      // serve_dist.cjs (SPA fallback) devuelve index.html cuando no encuentra
+      // un archivo. Verificamos Content-Type para evitar parsear HTML como JSON.
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('json')) {
+        setFetchError('system_health.json no existe (servidor devolvio HTML)');
+        return;
+      }
+      const data = await response.json();
+      setHealthData(data);
+      setFetchError(null);
     } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
       console.error('Error al cargar estado de salud:', error);
+      setFetchError(msg);
     }
   };
 
   useEffect(() => {
     fetchHealthData();
-    const interval = setInterval(fetchHealthData, 5 * 60 * 1000);
+    // Refrescar cada 60s: el chequeo programado escribe el JSON cada 5 min,
+    // pero el primer fetch en una instalacion nueva puede tardar varios segundos
+    // hasta que la tarea FCEA-Chequeo-Salud genere el archivo por primera vez.
+    const interval = setInterval(fetchHealthData, 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
-  if (!healthData) return null;
+  // Fallback visible: si todavia no se cargo el JSON (instalacion nueva o
+  // chequeo de salud aun no ejecutado), mostrar un indicador "Sin datos"
+  // en vez de devolver null y dejar al usuario sin saber si el sistema
+  // de salud existe.
+  if (!healthData) {
+    return (
+      <div
+        className="flex items-center gap-1.5 text-xs text-muted-foreground"
+        title={fetchError ? `system_health.json no disponible: ${fetchError}` : 'Esperando primer chequeo de salud...'}
+      >
+        <AlertTriangle className="w-3 h-3 text-yellow-500" />
+        <span>Sistema: {fetchError ? 'Sin datos' : 'Cargando...'}</span>
+      </div>
+    );
+  }
 
   const getStatusIcon = () => {
     switch (healthData.overallStatus) {

@@ -34,7 +34,15 @@ Para llevarse los datos en un pendrive (exportar), si se requiere una contrasena
 En la computadora donde esta instalado el sistema, abra el navegador web (Google Chrome recomendado) y escriba en la barra de direcciones:
 
 ```
-http://localhost:8080/dashboard
+http://localhost:5173/dashboard
+```
+
+Si está accediendo desde otra PC de la red (por ejemplo desde la cabina hacia
+el Dashboard que vive en la PC del servidor), use la IP del servidor en lugar
+de `localhost`:
+
+```
+http://192.168.50.10:5173/dashboard
 ```
 
 Tambien puede acceder desde la pantalla del Monitor de Vigilancia haciendo clic en el boton "Dashboard" que aparece en la esquina superior.
@@ -114,7 +122,7 @@ P: Los datos exportados incluyen informacion personal?
 R: Los reportes incluyen nombres de quienes retiraron llaves, fechas y horarios. Esta informacion debe manejarse con confidencialidad.
 
 P: Se puede acceder al Dashboard desde otra computadora?
-R: Si, desde cualquier computadora conectada a la misma red, escribiendo la direccion IP del servidor seguida de `:8080/dashboard`.
+R: Si, desde cualquier computadora conectada a la misma red, escribiendo la direccion IP del servidor seguida de `:5173/dashboard` (por ejemplo `http://192.168.50.10:5173/dashboard`).
 
 P: Necesito un pendrive especial?
 R: No. Funciona con cualquier pendrive comun formateado en FAT32 o NTFS.

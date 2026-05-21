@@ -15,21 +15,23 @@
 
 | Tarea | Frecuencia | Mecanismo |
 |---|---|---|
-| Backup de la base de datos | Semanal (domingos 08:00) | Tarea programada de Windows + `scripts/maintenance/backup_automatico.ps1` |
-| Retención de backups | Continua | Se conservan las últimas 52 copias (1 año), se eliminan las anteriores |
-| Watchdog de PocketBase | Cada 5 minutos | `scripts/maintenance/watchdog.ps1` reinicia el servicio si está caído |
-| Verificación de salud del sistema | Cada 1 hora | `pocketbase/maintenance/check_system_health.ps1` escribe `public/system_health.json` |
-| Vacuum / optimización SQLite | Periódica | Integrado en el script de mantenimiento |
-| Detección de errores en logs | Diaria | El chequeo de salud analiza tamaño y crecimiento de logs |
+| Backup de la base de datos | **Diaria** (03:00 AM) | Tarea `FCEA-Backup-Diario` + `scripts/maintenance/backup_automatico.ps1` |
+| Retención de backups | Continua | Se conservan los últimos 14 días, los anteriores se eliminan |
+| Watchdog de PocketBase | Al login + **cada 30 segundos** | Tarea `FCEA-Watchdog` + `scripts/maintenance/watchdog.ps1` |
+| Verificación de salud del sistema | Al login + **cada 30 minutos** | Tarea `FCEA-Chequeo-Salud` + `pocketbase/maintenance/check_system_health.ps1` (escribe `public/system_health.json` y `dist/system_health.json`) |
+| Vacuum / optimización SQLite | Anual (manual) | Procedimiento documentado en `guia_mantenimiento_paso_a_paso.md` § 5 |
+| Detección de errores en logs | Cada 30 min | El chequeo de salud analiza tamaño y crecimiento de logs |
 
 Toda la automatización se configura en una sola ejecución mediante
 `scripts/maintenance/CONFIGURAR_MANTENIMIENTO.ps1`.
 
 ### 1.2 Capa de auto‑diagnóstico (visible en el Monitor de Vigilancia)
 
-El componente `SystemHealthAlerts` (en la pantalla del Monitor de Vigilancia)
-muestra de forma permanente el estado general del sistema, leído cada 5
-minutos desde `public/system_health.json`:
+El componente `SystemHealthIndicator` (en el header del Monitor de Vigilancia,
+junto al reloj) muestra de forma permanente el estado general del sistema,
+leído **cada 60 segundos** desde `/system_health.json` (servido por el
+frontend, que escribe tanto en `public/` como en `dist/` desde la tarea de
+chequeo de salud):
 
 | Estado | Significado | Comportamiento |
 |---|---|---|
@@ -91,7 +93,7 @@ Cobertura ante fallos de software, hardware o datos:
 
 La principal causa potencial de fallo no es técnica sino ambiental
 (corte de energía sin UPS, falla física del disco), y está cubierta
-por los backups semanales con retención de 1 año.
+por los backups diarios con retención de 14 días.
 
 ---
 
@@ -119,15 +121,15 @@ El sistema fue diseñado para no depender de una persona en particular:
 │                                                                 │
 │   AUTOMÁTICO         AUTO‑DIAGNÓSTICO        RECUPERACIÓN       │
 │   ───────────        ────────────────        ─────────────       │
-│   • Backups          • Indicador 🟢/🟡/🔴     • Pendrive          │
-│     semanales          en Monitor               instalador       │
+│   • Backup           • Indicador 🟢/🟡/🔴     • Pendrive          │
+│     diario 03:00      en header Monitor        instalador       │
 │   • Watchdog PB      • Alertas con acción    • Pendrive          │
-│     cada 5 min         requerida concreta      recuperación      │
-│   • Vacuum SQLite    • Refresco cada 5 min   • Pendrive código   │
-│   • Limpieza de      • Refer. a doc/           fuente            │
-│     backups antig.                           • Desinstalador     │
-│   • Chequeo salud                              con respaldo      │
-│     cada 1 hora                                automático        │
+│     cada 30 s          requerida concreta      recuperación      │
+│   • Limpieza         • Refresco cada 60 s    • Pendrive código   │
+│     backups > 14 d   • Refer. a doc/           fuente            │
+│   • Chequeo salud                            • Desinstalador     │
+│     cada 30 min                                con respaldo      │
+│                                                automático        │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
         │                       │                      │

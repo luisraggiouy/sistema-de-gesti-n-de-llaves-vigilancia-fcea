@@ -158,7 +158,7 @@ Los datos se almacenan en `localStorage` del navegador:
 | `fcea_autorizaciones_v1` | Array de autorizaciones vigentes |
 | `fcea_historial_autorizaciones_v1` | Array de autorizaciones del historial |
 
-> **Nota:** Al igual que el resto de los datos del sistema (historial de llaves, usuarios registrados, objetos olvidados), las autorizaciones se respaldan automáticamente mediante el mecanismo de respaldo del sistema. Ver `docs/funcionamiento_respaldos_automaticos.md`.
+> **Nota:** Al igual que el resto de los datos del sistema (historial de llaves, usuarios registrados, objetos olvidados), las autorizaciones se respaldan automáticamente mediante el mecanismo de respaldo del sistema (backup diario a las 03:00 AM). Ver [`OPERACION.md` § 3](./OPERACION.md#3-backups) y [`guia_mantenimiento_paso_a_paso.md`](./guia_mantenimiento_paso_a_paso.md).
 
 ---
 

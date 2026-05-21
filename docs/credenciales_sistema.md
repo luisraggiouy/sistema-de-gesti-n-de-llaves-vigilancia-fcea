@@ -21,7 +21,7 @@ DOCUMENTO CONFIDENCIAL — Guardar en lugar seguro. No compartir con personal no
 | Campo | Valor |
 |-------|-------|
 | Descripcion | Contrasena unica para autorizar la exportacion de datos del sistema a un pendrive USB. El Dashboard es visible para todos sin contrasena; esta contrasena solo se pide al momento de exportar. |
-| Como acceder | http://localhost:8080/dashboard — boton "Exportar a Pendrive" |
+| Como acceder | http://localhost:5173/dashboard (desde la cabina) o http://192.168.50.10:5173/dashboard (desde otra PC en la LAN) — boton "Exportar a Pendrive" |
 | Contrasena por defecto | custodio2026 |
 | Donde se guarda | Coleccion `admin_config` de PocketBase, clave: `custodian_password` |
 | Quienes la usan | Jefes de turno, jefes de apoyo, intendencia, autoridades de la Facultad. Cualquier persona autorizada a llevarse los datos en un pendrive. |

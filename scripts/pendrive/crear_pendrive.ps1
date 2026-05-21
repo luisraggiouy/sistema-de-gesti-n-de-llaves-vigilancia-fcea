@@ -338,8 +338,7 @@ if ($Tipo -eq "instalador") {
     "data.db-shm",
     "data.db-wal",
     "*.tmp",
-    "*.log",
-    "system_health.json"
+    "*.log"
   )
   Write-Host "Copiando codigo fuente del repo (excluyendo dirs: $($exclude -join ', '); files: $($excludeFiles -join ', '))..."
   $robocopyArgs = @(

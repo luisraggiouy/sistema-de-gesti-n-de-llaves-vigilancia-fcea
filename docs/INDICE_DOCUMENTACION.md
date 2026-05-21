@@ -15,7 +15,6 @@
 | [`credenciales_sistema.md`](./credenciales_sistema.md)                       | Usuarios admin, claves por defecto         |
 | [`seguridad_identificacion_usuarios.md`](./seguridad_identificacion_usuarios.md) | Política de identificación de usuarios |
 | [`funcionalidad_autorizaciones.md`](./funcionalidad_autorizaciones.md)       | Flujo de autorizaciones                    |
-| [`funcionalidad_administracion_custodio.md`](./funcionalidad_administracion_custodio.md) | Administración / custodios       |
 
 ## 📊 Reportes y datos
 

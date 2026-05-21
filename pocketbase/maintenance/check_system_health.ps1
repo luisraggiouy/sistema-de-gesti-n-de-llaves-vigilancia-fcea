@@ -14,6 +14,11 @@ $ProjectRoot = Split-Path -Parent (Split-Path -Parent $ScriptPath)
 $LogsDir = Join-Path $ScriptPath "logs"
 $LogFile = Join-Path $LogsDir "health_check.log"
 $HealthStatusFile = Join-Path $ProjectRoot "public\system_health.json"
+# IMPORTANTE: el frontend en produccion se sirve desde dist/ (serve_dist.cjs).
+# Vite solo copia public/ -> dist/ durante 'npm run build', por lo que despues
+# de eso el archivo queda desincronizado. Escribimos en AMBAS rutas.
+$HealthStatusFileDist = Join-Path $ProjectRoot "dist\system_health.json"
+
 $BackupsDir = Join-Path $ProjectRoot "pocketbase\pb_backups"
 $MaintenanceLog = Join-Path $LogsDir "maintenance.log"
 $DatabaseFile = Join-Path $ProjectRoot "pocketbase\pb_data\data.db"
@@ -331,6 +336,22 @@ try {
     
     Set-Content -Path $HealthStatusFile -Value $JsonContent -Encoding UTF8
     Write-Log "Archivo de estado generado: $HealthStatusFile"
+
+    # Tambien escribir en dist/ si existe (build de produccion).
+    # serve_dist.cjs sirve desde dist/, no desde public/, asi que esta
+    # copia es CRITICA para que el Monitor de Vigilancia vea el JSON.
+    $DistDir = Split-Path -Parent $HealthStatusFileDist
+    if (Test-Path $DistDir) {
+        try {
+            Set-Content -Path $HealthStatusFileDist -Value $JsonContent -Encoding UTF8
+            Write-Log "Archivo de estado tambien copiado a: $HealthStatusFileDist"
+        } catch {
+            Write-Log "No se pudo escribir en dist/: $($_.Exception.Message)" "WARNING"
+        }
+    } else {
+        Write-Log "dist/ no existe, se omite copia a build. (Solo el modo dev usa public/)"
+    }
+
     Write-Log "Estado general: $($HealthStatus.overallStatus)"
     Write-Log "Alertas generadas: $($HealthStatus.alerts.Count)"
 } catch {

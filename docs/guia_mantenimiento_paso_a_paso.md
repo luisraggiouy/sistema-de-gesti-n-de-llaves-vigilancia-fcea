@@ -1,450 +1,216 @@
-# Guía Paso a Paso para Mantenimiento del Sistema
-## Análisis de Estabilidad y Procedimientos de Mantenimiento
+# Guía de mantenimiento — paso a paso
 
-## Escenario de Uso Planteado
-- 200 operaciones de llaves por día (entregas y devoluciones)
-- 40 objetos perdidos registrados por día
-- 40 objetos entregados por día
-- 10 autorizaciones por día (entre ingresos y búsquedas)
+> **Resumen en una línea:** el sistema **se auto‑mantiene**. Esta guía solo
+> describe qué hacer cuando el indicador de salud del Monitor de Vigilancia
+> muestra una alerta concreta.
 
-## Análisis de Carga y Estabilidad
-
-### Base de Datos (PocketBase)
-
-PocketBase utiliza SQLite como motor de base de datos subyacente, que es conocido por su estabilidad y bajo mantenimiento. Considerando el volumen de operaciones:
-
-- **Operaciones diarias**: Aproximadamente 290 operaciones CRUD por día
-- **Operaciones mensuales**: ~8,700 operaciones
-- **Operaciones anuales**: ~105,000 operaciones
-
-**Estabilidad**: SQLite puede manejar cómodamente millones de registros en una base de datos, y cientos de miles de operaciones sin problemas de rendimiento significativos. La probabilidad de fallo por volumen es extremadamente baja.
-
-**Punto de atención**: Las copias de seguridad automáticas son esenciales. Se recomienda implementar una rutina de backup semanal, además de la exportación custodial.
-
-### Frontend React
-
-El sistema utiliza React para la interfaz de usuario, que maneja eficientemente la renderización de componentes en función de los cambios de estado.
-
-**Estabilidad con el volumen indicado**:
-- La visualización de 200 registros diarios distribuidos en diferentes vistas no representa una carga significativa
-- Los componentes de gráficos usan la biblioteca Recharts, que está optimizada para renderizado eficiente
-- La probabilidad de fallo por sobrecarga de UI es muy baja en este rango de operaciones
-
-### Puntos Potenciales de Fallo
-
-1. **Concurrencia de operaciones**
-   - **Probabilidad de fallo**: BAJA
-   - **Escenario crítico**: Múltiples vigilantes intentando registrar operaciones simultáneamente
-   - **Mitigación**: El sistema implementa bloqueos optimistas para manejar la concurrencia
-
-2. **Corrupción de la base de datos**
-   - **Probabilidad**: MUY BAJA
-   - **Escenario crítico**: Fallo de energía durante una operación de escritura
-   - **Mitigación**: PocketBase/SQLite tiene protección contra corrupción y journaling
-
-3. **Degradación de rendimiento con el crecimiento de datos**
-   - **Probabilidad**: BAJA las primeras semanas/meses, MEDIA a largo plazo
-   - **Escenario**: Consultas lentas después de acumular años de registros
-   - **Mitigación**: Implementación de índices en PocketBase y paginación eficiente
-
-4. **Problemas con la exportación a USB**
-   - **Probabilidad**: BAJA-MEDIA
-   - **Escenario crítico**: Exportación de grandes volúmenes de datos a dispositivos USB de baja calidad
-   - **Mitigación**: El sistema implementa timeouts y manejo de errores para operaciones de E/S
-
-## Proyección de Estabilidad por Tiempo
-
-### Corto Plazo (0-6 meses)
-- **Probabilidad de fallo crítico**: < 0.1% mensual
-- **Escenario más probable**: Errores de usuario o interrupción del servicio por factores externos (energía, red)
-- **Operaciones acumuladas**: ~52,000
-- **Tamaño de base de datos estimado**: 10-20 MB (muy por debajo de límites críticos)
-
-### Medio Plazo (6-18 meses)
-- **Probabilidad de fallo crítico**: < 0.5% mensual
-- **Escenario más probable**: Podría comenzarse a notar alguna degradación leve en consultas complejas
-- **Operaciones acumuladas**: ~150,000
-- **Tamaño de base de datos estimado**: 30-60 MB
-- **Necesidades**: Primera limpieza/archivo de datos históricos
-
-### Largo Plazo (18+ meses)
-- **Probabilidad de fallo crítico**: < 2% mensual sin mantenimiento, < 0.5% con mantenimiento
-- **Escenario más probable**: Necesidad de archivado de datos históricos para mantener rendimiento
-- **Operaciones acumuladas**: 200,000+
-- **Tamaño de base de datos estimado**: 100+ MB
-- **Necesidades**: Implementación de política de retención de datos y archivado
-
-## Plan de Mantenimiento Preventivo
-
-Para mantener el sistema funcionando de manera óptima con el volumen descrito:
-
-### Mantenimiento Automático
-
-#### Semanal (Domingos 8:00 AM)
-- ✅ **Copias de seguridad automáticas**
-- ✅ **Verificación de integridad de la base de datos**
-- ✅ **Limpieza de respaldos antiguos** - Mantiene 52 copias (1 año)
-- ✅ **Optimización de base de datos** (vacuum)
-
-#### Diario (7:00 AM)
-- ✅ **Verificación de salud del sistema**
-- ✅ **Monitoreo de espacio en disco**
-- ✅ **Verificación de backups**
-- ✅ **Detección de errores en logs**
-- ✅ **Generación de alertas automáticas**
-
-> **Nota**: Todo el mantenimiento es automático. Ver documento "configuracion_mantenimiento_automatizado.md" para configuración inicial.
-
-### Sistema de Alertas en Monitor de Vigilancia
-
-El sistema muestra automáticamente alertas cuando detecta problemas:
-
-- 🔴 **Críticas**: Espacio disco < 10%, backup > 14 días, PocketBase caído
-- 🟡 **Advertencias**: Espacio disco < 20%, backup > 8 días, pendrive > 90 días
-- **Métricas**: Estado general del sistema visible en todo momento
-
-**Los vigilantes solo deben**: Revisar el Monitor al inicio del turno y reportar alertas críticas a Personal de Sistemas.
-
-### Mantenimiento Manual (Solo Anual)
-
-> **IMPORTANTE**: Con el sistema de alertas automatizado, ya NO es necesario realizar mantenimiento mensual ni trimestral manual. El sistema se auto-mantiene y solo muestra alertas cuando requiere atención.
-
-**Si el Monitor muestra alertas**, siga las acciones recomendadas en cada alerta. De lo contrario, no se requiere intervención.
+Versión del sistema: **v2.0** (3 PCs en LAN, PocketBase 8090, frontend 5173).
 
 ---
 
-### Mantenimiento Bajo Demanda (Solo cuando hay alertas)
+## 1. Capas de mantenimiento — qué hace el sistema solo
 
-**Responsable**: Personal de Sistemas  
-**Cuándo**: Solo cuando el Monitor de Vigilancia muestre alertas críticas o advertencias
+Todo se configura UNA vez en la cabina ejecutando como administrador:
 
-#### Respuesta a Alertas Críticas (🔴)
-
-**Alerta: "Espacio en disco crítico"**
-```
-1. Abra "Este equipo" (⊞ + E)
-2. Vaya a C:\sistema-llaves-fcea\pocketbase\pb_backups\
-3. Copie los respaldos más antiguos a un pendrive externo
-4. Elimine los respaldos copiados (mantenga últimos 12)
-5. Vacíe la Papelera de reciclaje
+```powershell
+.\scripts\maintenance\CONFIGURAR_MANTENIMIENTO.ps1
 ```
 
-**Alerta: "Backup desactualizado"**
-```
-1. Abra PowerShell como Administrador
-2. cd C:\sistema-llaves-fcea\pocketbase\maintenance
-3. .\system_maintenance.ps1
-4. Verifique que se creó el backup en pb_backups\
+Esto deja registradas tres tareas programadas de Windows:
+
+| Tarea de Windows | Cuándo corre | Qué hace |
+|---|---|---|
+| `FCEA-Watchdog` | Al login + cada **30 segundos** | Hace GET a `http://127.0.0.1:8090/api/health`. Si falla, mata `pocketbase.exe` colgado y relanza `pocketbase\start-server.bat` |
+| `FCEA-Backup-Diario` | Todos los días **03:00 AM** | Ejecuta `scripts\maintenance\backup_automatico.ps1`, comprime `pb_data\` a `backups\YYYY-MM-DD_HH-mm-ss.zip`, retiene los últimos 14 días |
+| `FCEA-Chequeo-Salud` | Al login + cada **30 minutos** | Ejecuta `pocketbase\maintenance\check_system_health.ps1` y escribe `public\system_health.json` y `dist\system_health.json` |
+
+Las tres tareas corren solo en la **cabina (rol monitor)**. Las terminales no
+necesitan ninguna.
+
+---
+
+## 2. Indicador de salud en el Monitor de Vigilancia
+
+En el header del Monitor (junto al reloj) aparece un texto pequeño:
+
+| Color | Texto | Significado |
+|---|---|---|
+| 🟢 | **Sistema: OK** | Todo dentro de umbrales aceptables |
+| 🟡 | **Sistema: Advertencia** | Disco < 20 %, último backup > 8 días, etc. |
+| 🔴 | **Sistema: Crítico** | Disco < 10 %, backup > 14 días o PocketBase caído |
+| ⚪ | **Sistema: Cargando / Sin datos** | Primer chequeo aún no ejecutado (espere 1‑2 min tras instalar) |
+
+Al hacer clic se abre un modal con el detalle de cada alerta, **acción
+requerida** concreta y referencia al documento de procedimiento.
+
+---
+
+## 3. Respuesta a alertas (procedimientos)
+
+> **Antes de empezar:** todas las acciones manuales se ejecutan en la
+> **cabina** (PC con rol monitor) abriendo PowerShell **como administrador**
+> y `cd C:\sistema-llaves-fcea`.
+
+### 3.1. 🔴 "Espacio en disco crítico"
+
+```powershell
+# 1. Ver tamaño de los backups
+Get-ChildItem backups\*.zip | Sort-Object LastWriteTime -Descending |
+    Select-Object Name, @{N='MB';E={[math]::Round($_.Length/1MB,1)}}
+
+# 2. Copiar los más antiguos a un pendrive externo (manual)
+# 3. Eliminar los copiados conservando los últimos 14
+Get-ChildItem backups\*.zip | Sort-Object LastWriteTime -Descending |
+    Select-Object -Skip 14 | Remove-Item
+
+# 4. Vaciar la papelera
+Clear-RecycleBin -Force
 ```
 
-**Alerta: "PocketBase no está ejecutándose"**
-```
-1. Abra el Administrador de tareas
-2. Busque "pocketbase.exe" - si no está, continúe
-3. cd C:\sistema-llaves-fcea
-4. Ejecute: iniciar_sistema.bat
+### 3.2. 🔴 "Backup desactualizado" (> 14 días)
+
+```powershell
+# Forzar un backup ahora
+.\scripts\maintenance\backup_automatico.ps1
+
+# Verificar que la tarea programada sigue activa
+Get-ScheduledTask FCEA-Backup-Diario | Format-List TaskName,State,LastRunTime,NextRunTime
+
+# Si la tarea no existe o está deshabilitada, re-configurar:
+.\scripts\maintenance\CONFIGURAR_MANTENIMIENTO.ps1
 ```
 
-#### Respuesta a Advertencias (🟡)
+### 3.3. 🔴 "PocketBase no está ejecutándose"
 
-**Alerta: "Pendrive de recuperación desactualizado"**
-```
-1. Conecte el pendrive de recuperación
-2. cd C:\sistema-llaves-fcea
-3. scripts\preparar_pendrive_recuperacion.bat
-4. Etiquete con la fecha actual
+```powershell
+# 1. Confirmar que efectivamente no corre
+Get-Process pocketbase -ErrorAction SilentlyContinue
+
+# 2. Lanzarlo manualmente
+.\pocketbase\start-server.bat
+
+# 3. Esperar 10 s y verificar que responde
+curl http://127.0.0.1:8090/api/health
 ```
 
-**Alerta: "Errores en logs"**
+Si el problema persiste, usar el pendrive de **Recuperación** →
+`RECUPERAR.bat` → opción **[3] Reparar PocketBase**.
+
+### 3.4. 🟡 "Espacio en disco bajo" (< 20 %)
+
+Mismo procedimiento que 3.1 pero sin urgencia: revisar al final del turno.
+
+### 3.5. 🟡 "Backup atrasado" (> 8 días)
+
+Mismo procedimiento que 3.2: ejecutar backup manual + verificar tarea.
+
+### 3.6. 🟡 "Base de datos grande" (> 500 MB)
+
+Coordinar con Personal de Sistemas un archivado anual (sección 5).
+
+### 3.7. 🟡 "Pendrive de recuperación desactualizado" (> 90 días)
+
+```powershell
+# Generar pendrive instalador (incluye datos productivos al día)
+.\scripts\pendrive\crear_pendrive.ps1 -Drive D: -Tipo instalador
 ```
-1. Abra: C:\sistema-llaves-fcea\pocketbase\maintenance\logs\maintenance.log
-2. Revise los errores recientes
-3. Si no comprende el error, contacte soporte técnico
-4. Documente las acciones tomadas
+
+(Cambiar `D:` por la letra real del pendrive.)
+
+### 3.8. 🟡 "Errores en mantenimiento"
+
+```powershell
+# Ver últimos 50 errores
+Select-String -Path pocketbase\maintenance\logs\maintenance.log `
+    -Pattern '\[ERROR\]' | Select-Object -Last 50
+```
+
+Si no se entiende el error, archivar el log y contactar Personal de Sistemas.
+
+---
+
+## 4. Verificación rápida sin alertas (opcional, mensual)
+
+Si quiere confirmar manualmente que todo está bien (no es obligatorio,
+el indicador del Monitor ya lo cubre):
+
+```powershell
+# 1. PocketBase responde
+curl http://127.0.0.1:8090/api/health   # esperado: {"code":200,...}
+
+# 2. Frontend responde
+curl http://127.0.0.1:5173/             # debe devolver HTML
+
+# 3. Tareas programadas activas
+Get-ScheduledTask FCEA-* | Format-Table TaskName, State, LastRunTime
+
+# 4. Último backup
+Get-ChildItem backups\*.zip | Sort LastWriteTime -Desc |
+    Select -First 1 Name, LastWriteTime, @{N='MB';E={[math]::Round($_.Length/1MB,1)}}
 ```
 
 ---
 
-### Mantenimiento Anual (Manual) - Una vez al año
+## 5. Mantenimiento anual (manual, una vez al año)
 
-#### PROCEDIMIENTO PASO A PASO
+Procedimiento para Personal de Sistemas — no requiere intervención del
+personal de vigilancia.
+
+### 5.1. Archivado de datos históricos
+
+1. Abrir Chrome en modo normal → `http://127.0.0.1:5173/dashboard`.
+2. Ingresar la contraseña de exportación (ver `credenciales_sistema.md`).
+3. **Exportar Reporte → Avanzada → Año completo → todas las opciones**.
+4. Volcar el ZIP a un pendrive etiquetado `ARCHIVO HISTÓRICO FCEA - <AÑO>`.
+5. Guardarlo en archivo permanente.
+
+### 5.2. Verificación de integridad de la base
+
+```powershell
+# Detener PocketBase primero
+Stop-Process -Name pocketbase -Force -ErrorAction SilentlyContinue
+
+# Verificar integridad
+& pocketbase\pocketbase.exe --dir=pocketbase\pb_data --dev `
+    --hooksDir=pocketbase\pb_hooks serve `
+    | Select-Object -First 5   # cancelar con Ctrl+C tras "Server started"
+
+# Alternativa con sqlite3 si está instalado:
+# sqlite3 pocketbase\pb_data\data.db "PRAGMA integrity_check;"   ← debe decir "ok"
+# sqlite3 pocketbase\pb_data\data.db "VACUUM;"
+# sqlite3 pocketbase\pb_data\data.db "ANALYZE;"
+```
+
+### 5.3. Actualización de Windows
+
+`⊞ → Windows Update → Buscar actualizaciones`. Instalar solo críticas y de
+seguridad. Reiniciar. El sistema arranca solo gracias a
+`FCEA-Sistema-Llaves-AutoStart`.
 
 ---
 
-#### PASO 1: Salir del Modo Kiosk
-(Ver procedimiento en Mantenimiento Mensual - PASO 1)
+## 6. Cosas que **no** hacer
+
+- ❌ No detener manualmente las tareas `FCEA-*` salvo que se documente la
+  razón. El watchdog y el backup son la red de seguridad del sistema.
+- ❌ No editar `pb_data\data.db` directamente con un editor de texto. Usar
+  siempre la UI o el panel admin de PocketBase (`http://127.0.0.1:8090/_/`).
+- ❌ No borrar `backups\` completo. Si hace falta espacio, conservar siempre
+  los últimos 14 días.
+- ❌ No instalar antivirus que ponga en cuarentena `pocketbase.exe` ni que
+  bloquee Node.js: la cabina queda inutilizable.
 
 ---
 
-#### PASO 2: Análisis de Rendimiento de Consultas
+## 7. Documentos relacionados
 
-```
-1. Abra el navegador Chrome en modo normal (no kiosk)
-
-2. Vaya a: http://localhost:8080/_/
-
-3. Inicie sesión en PocketBase Admin:
-   - Email: admin@fcea.local (o el configurado)
-   - Contraseña: (la contraseña de administrador de PocketBase)
-
-4. Vaya a "Logs" en el menú lateral
-
-5. Revise las consultas más lentas:
-   - Busque tiempos de respuesta > 1000ms
-   - Anote las colecciones más consultadas
-
-6. Si encuentra consultas lentas frecuentes:
-   - Considere agregar índices (consulte con desarrollador)
-   - Documente para revisión técnica
-```
+- [`OPERACION.md`](./OPERACION.md) — uso diario, encendido, apagado, troubleshooting.
+- [`mantenimiento_resumen_ejecutivo.md`](./mantenimiento_resumen_ejecutivo.md) — visión global del esquema automatizado.
+- [`plan_recuperacion_desastres.md`](./plan_recuperacion_desastres.md) — DRP completo (incendio, robo, falla total).
+- [`credenciales_sistema.md`](./credenciales_sistema.md) — contraseñas y URLs administrativas.
 
 ---
 
-#### PASO 3: Optimización de Base de Datos
-
-```
-1. Abra el Símbolo del sistema como Administrador
-
-2. Navegue a la carpeta de PocketBase:
-   cd C:\sistema-llaves-fcea\pocketbase
-
-3. Detenga el sistema si está corriendo:
-   - Cierre todas las ventanas del navegador
-   - En el Administrador de tareas, finalice "pocketbase.exe"
-
-4. Ejecute el comando de optimización:
-   pocketbase.exe vacuum
-
-5. Espere a que termine (puede tardar 1-5 minutos)
-
-6. Reinicie el sistema:
-   cd C:\sistema-llaves-fcea
-   iniciar_sistema.bat
-```
-
-> **Nota**: El comando `vacuum` reorganiza la base de datos para mejorar el rendimiento y reducir el tamaño del archivo.
-
----
-
-#### PASO 4: Limpieza de Archivos Temporales
-
-```
-1. Abra el Explorador de Archivos
-
-2. Limpie las siguientes carpetas:
-
-   A) Caché del navegador:
-      - Presione ⊞ + R
-      - Escriba: %localappdata%\Google\Chrome\User Data\Default\Cache
-      - Elimine todos los archivos (puede tardar unos minutos)
-
-   B) Archivos temporales de Windows:
-      - Presione ⊞ + R
-      - Escriba: temp
-      - Elimine todos los archivos que permita Windows
-
-   C) Logs antiguos del sistema:
-      - Vaya a: C:\sistema-llaves-fcea\pocketbase\maintenance\logs\
-      - Si hay archivos .log.old, elimine los más antiguos de 6 meses
-
-3. Vacíe la Papelera de reciclaje
-```
-
----
-
-#### PASO 5: Verificación de Actualizaciones de Seguridad
-
-```
-1. Abra Windows Update:
-   - Presione ⊞ (tecla Windows)
-   - Escriba "Windows Update"
-   - Seleccione "Buscar actualizaciones"
-
-2. Instale las actualizaciones críticas y de seguridad
-
-3. NO instale actualizaciones de características sin consultar
-
-4. Reinicie si es necesario
-
-5. Después del reinicio, vuelva a iniciar el sistema:
-   - Ejecute iniciar_sistema.bat
-```
-
----
-
-### Mantenimiento Anual (Manual)
-
-**Tiempo estimado**: 1-2 horas  
-**Responsable**: Personal de Sistemas  
-**Frecuencia**: Una vez al año
-
-#### PROCEDIMIENTO PASO A PASO
-
----
-
-#### PASO 1: Archivado de Datos Históricos
-
-```
-1. Salga del modo kiosk (ver procedimiento anterior)
-
-2. Acceda al Dashboard como Administrador:
-   - Abra Chrome en modo normal
-   - Vaya a: http://localhost:8080/dashboard
-   - Ingrese la contraseña de administrador
-
-3. Exporte datos históricos:
-   - Clic en "Exportar Reporte"
-   - Seleccione "Exportación Avanzada"
-   - Rango de fechas: Todo el año anterior
-   - Marque todas las opciones
-   - Conecte un pendrive
-   - Clic en "Descargar"
-
-4. Etiquete el pendrive:
-   "ARCHIVO HISTÓRICO LLAVES FCEA - Año [AÑO]"
-
-5. Guarde el pendrive en archivo permanente
-```
-
----
-
-#### PASO 2: Verificación Completa de Integridad
-
-```
-1. Abra el Símbolo del sistema como Administrador
-
-2. Navegue a la carpeta de PocketBase:
-   cd C:\sistema-llaves-fcea\pocketbase
-
-3. Detenga el sistema
-
-4. Ejecute verificación de integridad:
-   sqlite3 pb_data\data.db "PRAGMA integrity_check;"
-
-5. Debe mostrar: "ok"
-   - Si muestra errores, restaure desde el último respaldo
-
-6. Ejecute análisis de la base de datos:
-   sqlite3 pb_data\data.db "ANALYZE;"
-
-7. Reinicie el sistema
-```
-
----
-
-#### PASO 3: Actualización de Dependencias (Opcional)
-
-> ⚠️ **ADVERTENCIA**: Solo realizar si hay vulnerabilidades de seguridad conocidas o si el sistema presenta problemas. Requiere conocimientos técnicos avanzados.
-
-```
-1. Haga un respaldo completo del sistema antes de continuar
-
-2. Abra el Símbolo del sistema como Administrador
-
-3. Navegue a la carpeta del sistema:
-   cd C:\sistema-llaves-fcea
-
-4. Verifique actualizaciones disponibles:
-   npm outdated
-
-5. Si hay actualizaciones críticas de seguridad:
-   npm update
-
-6. Pruebe el sistema exhaustivamente después de actualizar
-
-7. Si algo falla, restaure desde el respaldo
-```
-
----
-
-## Resolución de Problemas Comunes
-
-### Problema: El sistema no arranca después del mantenimiento
-
-```
-SOLUCIÓN:
-1. Verifique que PocketBase no esté corriendo:
-   - Abra Administrador de tareas
-   - Busque "pocketbase.exe"
-   - Si existe, finalice el proceso
-
-2. Verifique que el puerto 8080 esté libre:
-   - Abra Símbolo del sistema
-   - Ejecute: netstat -ano | findstr :8080
-   - Si hay algo usando el puerto, finalice ese proceso
-
-3. Intente iniciar manualmente:
-   - cd C:\sistema-llaves-fcea\pocketbase
-   - pocketbase.exe serve
-
-4. Si muestra errores, restaure desde respaldo
-```
-
-### Problema: Logs muestran errores de espacio en disco
-
-```
-SOLUCIÓN:
-1. Libere espacio inmediatamente:
-   - Copie pb_backups a pendrive externo
-   - Elimine respaldos antiguos (mantenga últimos 12)
-   - Ejecute Liberador de espacio en disco de Windows
-
-2. Si el problema persiste:
-   - Considere mover el sistema a un disco con más espacio
-   - Consulte con Personal de Sistemas
-```
-
-### Problema: El sistema está lento
-
-```
-SOLUCIÓN:
-1. Ejecute el mantenimiento trimestral completo
-
-2. Verifique recursos del sistema:
-   - CPU, RAM, Disco en Administrador de tareas
-
-3. Reinicie la computadora
-
-4. Si persiste, ejecute vacuum en la base de datos
-
-5. Como último recurso, restaure desde un respaldo reciente
-```
-
----
-
-## Checklist de Mantenimiento
-
-### ✅ Automático (Sin intervención)
-- [x] Backups semanales (Domingos 8:00 AM)
-- [x] Verificación de salud diaria (7:00 AM)
-- [x] Optimización de base de datos (vacuum)
-- [x] Limpieza de backups antiguos
-- [x] Monitoreo de espacio en disco
-- [x] Detección de errores en logs
-- [x] Alertas en Monitor de Vigilancia
-
-### ✅ Bajo Demanda (Solo cuando hay alertas)
-- [ ] Liberar espacio en disco (si alerta crítica)
-- [ ] Ejecutar backup manual (si backup desactualizado)
-- [ ] Actualizar pendrive recuperación (si advertencia)
-- [ ] Revisar logs de errores (si advertencia)
-- [ ] Reiniciar servicios (si PocketBase caído)
-
-### ✅ Anual (Una vez al año)
-- [ ] Archivar datos históricos del año anterior
-- [ ] Verificación completa de integridad
-- [ ] Evaluar necesidad de actualizar dependencias
-- [ ] Revisar y actualizar documentación
-- [ ] Actualizar pendrive de recuperación con datos archivados
-
-## Conclusión
-
-Con el volumen de uso especificado (290 operaciones diarias), el sistema está sobradamente dimensionado para mantener un funcionamiento estable con una probabilidad de fallo crítico inferior al 0.1% mensual durante el primer año. 
-
-La probabilidad de experimentar problemas aumenta ligeramente con el tiempo debido a la acumulación de datos, pero implementando el plan de mantenimiento preventivo sugerido, el sistema puede mantener su rendimiento óptimo indefinidamente, con una probabilidad de fallo crítico que no debería superar el 0.5% mensual incluso después de varios años de operación continua.
-
-Las principales vulnerabilidades no son técnicas sino operativas: falta de backups, falta de mantenimiento preventivo o condiciones externas como cortes de energía prolongados sin UPS apropiada.
-
----
-
-*Documento preparado para archivo y custodia autoridades de FCEA.*
+*Guía actualizada: mayo 2026 — v2.0. Esta guía es la **única** referencia de
+mantenimiento manual; cualquier procedimiento que aparezca en otros documentos
+y contradiga a éste debe considerarse obsoleto.*

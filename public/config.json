@@ -3,6 +3,7 @@
   "version": "2.0.0",
   "modo": "desarrollo",
   "rol": "monitor",
+  "hardware": "desarrollo",
   "pocketbase_url": "http://127.0.0.1:8090",
   "red": {
     "ip_servidor": "127.0.0.1",
@@ -17,6 +18,7 @@
     "Este archivo es leído en tiempo de ejecución por el frontend.",
     "modo: 'desarrollo' (1 PC con botón Monitor/Terminal) | 'produccion' (kiosk fijo).",
     "rol: 'monitor' (cabina/servidor) | 'terminal-a' | 'terminal-b' | 'dashboard'.",
+    "hardware: 'tactil' (kiosk, oculta Dashboard) | 'tradicional' (PC de oficina, Dashboard visible) | 'desarrollo' (notebook dev).",
     "pocketbase_url: URL del servidor PocketBase visible para esta PC.",
     "  - En modo 'desarrollo' o en la PC servidor: http://127.0.0.1:8090.",
     "  - En las terminales: http://<ip_servidor>:8090 (ej. http://192.168.50.10:8090).",
