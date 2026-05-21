@@ -319,16 +319,38 @@ if ($Tipo -eq "instalador") {
 
   Write-Host "Generando pendrive INSTALADOR (autonomo - DRP)..."
 
-  # 1) Copiar el repositorio SIN node_modules ni dist, pero CON pb_data y pb_backups
-  $exclude = @("node_modules", "dist", ".git", "respaldo_pre_restauracion")
-  Write-Host "Copiando codigo fuente del repo (excluyendo $($exclude -join ', '))..."
+  # 1) Copiar el repositorio SIN node_modules ni dist, pero CON pb_data y pb_backups.
+  #    Excluimos directorios volatiles (logs en uso, respaldo previo, backups
+  #    automaticos locales) y archivos abiertos (logs.db, .db-shm, .db-wal)
+  #    para que robocopy no falle por archivos bloqueados.
+  $exclude = @(
+    "node_modules",
+    "dist",
+    ".git",
+    "respaldo_pre_restauracion",
+    "backups",
+    "logs"
+  )
+  $excludeFiles = @(
+    "logs.db",
+    "logs.db-shm",
+    "logs.db-wal",
+    "data.db-shm",
+    "data.db-wal",
+    "*.tmp",
+    "*.log",
+    "system_health.json"
+  )
+  Write-Host "Copiando codigo fuente del repo (excluyendo dirs: $($exclude -join ', '); files: $($excludeFiles -join ', '))..."
   $robocopyArgs = @(
     "$repoRoot",
     "$Drive\sistema-llaves-fcea",
     "/MIR",
+    "/R:2", "/W:1",
     "/XD"
-  ) + $exclude + @("/NFL", "/NDL", "/NJH", "/NJS", "/NP")
+  ) + $exclude + @("/XF") + $excludeFiles + @("/NFL", "/NDL", "/NJH", "/NJS", "/NP")
   & robocopy @robocopyArgs | Out-Null
+  # robocopy retorna 0-7 como exito; 8+ es error real. No abortamos por warnings.
 
   # 1.b) Si pb_data del workspace no se sincronizo via /MIR porque estaba abierto,
   # forzar copia consistente.

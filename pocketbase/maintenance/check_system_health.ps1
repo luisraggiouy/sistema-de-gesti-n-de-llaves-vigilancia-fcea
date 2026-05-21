@@ -11,18 +11,33 @@ $ErrorActionPreference = "Continue"
 # Obtener rutas
 $ScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ProjectRoot = Split-Path -Parent (Split-Path -Parent $ScriptPath)
-$LogFile = Join-Path $ScriptPath "logs\health_check.log"
+$LogsDir = Join-Path $ScriptPath "logs"
+$LogFile = Join-Path $LogsDir "health_check.log"
 $HealthStatusFile = Join-Path $ProjectRoot "public\system_health.json"
 $BackupsDir = Join-Path $ProjectRoot "pocketbase\pb_backups"
-$MaintenanceLog = Join-Path $ScriptPath "logs\maintenance.log"
+$MaintenanceLog = Join-Path $LogsDir "maintenance.log"
 $DatabaseFile = Join-Path $ProjectRoot "pocketbase\pb_data\data.db"
+
+# Asegurar que el directorio de logs existe (en instalaciones nuevas no existe).
+if (-not (Test-Path $LogsDir)) {
+    try {
+        New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
+    } catch {
+        # Si no se puede crear, los Write-Log fallaran silenciosamente
+        # pero el resto del script SIGUE corriendo y genera el JSON.
+    }
+}
 
 # Función para escribir en el log
 function Write-Log {
     param([string]$Message, [string]$Level = "INFO")
     $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $LogMessage = "[$Timestamp] [$Level] $Message"
-    Add-Content -Path $LogFile -Value $LogMessage
+    try {
+        Add-Content -Path $LogFile -Value $LogMessage -ErrorAction Stop
+    } catch {
+        # Sin log: no abortamos, el JSON sigue generandose.
+    }
 }
 
 # Inicializar objeto de estado de salud
