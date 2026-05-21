@@ -107,9 +107,9 @@ export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProp
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/50">
           {shouldShowNavigationButtons && (
             <>
-              <Button 
-                asChild 
-                variant="outline" 
+              <Button
+                asChild
+                variant="outline"
                 size="sm"
                 className="gap-2"
               >
@@ -118,9 +118,9 @@ export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProp
                   Terminal Usuario
                 </Link>
               </Button>
-              <Button 
-                asChild 
-                variant="outline" 
+              <Button
+                asChild
+                variant="outline"
                 size="sm"
                 className="gap-2"
               >

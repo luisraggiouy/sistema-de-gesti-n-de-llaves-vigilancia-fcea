@@ -24,12 +24,20 @@
 | [`estadisticas_avanzadas.md`](./estadisticas_avanzadas.md)         | Gráficos avanzados del Dashboard     |
 | [`instructivo_acceso_dashboard.md`](./instructivo_acceso_dashboard.md) | Cómo entrar al Dashboard         |
 
+## 🛠️ Mantenimiento y continuidad
+
+| Documento                                                                   | Contenido                                        |
+|-----------------------------------------------------------------------------|--------------------------------------------------|
+| [`plan_recuperacion_desastres.md`](./plan_recuperacion_desastres.md)        | **DRP**: reconstrucción del sistema ante incendio/robo/falla total (RTO 3h, RPO 7 días) |
+| [`mantenimiento_resumen_ejecutivo.md`](./mantenimiento_resumen_ejecutivo.md) | Resumen técnico del esquema de mantenimiento (capas automática, auto-diagnóstico y recuperación) |
+| [`guia_mantenimiento_paso_a_paso.md`](./guia_mantenimiento_paso_a_paso.md)   | Procedimientos manuales detallados (referencia ante alertas) |
+| [`checklist_prueba_pendrives.md`](./checklist_prueba_pendrives.md)           | Plan de pruebas de los 3 pendrives + desinstalador |
+
 ## 📋 Otros
 
 | Documento                                                | Contenido                                       |
 |----------------------------------------------------------|-------------------------------------------------|
 | [`SRS_Sistema_Gestion_Llaves_FCEA.md`](./SRS_Sistema_Gestion_Llaves_FCEA.md) | Documento SRS (especificación) |
-| [`guia_mantenimiento_paso_a_paso.md`](./guia_mantenimiento_paso_a_paso.md)   | Checklist de mantenimiento     |
 | [`presentacion_autoridades.md`](./presentacion_autoridades.md) | Presentación para autoridades             |
 
 ---

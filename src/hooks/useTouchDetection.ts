@@ -35,6 +35,15 @@ export function useTouchDetection(): boolean {
 function detectarTouch(): boolean {
   try {
     const cfg = getRuntimeConfig();
+
+    // Prioridad 1: hardware explícito definido por el instalador.
+    //   - "tactil"      → forzar true (es un kiosk táctil).
+    //   - "tradicional" → forzar false (PC de oficina con mouse/teclado).
+    //   - "desarrollo"  → false por defecto, salvo override manual abajo.
+    if (cfg.hardware === "tactil") return true;
+    if (cfg.hardware === "tradicional") return false;
+
+    // Prioridad 2: override manual (útil para QA y pruebas).
     if (cfg.ui.teclado_virtual_forzado) return true;
   } catch {
     // Si runtime config aún no cargó, seguimos con la detección automática.

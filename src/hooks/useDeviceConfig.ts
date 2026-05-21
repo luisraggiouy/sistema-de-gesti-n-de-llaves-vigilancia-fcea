@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { getRuntimeConfig, RolPC } from "@/lib/runtimeConfig";
+import { getRuntimeConfig, HardwareTipo, RolPC } from "@/lib/runtimeConfig";
 
 export type DeviceType = "monitor" | "terminal" | "auto";
 
@@ -10,8 +10,23 @@ interface DeviceConfig {
   isProductionMode: boolean;
   /** Identificador del rol específico ("monitor", "terminal-a", "terminal-b", "dashboard"). */
   rol: RolPC;
+  /**
+   * Tipo físico de hardware detectado/configurado por el instalador.
+   * "tactil" | "tradicional" | "desarrollo" | undefined (sin configurar).
+   */
+  hardware: HardwareTipo | undefined;
+  /** Atajos derivados: true si el hardware NO es táctil. */
+  isTradicional: boolean;
+  /** Atajos derivados: true si la PC corre en modo desarrollo. */
+  isDevMode: boolean;
   /** En modo desarrollo se muestran los botones para alternar entre Monitor y Terminal. */
   shouldShowNavigationButtons: boolean;
+  /**
+   * Visibilidad específica del botón Dashboard en el header del Monitor.
+   * - Siempre visible en hardware "tradicional" o en modo desarrollo.
+   * - Oculto (entra por menú admin) en kiosks táctiles.
+   */
+  shouldShowDashboardButton: boolean;
   /** Ruta por defecto según el rol/modo. */
   getDefaultRoute: () => string;
 }
@@ -22,11 +37,19 @@ interface DeviceConfig {
  * En la arquitectura v2.0 de 3 PCs, cada PC tiene su propio `config.json`
  * con su `rol` correspondiente. En modo "desarrollo" (1 PC) se muestran
  * los botones que permiten alternar entre Monitor y Terminal.
+ *
+ * El campo `hardware` (introducido en v2.1 con el rediseño del instalador
+ * unificado) permite tomar decisiones de UI independientes del rol: por
+ * ejemplo mostrar el botón Dashboard en PCs tradicionales aunque corran en
+ * modo producción.
  */
 export function useDeviceConfig(): DeviceConfig {
   const config = useMemo((): DeviceConfig => {
     const rt = getRuntimeConfig();
     const isProductionMode = rt.modo === "produccion";
+    const isDevMode = rt.modo === "desarrollo";
+    const hardware = rt.hardware;
+    const isTradicional = hardware === "tradicional";
 
     const deviceType: DeviceType =
       rt.rol === "monitor"
@@ -36,8 +59,15 @@ export function useDeviceConfig(): DeviceConfig {
         : "auto";
 
     // En modo desarrollo, mostramos los botones de cambio de vista.
-    // En modo producción (3 PCs), cada PC tiene un rol fijo, sin alternar.
-    const shouldShowNavigationButtons = !isProductionMode;
+    // En modo producción tradicional (PC de oficina, no kiosk) también los
+    // mostramos: es el caso donde vigilancia opera con teclado/mouse y
+    // necesita acceder al Dashboard sin trucos.
+    const shouldShowNavigationButtons = isDevMode || isTradicional;
+
+    // Botón Dashboard: visible en cualquier escenario donde NO sea un kiosk
+    // táctil "puro". El kiosk táctil expone el Dashboard solo vía menú admin.
+    const shouldShowDashboardButton =
+      isDevMode || isTradicional || hardware === undefined;
 
     const getDefaultRoute = (): string => {
       if (rt.rol === "monitor") return "/monitor";
@@ -50,7 +80,11 @@ export function useDeviceConfig(): DeviceConfig {
       deviceType,
       isProductionMode,
       rol: rt.rol,
+      hardware,
+      isTradicional,
+      isDevMode,
       shouldShowNavigationButtons,
+      shouldShowDashboardButton,
       getDefaultRoute,
     };
   }, []);

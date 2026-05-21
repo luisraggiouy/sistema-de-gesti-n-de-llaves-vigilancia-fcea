@@ -35,14 +35,22 @@ Esta guía describe cómo desplegar el sistema en **producción de 3 PCs** y en
 
 ## 2. Instalación desde pendrive
 
-### 2.1. Generar el pendrive instalador (una vez, desde una PC con el repo)
+### 2.1. Generar el pendrive instalador DRP (una vez, desde la PC productiva)
 ```powershell
 .\scripts\pendrive\crear_pendrive.ps1 -Drive E: -Tipo instalador
 ```
-Esto deja en el pendrive:
-- `sistema-llaves-fcea\`  → código fuente del repo
-- `INSTALAR.bat`          → lanzador raíz
+Esto deja en el pendrive un paquete **autónomo de recuperación ante
+desastres**:
+- `sistema-llaves-fcea\` → código fuente + **`pb_data\` con TODOS los datos** + `pb_backups\`
+- `node-portable\`       → Node.js LTS portable (~30 MB, sin necesidad de internet)
+- `INSTALAR.bat`         → lanzador raíz (restaura datos automáticamente)
+- `DESINSTALAR.bat`      → desinstalador limpio
+- `ACTUALIZAR_DATOS.bat` → refresco semanal de datos
+- `ULTIMO_BACKUP.txt`    → metadatos del backup incluido
 - `autorun.inf`, `LEEME.txt`
+
+> Ver [`plan_recuperacion_desastres.md`](./plan_recuperacion_desastres.md)
+> para el procedimiento de uso del pendrive ante incendio/robo/falla total.
 
 ### 2.2. Instalar en cada PC
 En **cada** PC (cabina + 2 terminales) hacer lo siguiente:
@@ -106,14 +114,60 @@ Este pendrive contiene:
 - `backup_pb_data\` con la base actual.
 - `scripts\` con `RECUPERAR.bat`, diagnóstico, reparar PocketBase, restaurar
   backup, verificar red, reinstalar frontend.
+- `DESINSTALAR.bat` en la raíz (mismo desinstalador que el pendrive instalador).
 
 **Guardarlo en un lugar seguro y regenerarlo periódicamente.**
 
 ---
 
-## 6. Desinstalación
+## 6. Generar pendrive de código fuente (custodia / continuidad)
 
-En la PC a desinstalar:
+Este tercer pendrive es independiente y está destinado a custodia
+institucional. Contiene el repositorio completo (incluyendo `.git`),
+un ZIP comprimido y un hash SHA256 para verificación de integridad.
+
+```powershell
+.\scripts\pendrive\crear_pendrive.ps1 -Drive G: -Tipo codigo-fuente
+```
+
+Contenido:
+- `sistema-llaves-fcea\` → repositorio completo con historial Git.
+- `sistema-llaves-fcea_codigo-fuente.zip` → archivo comprimido.
+- `SHA256.txt` → hash y commit asociado.
+- `LEEME.txt` → instrucciones para levantar el código en otra PC.
+
+**No es un pendrive de instalación.** Para instalar el sistema use el
+pendrive de tipo `instalador`.
+
+---
+
+## 7. Desinstalación
+
+A partir de v2.0, los pendrives **Instalador** y **Recuperación**
+incluyen un desinstalador limpio en la raíz: `DESINSTALAR.bat`.
+
+### 7.1. Procedimiento recomendado (con pendrive)
+
+1. Conectar cualquiera de los dos pendrives (Instalador o Recuperación).
+2. Botón derecho sobre `DESINSTALAR.bat` → **Ejecutar como administrador**.
+3. Confirmar escribiendo `SI`.
+
+El desinstalador:
+
+- Detiene `pocketbase.exe`.
+- Elimina las tareas programadas `FCEA-*` (backup, watchdog, autostart, etc.).
+- Borra la regla de firewall `FCEA-PocketBase-8090`.
+- **Respalda automáticamente** `pb_data\`, `pb_backups\` y `config.json`
+  en `C:\backup_fcea_<fecha>\`, junto a un `desinstalacion.log`.
+- Elimina la carpeta de instalación `C:\sistema-llaves-fcea\`.
+- Quita los accesos directos del escritorio público.
+
+Los datos productivos quedan disponibles en `C:\backup_fcea_<fecha>\`
+por si se desea reinstalar más adelante: basta copiar `pb_data\` a la
+carpeta de la nueva instalación antes de iniciarla.
+
+### 7.2. Desinstalación manual (fallback sin pendrive)
+
 ```bat
 :: Eliminar tareas programadas
 schtasks /Delete /TN "FCEA-Sistema-Llaves-AutoStart" /F
@@ -126,3 +180,11 @@ netsh advfirewall firewall delete rule name="FCEA-PocketBase-8090"
 :: Borrar la carpeta del repo cuando esté seguro
 rmdir /S /Q C:\sistema-llaves-fcea
 ```
+
+---
+
+## 8. Validación del esquema de pendrives
+
+Ver `docs/checklist_prueba_pendrives.md` para el plan de pruebas
+completo (generación, instalación, recuperación, desinstalación y
+restauración de datos).

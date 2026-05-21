@@ -13,10 +13,29 @@ export type ModoSistema = "desarrollo" | "produccion";
 
 export type RolPC = "monitor" | "terminal-a" | "terminal-b" | "dashboard";
 
+/**
+ * Tipo físico de hardware donde corre esta PC. Lo escribe el instalador
+ * después de detectar pantalla táctil / monitores / etc., y lo persiste
+ * tanto en `config.json` como (opcionalmente) en la colección
+ * `sistema_config` de PocketBase. Si no está presente, el frontend cae
+ * al fallback de detección automática (useTouchDetection).
+ *
+ *  - "tactil":      kiosko, sin acceso visible al Dashboard.
+ *  - "tradicional": PC de oficina (mouse+teclado). Dashboard visible.
+ *  - "desarrollo":  notebook del desarrollador (todo visible).
+ */
+export type HardwareTipo = "tactil" | "tradicional" | "desarrollo";
+
 export interface RuntimeConfig {
   version: string;
   modo: ModoSistema;
   rol: RolPC;
+  /**
+   * Tipo de hardware detectado/elegido al instalar. Opcional para mantener
+   * compatibilidad con `config.json` viejos (en ese caso el frontend usa
+   * heurísticas de useTouchDetection).
+   */
+  hardware?: HardwareTipo;
   pocketbase_url: string;
   red: {
     ip_servidor: string;
@@ -38,6 +57,7 @@ export const DEFAULT_CONFIG: RuntimeConfig = {
   version: "2.0.0",
   modo: "desarrollo",
   rol: "monitor",
+  hardware: "desarrollo",
   pocketbase_url: "http://127.0.0.1:8090",
   red: {
     ip_servidor: "127.0.0.1",
