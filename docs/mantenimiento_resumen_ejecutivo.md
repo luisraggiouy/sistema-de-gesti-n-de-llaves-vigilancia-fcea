@@ -25,6 +25,17 @@
 Toda la automatización se configura en una sola ejecución mediante
 `scripts/maintenance/CONFIGURAR_MANTENIMIENTO.ps1`.
 
+> **Lo que NO se borra nunca** con la retención de 14 días:
+> - ❌ La base de datos productiva (`pocketbase\pb_data\data.db` y archivos asociados)
+> - ❌ El historial de solicitudes, entregas, devoluciones e intercambios
+> - ❌ Los registros de autorizaciones de acceso
+> - ❌ Los objetos olvidados y sus fotos
+> - ❌ Los usuarios registrados, vigilantes y catálogo de llaves
+> - ❌ Las anotaciones de la agenda diaria
+> - ❌ Los logs de operación de PocketBase
+>
+> Solo se eliminan **archivos ZIP de backup obsoletos** (>14 días) de la carpeta `backups\`, para liberar espacio en disco.
+
 ### 1.2 Capa de auto‑diagnóstico (visible en el Monitor de Vigilancia)
 
 El componente `SystemHealthIndicator` (en el header del Monitor de Vigilancia,

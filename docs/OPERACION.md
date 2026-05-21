@@ -44,8 +44,17 @@ Retención por defecto: **14 días** (configurable con `-RetencionDias` al scrip
 
 > **Qué se elimina con la retención:** únicamente los **archivos ZIP de backup**
 > en `C:\sistema-llaves-fcea\backups\` con más de 14 días de antigüedad.
-> NO se elimina ningún dato del sistema (la base productiva en `pb_data\` queda
-> intacta). Si necesita conservar respaldos más viejos, ver `guia_mantenimiento_paso_a_paso.md` § 5.1 (archivado anual permanente).
+>
+> **Lo que NO se borra nunca:**
+> - ❌ La base de datos productiva (`pocketbase\pb_data\data.db` y archivos asociados)
+> - ❌ El historial de solicitudes, entregas, devoluciones e intercambios de llaves
+> - ❌ Los registros de autorizaciones de acceso
+> - ❌ Los objetos olvidados registrados y sus fotos
+> - ❌ Los usuarios registrados, vigilantes y catálogo de llaves
+> - ❌ Las anotaciones de la agenda diaria
+> - ❌ Los logs de operación de PocketBase (`pb_data\logs.db`)
+>
+> Si necesita conservar respaldos más viejos, ver `guia_mantenimiento_paso_a_paso.md` § 5.1 (archivado anual permanente a pendrive).
 
 ---
 

@@ -1447,6 +1447,17 @@ El sistema implementa una estrategia de respaldos automáticos que garantiza la 
 - **Formato:** Archivos comprimidos ZIP de los datos de PocketBase
 - **Ubicación:** Local en subcarpeta `backups\` de la cabina
 
+> **Lo que NO se borra nunca** con la retención de 14 días:
+> - ❌ La base de datos productiva (`pocketbase\pb_data\data.db` y archivos asociados)
+> - ❌ El historial de solicitudes, entregas, devoluciones e intercambios de llaves
+> - ❌ Los registros de autorizaciones de acceso
+> - ❌ Los objetos olvidados registrados y sus fotos
+> - ❌ Los usuarios registrados, vigilantes y catálogo de llaves
+> - ❌ Las anotaciones de la agenda diaria
+> - ❌ Los logs de operación de PocketBase (`pb_data\logs.db`)
+>
+> La retención se aplica únicamente a los archivos ZIP de backup obsoletos en la carpeta `backups\`, con el objetivo de evitar que la carpeta crezca indefinidamente.
+
 ### 10.2 Recuperación ante Fallos
 
 El sistema está diseñado para recuperarse rápidamente ante diversos escenarios de fallo:

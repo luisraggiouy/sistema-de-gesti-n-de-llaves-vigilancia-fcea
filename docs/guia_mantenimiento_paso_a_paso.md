@@ -21,11 +21,25 @@ Esto deja registradas tres tareas programadas de Windows:
 | Tarea de Windows | Cuándo corre | Qué hace |
 |---|---|---|
 | `FCEA-Watchdog` | Al login + cada **30 segundos** | Hace GET a `http://127.0.0.1:8090/api/health`. Si falla, mata `pocketbase.exe` colgado y relanza `pocketbase\start-server.bat` |
-| `FCEA-Backup-Diario` | Todos los días **03:00 AM** | Ejecuta `scripts\maintenance\backup_automatico.ps1`, comprime `pb_data\` a `backups\YYYY-MM-DD_HH-mm-ss.zip`, conserva los **archivos ZIP de los últimos 14 días** en `backups\` (los ZIP más viejos se eliminan; los datos productivos en `pb_data\` no se tocan nunca) |
+| `FCEA-Backup-Diario` | Todos los días **03:00 AM** | Ejecuta `scripts\maintenance\backup_automatico.ps1`, comprime `pb_data\` a `backups\YYYY-MM-DD_HH-mm-ss.zip`, conserva los **archivos ZIP de los últimos 14 días** en `backups\` (los ZIP más viejos se eliminan; los datos productivos en `pb_data\` no se tocan nunca — ver detalle abajo en "Qué se elimina y qué no") |
 | `FCEA-Chequeo-Salud` | Al login + cada **30 minutos** | Ejecuta `pocketbase\maintenance\check_system_health.ps1` y escribe `public\system_health.json` y `dist\system_health.json` |
 
 Las tres tareas corren solo en la **cabina (rol monitor)**. Las terminales no
 necesitan ninguna.
+
+### 1.1. Qué se elimina y qué no con la retención de 14 días
+
+La tarea `FCEA-Backup-Diario` se limita a borrar **archivos ZIP** de la carpeta `backups\` con más de 14 días de antigüedad. **Lo que NO se borra nunca:**
+
+- ❌ La base de datos productiva (`pocketbase\pb_data\data.db` y archivos asociados)
+- ❌ El historial de solicitudes, entregas, devoluciones e intercambios de llaves
+- ❌ Los registros de autorizaciones de acceso
+- ❌ Los objetos olvidados registrados y sus fotos
+- ❌ Los usuarios registrados, vigilantes y catálogo de llaves
+- ❌ Las anotaciones de la agenda diaria
+- ❌ Los logs de operación de PocketBase (`pb_data\logs.db`)
+
+Los ZIPs son copias comprimidas para poder restaurar la base ante un problema; eliminar los más viejos solo libera espacio en disco, no afecta a la información en uso. Para retención de largo plazo (años) está el archivado anual a pendrive permanente (§ 5.1).
 
 ---
 
