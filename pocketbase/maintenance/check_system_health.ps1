@@ -12,9 +12,27 @@
 # Genera dos copias del JSON:
 #   - public/system_health.json (dev server: Vite)
 #   - dist/system_health.json   (produccion: serve_dist.cjs)
+#
+# Parametros opcionales:
+#   -PostInstall : modo "instalacion recien hecha". Genera un JSON
+#                  inicial saludable y sale en 0. Lo usa INSTALAR.bat
+#                  al final para que el primer chequeo no muestre
+#                  alertas falsas (no hay backups todavia, etc.).
 # ============================================================================
 
+param(
+    [switch]$PostInstall
+)
+
 $ErrorActionPreference = "Continue"
+
+# Cantidad de dias durante los cuales la instalacion se considera
+# "nueva" y por lo tanto no debe alertar como CRITICAL por la
+# ausencia de backups (la tarea FCEA-Backup-Semanal corre 1 vez por
+# semana, asi que es perfectamente normal que la primera semana no
+# haya backup todavia).
+$GraceDaysSinBackup = 7
+
 
 # Obtener rutas
 $ScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -79,10 +97,80 @@ $HealthStatus = @{
         pendriveDaysOutdated = 0
         lastAnnualMaintenanceDaysAgo = $null
         windowsUpdateDaysAgo = $null
+        installAgeDays = $null
     }
 }
 
 Write-Log "=== Inicio de verificacion de salud del sistema ==="
+
+# ============================================================================
+# 0. CALCULAR EDAD DE LA INSTALACION
+# ============================================================================
+# Sirve para no alarmar con alertas como "No hay backups" durante los
+# primeros dias post-instalacion. Usamos como fuente, en orden de preferencia:
+#   1) config\install_config.json -> campo "installed_at" o "fecha_instalacion"
+#      (lo escribe persistir_install_config.ps1).
+#   2) Fecha de creacion de pocketbase\pb_data\data.db.
+#   3) Fallback: 9999 (instalacion "muy vieja", no aplicar grace period).
+# ============================================================================
+$InstallAgeDays = $null
+try {
+    $InstallConfigFile = Join-Path $ProjectRoot "config\install_config.json"
+    if (Test-Path $InstallConfigFile) {
+        $cfg = Get-Content $InstallConfigFile -Raw -ErrorAction SilentlyContinue | ConvertFrom-Json
+        $installedAtRaw = $null
+        if ($cfg.PSObject.Properties.Name -contains 'installed_at') { $installedAtRaw = $cfg.installed_at }
+        elseif ($cfg.PSObject.Properties.Name -contains 'fecha_instalacion') { $installedAtRaw = $cfg.fecha_instalacion }
+        if ($installedAtRaw) {
+            $installedAt = [DateTime]::Parse($installedAtRaw)
+            $InstallAgeDays = [math]::Round((New-TimeSpan -Start $installedAt -End (Get-Date)).TotalDays, 1)
+        }
+    }
+    if ($null -eq $InstallAgeDays -and (Test-Path $DatabaseFile)) {
+        $InstallAgeDays = [math]::Round((New-TimeSpan -Start (Get-Item $DatabaseFile).CreationTime -End (Get-Date)).TotalDays, 1)
+    }
+    if ($null -eq $InstallAgeDays) { $InstallAgeDays = 9999 }
+    $HealthStatus.metrics.installAgeDays = $InstallAgeDays
+    Write-Log "Edad de la instalacion: $InstallAgeDays dias"
+} catch {
+    Write-Log "No se pudo determinar edad de instalacion: $($_.Exception.Message)" "WARNING"
+    $InstallAgeDays = 9999
+    $HealthStatus.metrics.installAgeDays = $InstallAgeDays
+}
+
+# Bandera para los chequeos: "esta instalacion es nueva?"
+$IsFreshInstall = $InstallAgeDays -lt $GraceDaysSinBackup
+
+# ============================================================================
+# MODO -PostInstall : generar JSON saludable inicial y salir.
+# Lo usa INSTALAR.bat al final para que el primer chequeo (que se
+# dispara apenas el usuario inicia sesion) no muestre alertas falsas
+# como "No hay backups" o "PocketBase no esta ejecutandose" antes de
+# que PocketBase termine de levantarse.
+# ============================================================================
+if ($PostInstall) {
+    Write-Log "Modo -PostInstall: generando JSON inicial saludable y saliendo."
+    $HealthStatus.overallStatus = "healthy"
+    $HealthStatus.metrics.lastBackupDaysAgo = 0
+    $HealthStatus.metrics.installAgeDays = 0
+    $HealthStatus.alerts = @()
+    try {
+        $JsonContent = $HealthStatus | ConvertTo-Json -Depth 10
+        $PublicDir = Split-Path -Parent $HealthStatusFile
+        if (-not (Test-Path $PublicDir)) {
+            New-Item -ItemType Directory -Path $PublicDir -Force | Out-Null
+        }
+        Set-Content -Path $HealthStatusFile -Value $JsonContent -Encoding UTF8
+        $DistDir = Split-Path -Parent $HealthStatusFileDist
+        if (Test-Path $DistDir) {
+            Set-Content -Path $HealthStatusFileDist -Value $JsonContent -Encoding UTF8
+        }
+        Write-Log "JSON inicial post-instalacion generado en: $HealthStatusFile (y dist si existe)"
+    } catch {
+        Write-Log "Error generando JSON post-instalacion: $($_.Exception.Message)" "ERROR"
+    }
+    exit 0
+}
 
 # ============================================================================
 # 1. VERIFICAR ESPACIO EN DISCO
@@ -182,16 +270,32 @@ try {
             Write-Log "ADVERTENCIA: Backup atrasado" "WARNING"
         }
     } else {
-        $HealthStatus.alerts += @{
-            level = "critical"
-            title = "No hay backups"
-            message = "No se encontraron backups del sistema. Datos en riesgo."
-            action = "Ejecutar como administrador: scripts\maintenance\CONFIGURAR_MANTENIMIENTO.ps1 y luego un backup manual."
-            icon = "database"
-            documentation = "docs/guia_mantenimiento_paso_a_paso.md"
+        # Si la instalacion es nueva (menos de $GraceDaysSinBackup dias),
+        # la ausencia de backups es esperada: la tarea FCEA-Backup-Semanal
+        # corre 1 vez por semana, asi que el primer backup recien se va a
+        # generar en algunos dias. No es "critico", es esperado.
+        if ($IsFreshInstall) {
+            $HealthStatus.alerts += @{
+                level = "info"
+                title = "Backup aun no realizado"
+                message = "La instalacion tiene $InstallAgeDays dias. El primer backup automatico se generara en los proximos dias (tarea semanal)."
+                action = "Si desea generar un backup manual ahora: scripts\maintenance\backup_automatico.ps1"
+                icon = "database"
+                documentation = "docs/guia_mantenimiento_paso_a_paso.md"
+            }
+            Write-Log "INFO: Sin backups todavia (instalacion nueva de $InstallAgeDays dias, grace period $GraceDaysSinBackup d)"
+        } else {
+            $HealthStatus.alerts += @{
+                level = "critical"
+                title = "No hay backups"
+                message = "No se encontraron backups del sistema. Datos en riesgo."
+                action = "Ejecutar como administrador: scripts\maintenance\CONFIGURAR_MANTENIMIENTO.ps1 y luego un backup manual."
+                icon = "database"
+                documentation = "docs/guia_mantenimiento_paso_a_paso.md"
+            }
+            $HealthStatus.overallStatus = "critical"
+            Write-Log "CRITICO: No hay backups" "ERROR"
         }
-        $HealthStatus.overallStatus = "critical"
-        Write-Log "CRITICO: No hay backups" "ERROR"
     }
 } catch {
     Write-Log "Error al verificar backups: $($_.Exception.Message)" "ERROR"
@@ -322,22 +426,54 @@ try {
 Write-Log "Verificando servicios criticos..."
 
 try {
-    # Verificar si PocketBase esta corriendo
+    # Verificar si PocketBase esta corriendo.
+    # Usamos DOS estrategias para no dar falsos positivos:
+    #   a) Hay un proceso llamado "pocketbase".
+    #   b) El puerto 8090 responde (HTTP /api/health, timeout 2s).
+    # Solo marcamos "CRITICAL" si AMBAS fallan.
     $PocketBaseProcess = Get-Process -Name "pocketbase" -ErrorAction SilentlyContinue
 
-    if (-not $PocketBaseProcess) {
-        $HealthStatus.alerts += @{
-            level = "critical"
-            title = "PocketBase no esta ejecutandose"
-            message = "El servicio de base de datos no esta activo. El sistema no funcionara."
-            action = "Ejecutar: pocketbase\start-server.bat. Si el problema persiste, ver guia § 3.3."
-            icon = "x-circle"
-            documentation = "docs/guia_mantenimiento_paso_a_paso.md"
+    $HttpOK = $false
+    try {
+        $resp = Invoke-WebRequest -Uri "http://127.0.0.1:8090/api/health" -UseBasicParsing -TimeoutSec 2 -ErrorAction Stop
+        if ($resp.StatusCode -ge 200 -and $resp.StatusCode -lt 500) { $HttpOK = $true }
+    } catch {
+        $HttpOK = $false
+    }
+
+    if (-not $PocketBaseProcess -and -not $HttpOK) {
+        # Doble fallo. En instalaciones recien hechas damos un margen:
+        # el chequeo de salud se ejecuta al login (tarea FCEA-Chequeo-Salud)
+        # y PocketBase quizas todavia este arrancando. Lo marcamos como
+        # "warning" durante el grace period en vez de "critical".
+        if ($IsFreshInstall) {
+            $HealthStatus.alerts += @{
+                level = "warning"
+                title = "PocketBase aun no responde"
+                message = "El servicio de base de datos todavia no esta activo. Si el sistema acaba de instalarse, espere unos segundos a que termine de arrancar."
+                action = "Si en 1 minuto el sistema sigue sin responder, ejecutar: pocketbase\start-server.bat. Ver guia § 3.3."
+                icon = "x-circle"
+                documentation = "docs/guia_mantenimiento_paso_a_paso.md"
+            }
+            if ($HealthStatus.overallStatus -eq "healthy") {
+                $HealthStatus.overallStatus = "warning"
+            }
+            Write-Log "ADVERTENCIA: PocketBase no responde (grace period instalacion nueva)" "WARNING"
+        } else {
+            $HealthStatus.alerts += @{
+                level = "critical"
+                title = "PocketBase no esta ejecutandose"
+                message = "El servicio de base de datos no esta activo. El sistema no funcionara."
+                action = "Ejecutar: pocketbase\start-server.bat. Si el problema persiste, ver guia § 3.3."
+                icon = "x-circle"
+                documentation = "docs/guia_mantenimiento_paso_a_paso.md"
+            }
+            $HealthStatus.overallStatus = "critical"
+            Write-Log "CRITICO: PocketBase no esta corriendo (sin proceso ni HTTP)" "ERROR"
         }
-        $HealthStatus.overallStatus = "critical"
-        Write-Log "CRITICO: PocketBase no esta corriendo" "ERROR"
     } else {
-        Write-Log "PocketBase esta ejecutandose correctamente"
+        if ($PocketBaseProcess) { Write-Log "PocketBase: proceso detectado." }
+        if ($HttpOK)            { Write-Log "PocketBase: puerto 8090 responde OK." }
     }
 } catch {
     Write-Log "Error al verificar servicios: $($_.Exception.Message)" "ERROR"

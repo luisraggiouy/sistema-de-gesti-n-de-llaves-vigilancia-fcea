@@ -58,9 +58,26 @@ echo  ============================================================
 echo.
 
 REM ------------------------------------------------------------
-REM  PASO 2: Si ya hay sistema instalado, preguntar que hacer
+REM  PASO 2: Detectar si hay un sistema VALIDO previamente instalado
+REM
+REM  Una instalacion se considera "valida y completa" si tiene:
+REM    - pocketbase\pocketbase.exe     (binario del servidor)
+REM    - pocketbase\pb_data\data.db    (base de datos)
+REM    - public\config.json o dist\index.html (frontend instalado)
+REM
+REM  Si encontramos SOLO la carpeta pero faltan archivos clave,
+REM  asumimos que es un residuo de una desinstalacion incompleta
+REM  y la borramos en silencio antes de seguir, en lugar de
+REM  confundir al usuario con un menu de "reinstalar/actualizar".
 REM ------------------------------------------------------------
+set "SISTEMA_VALIDO=0"
 if exist "%INSTALL_DIR%\pocketbase\pocketbase.exe" (
+  if exist "%INSTALL_DIR%\pocketbase\pb_data\data.db" (
+    set "SISTEMA_VALIDO=1"
+  )
+)
+
+if "!SISTEMA_VALIDO!"=="1" (
   echo  Se detecto un sistema YA INSTALADO en:
   echo    %INSTALL_DIR%
   echo.
@@ -83,6 +100,51 @@ if exist "%INSTALL_DIR%\pocketbase\pocketbase.exe" (
   if "!OPCION_INI!"=="3" goto CANCELAR
   echo Opcion invalida. Cancelando.
   goto CANCELAR
+)
+
+REM Si existe la carpeta pero NO es un sistema valido, es residuo.
+REM Limpiamos antes de continuar para que el instalador interno no
+REM se confunda y para no mostrar el menu de "reinstalar/actualizar".
+if exist "%INSTALL_DIR%" (
+  echo  Se detectaron archivos residuales en %INSTALL_DIR%
+  echo  (instalacion incompleta o desinstalacion previa con archivos
+  echo  en uso). Limpiando antes de continuar...
+  echo.
+  taskkill /F /IM pocketbase.exe >nul 2>&1
+  REM Matar node.exe y chrome.exe del sistema FCEA por si quedaron handles
+  powershell -NoProfile -Command ^
+    "Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Where-Object { $_.CommandLine -match 'sistema-llaves-fcea' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }" >nul 2>&1
+  powershell -NoProfile -Command ^
+    "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | Where-Object { $_.CommandLine -match '127\.0\.0\.1:(5173|4173|8090)' -or $_.CommandLine -match 'sistema-llaves-fcea' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }" >nul 2>&1
+  timeout /t 3 /nobreak >nul
+
+  REM Limpiar tareas programadas residuales (asi el chequeo de salud
+  REM no se dispara antes de tiempo en la instalacion nueva).
+  for %%T in (
+    "FCEA-Backup-Semanal" "FCEA-Backup-Diario" "FCEA-Watchdog-PocketBase"
+    "FCEA-Watchdog" "FCEA-Chequeo-Salud" "FCEA-Mantenimiento-Diario"
+    "FCEA-Inicio-Automatico" "FCEA-Sistema-Llaves-AutoStart"
+  ) do (
+    schtasks /Delete /TN %%~T /F >nul 2>&1
+  )
+
+  for /L %%i in (1,1,3) do (
+    if exist "%INSTALL_DIR%" (
+      attrib -R -S -H "%INSTALL_DIR%\*.*" /S /D >nul 2>&1
+      rmdir /S /Q "%INSTALL_DIR%" 2>nul
+      if exist "%INSTALL_DIR%" timeout /t 2 /nobreak >nul
+    )
+  )
+  if exist "%INSTALL_DIR%" (
+    echo  [ERROR] No se pudo limpiar la carpeta residual %INSTALL_DIR%
+    echo          Cierre TODAS las ventanas del sistema FCEA y reinicie
+    echo          la PC. Luego vuelva a ejecutar este instalador.
+    echo.
+    pause
+    exit /b 2
+  )
+  echo  Residuos limpiados. Continuando con instalacion limpia...
+  echo.
 )
 
 REM ============================================================

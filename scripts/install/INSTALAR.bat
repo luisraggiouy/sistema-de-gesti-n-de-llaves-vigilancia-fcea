@@ -534,10 +534,23 @@ if errorlevel 1 (
   echo               Ejecute manualmente como Administrador:
   echo                 powershell -ExecutionPolicy Bypass -File "%CFG_MAINT%"
 )
+
+REM ------------------------------------------------------------
+REM  Generar JSON de salud inicial "saludable" para evitar que el
+REM  primer chequeo de FCEA-Chequeo-Salud (que se dispara al login)
+REM  muestre alertas falsas como "No hay backups" o "PocketBase no
+REM  esta ejecutandose" antes de que el sistema termine de arrancar.
+REM ------------------------------------------------------------
+set "HEALTH_CHECK=%REPO_ROOT%\pocketbase\maintenance\check_system_health.ps1"
+if exist "%HEALTH_CHECK%" (
+  echo Generando estado de salud inicial (modo PostInstall)...
+  powershell -NoProfile -ExecutionPolicy Bypass -File "%HEALTH_CHECK%" -PostInstall >nul 2>&1
+)
 goto :eof
 
 REM ============================================================
 REM  CONFIGURAR_INICIO_AUTO
+
 REM  Registra la tarea FCEA-Sistema-Llaves-AutoStart que arranca
 REM  INICIAR.bat al iniciar sesion del usuario. Aplica a todos
 REM  los roles (servidor, terminales y dashboard).

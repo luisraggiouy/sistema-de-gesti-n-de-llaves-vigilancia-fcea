@@ -40,7 +40,21 @@ try {
     $snap = Get-HardwareSnapshot
     $cfg  = New-InstallConfig -Modo $Modo -Hardware $Hardware -Version $Version -HardwareSnapshot $snap
 
+    # Marcar fecha de instalacion ISO 8601 si todavia no existe.
+    # check_system_health.ps1 lo usa para no alarmar con "No hay backups"
+    # durante los primeros 7 dias post-instalacion.
+    if ($cfg -is [hashtable]) {
+        if (-not $cfg.ContainsKey('installed_at')) {
+            $cfg['installed_at'] = (Get-Date).ToString('o')
+        }
+    } else {
+        if (-not ($cfg.PSObject.Properties.Name -contains 'installed_at')) {
+            $cfg | Add-Member -NotePropertyName 'installed_at' -NotePropertyValue ((Get-Date).ToString('o')) -Force
+        }
+    }
+
     $ok = Write-InstallConfig -Config $cfg
+
     if ($ok) {
         Write-Host "[OK] install_config.json escrito en C:\sistema-llaves-fcea\config\" -ForegroundColor Green
     } else {
