@@ -531,24 +531,109 @@ SOPORTE:
 =============================================================
 "@ | Set-Content -Encoding UTF8 -Path (Join-Path $Drive "LEEME.txt")
 
-  # 5) Ocultar todo lo auxiliar: solo deben verse los 2 .bat principales.
-  #    Aplicamos atributo +H (hidden) +S (system) para que ni siquiera
-  #    aparezcan con "Mostrar elementos ocultos" hasta que se active
-  #    "Mostrar archivos protegidos del sistema operativo".
-  Write-Host "Ocultando archivos auxiliares (solo se veran los 2 .bat principales)..."
+  # 4.b) LEEME-PARA-DESARROLLADORES.txt dentro del codigo fuente
+  #      Indica como abrir y modificar el sistema desde otra PC.
+  $devLeemeDest = Join-Path $Drive "sistema-llaves-fcea\LEEME-PARA-DESARROLLADORES.txt"
+  @"
+ CODIGO FUENTE - Sistema de Gestion de Llaves FCEA v2.0
+
+Esta carpeta contiene el codigo fuente COMPLETO del sistema.
+Quien quiera revisarlo o modificarlo puede usar este pendrive
+como repositorio de trabajo (sin necesidad de clonar nada).
+
+ESTRUCTURA:
+  src\                Codigo fuente React + TypeScript + Vite
+  pocketbase\         Backend PocketBase (Go + SQLite)
+    pocketbase.exe    Servidor (binario portable)
+    pb_data\          Base de datos PRODUCTIVA (no editar a mano)
+    pb_migrations\    Migraciones de esquema
+  scripts\            Scripts de instalacion / mantenimiento / recuperacion
+  docs\               Documentacion completa (15+ archivos .md)
+  public\             Assets estaticos + config.json (plantilla)
+  package.json        Dependencias y scripts npm
+  vite.config.ts      Configuracion del bundler
+  tsconfig*.json      Configuracion de TypeScript
+
+COMO MODIFICAR EL SISTEMA (en otra PC con Node.js):
+  1) Copie esta carpeta completa a su disco duro (ej. C:\fcea-dev\)
+       NO trabaje directamente sobre el pendrive: USB es lento y
+       npm install crea miles de archivos en node_modules\.
+
+  2) Instale Node.js LTS (>= 18) desde https://nodejs.org
+     o use el Node portable incluido en este pendrive
+     (carpeta node-portable\ en la raiz).
+
+  3) Abra una terminal en la carpeta copiada y ejecute:
+       npm install        (instala dependencias - tarda 2-5 min)
+       npm run dev        (levanta el frontend en http://localhost:5173)
+
+  4) En otra terminal, levante PocketBase:
+       cd pocketbase
+       pocketbase.exe serve
+     Esto sirve la API en http://127.0.0.1:8090
+     (panel de administracion en /_/)
+
+  5) Abra http://localhost:5173 en el navegador.
+
+EDITOR RECOMENDADO:
+  Visual Studio Code (https://code.visualstudio.com)
+  Abra la carpeta con: File > Open Folder...
+  Extensiones utiles: ESLint, Prettier, Tailwind CSS IntelliSense.
+
+ESTRUCTURA DEL CODIGO (src\):
+  src\pages\           Paginas principales (rutas de la app)
+  src\components\      Componentes React reutilizables
+    monitor\           Componentes del Monitor de Vigilancia
+    terminal\          Componentes de la Terminal de Usuario
+    dashboard\         Componentes del Dashboard de reportes
+    admin\             Login y panel admin
+    ui\                Componentes UI base (shadcn/ui)
+  src\hooks\           Hooks personalizados de React
+  src\contexts\        Contextos globales (estado compartido)
+  src\lib\             Cliente PocketBase + utilidades
+  src\types\           Tipos TypeScript
+  src\utils\           Funciones helper (export, etc.)
+  src\data\            Datos estaticos (lista de llaves FCEA)
+
+CICLO DE VIDA DE UN CAMBIO:
+  1) Edite el codigo.
+  2) Vite recompila en caliente (hot reload).
+  3) Pruebe el cambio en el navegador.
+  4) Para generar version de produccion:
+       npm run build       (genera dist\)
+  5) Para empaquetar un nuevo pendrive:
+       scripts\pendrive\GRABAR_PENDRIVE_D.bat (como Administrador)
+
+DOCUMENTACION ADICIONAL:
+  docs\ARQUITECTURA.md             - Como esta hecho el sistema
+  docs\INSTALACION.md              - Como se instala
+  docs\OPERACION.md                - Como se usa
+  docs\SRS_Sistema_Gestion_Llaves_FCEA.md - Especificacion completa
+
+ Sistema desarrollado para la Facultad de Ciencias Economicas
+ y de Administracion (FCEA - UDELAR). Codigo abierto.
+"@ | Set-Content -Encoding UTF8 -Path $devLeemeDest
+  Write-Host "LEEME-PARA-DESARROLLADORES.txt agregado dentro de sistema-llaves-fcea\." -ForegroundColor Green
+
+  # 5) Ocultar SOLO el autorun.inf (es archivo de sistema, no aporta verlo).
+  #    Las carpetas con codigo fuente, Node portable y archivos de texto
+  #    quedan VISIBLES para que cualquier desarrollador o auditor pueda:
+  #      - Inspeccionar el codigo (sistema-llaves-fcea\)
+  #      - Usar Node portable en otra PC (node-portable\)
+  #      - Leer los metadatos del backup (ULTIMO_BACKUP.txt)
+  #      - Leer las instrucciones generales (LEEME.txt)
+  #    Solo los 2 .bat de la raiz son "ejecutables grandes" que el usuario
+  #    final debe usar. El resto se muestra como informacion extra en
+  #    carpetas claramente nombradas.
+  Write-Host "Ocultando solo autorun.inf (los demas archivos quedan visibles)..."
   $itemsAOcultar = @(
-    "sistema-llaves-fcea",
-    "node-portable",
-    "autorun.inf",
-    "LEEME.txt",
-    "ULTIMO_BACKUP.txt"
+    "autorun.inf"
   )
   foreach ($it in $itemsAOcultar) {
     $p = Join-Path $Drive $it
     if (Test-Path $p) {
       try {
         attrib +H +S $p /S /D 2>$null | Out-Null
-        # Tambien el item raiz (attrib /D solo aplica a contenidos):
         $item = Get-Item -LiteralPath $p -Force
         $item.Attributes = $item.Attributes -bor [System.IO.FileAttributes]::Hidden -bor [System.IO.FileAttributes]::System
       } catch {
@@ -556,7 +641,37 @@ SOPORTE:
       }
     }
   }
-  Write-Host "Listo: solo 'INSTALAR SISTEMA.bat' y 'DESINSTALAR SISTEMA.bat' quedan visibles." -ForegroundColor Green
+
+  # Asegurarse de que las carpetas que ANTES estaban ocultas (en pendrives
+  # regrabados sobre versiones previas) queden visibles ahora.
+  $itemsAMostrar = @(
+    "sistema-llaves-fcea",
+    "node-portable",
+    "LEEME.txt",
+    "ULTIMO_BACKUP.txt",
+    "Documentacion"
+  )
+  foreach ($it in $itemsAMostrar) {
+    $p = Join-Path $Drive $it
+    if (Test-Path $p) {
+      try {
+        attrib -H -S $p /S /D 2>$null | Out-Null
+        $item = Get-Item -LiteralPath $p -Force
+        $item.Attributes = $item.Attributes -band (-bnot [System.IO.FileAttributes]::Hidden) -band (-bnot [System.IO.FileAttributes]::System)
+      } catch {
+        Write-Host ("[AVISO] No se pudo desocultar " + $it + ": " + $_) -ForegroundColor Yellow
+      }
+    }
+  }
+  Write-Host "Estructura final del pendrive:" -ForegroundColor Green
+  Write-Host "  [.bat] INSTALAR SISTEMA.bat     <- doble click para instalar" -ForegroundColor Green
+  Write-Host "  [.bat] DESINSTALAR SISTEMA.bat  <- doble click para desinstalar" -ForegroundColor Green
+  Write-Host "  [dir]  Documentacion\           <- manuales en .md (visible)" -ForegroundColor Green
+  Write-Host "  [dir]  sistema-llaves-fcea\     <- codigo fuente completo (visible)" -ForegroundColor Green
+  Write-Host "  [dir]  node-portable\           <- Node.js sin instalar (visible)" -ForegroundColor Green
+  Write-Host "  [txt]  LEEME.txt                <- instrucciones (visible)" -ForegroundColor Green
+  Write-Host "  [txt]  ULTIMO_BACKUP.txt        <- metadatos backup (visible)" -ForegroundColor Green
+  Write-Host "  [sys]  autorun.inf              <- oculto (archivo del sistema)" -ForegroundColor Green
 
   Write-Host ""
   Write-Host "[OK] Pendrive INSTALADOR DRP generado correctamente en $Drive" -ForegroundColor Green

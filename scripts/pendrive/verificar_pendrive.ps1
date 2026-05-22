@@ -50,18 +50,42 @@ if (Test-Path $desPath) {
   Write-Host "[FALTA] 'DESINSTALAR SISTEMA.bat' NO existe" -ForegroundColor Red
 }
 
-# Verificar que los archivos auxiliares esten ocultos
+# Verificar atributos esperados:
+#   - autorun.inf  : debe estar OCULTO (archivo de sistema)
+#   - los demas    : deben estar VISIBLES (informacion extra accesible)
 Write-Host ""
-Write-Host "=== Atributos de archivos auxiliares (deben ser HIDDEN) ===" -ForegroundColor Cyan
-foreach ($n in @("sistema-llaves-fcea","node-portable","LEEME.txt","ULTIMO_BACKUP.txt","autorun.inf")) {
+Write-Host "=== Atributos esperados ===" -ForegroundColor Cyan
+Write-Host "    autorun.inf       -> deberia estar OCULTO" -ForegroundColor DarkGray
+Write-Host "    los demas         -> deberian estar VISIBLES" -ForegroundColor DarkGray
+Write-Host ""
+
+$deberianEstarOcultos = @("autorun.inf")
+$deberianEstarVisibles = @("sistema-llaves-fcea","node-portable","LEEME.txt","ULTIMO_BACKUP.txt","Documentacion")
+
+foreach ($n in $deberianEstarOcultos) {
   $p = Join-Path $Drive $n
   if (Test-Path $p) {
     $it = Get-Item -LiteralPath $p -Force
     $isHidden = ($it.Attributes -band [System.IO.FileAttributes]::Hidden) -ne 0
     if ($isHidden) {
-      Write-Host "[OK] $n -> oculto" -ForegroundColor Green
+      Write-Host "[OK] $n -> oculto (correcto)" -ForegroundColor Green
     } else {
-      Write-Host "[AVISO] $n -> NO esta oculto (atributos: $($it.Attributes))" -ForegroundColor Yellow
+      Write-Host "[AVISO] $n -> deberia estar oculto (atributos: $($it.Attributes))" -ForegroundColor Yellow
+    }
+  } else {
+    Write-Host "[N/A] $n -> no existe" -ForegroundColor Gray
+  }
+}
+
+foreach ($n in $deberianEstarVisibles) {
+  $p = Join-Path $Drive $n
+  if (Test-Path $p) {
+    $it = Get-Item -LiteralPath $p -Force
+    $isHidden = ($it.Attributes -band [System.IO.FileAttributes]::Hidden) -ne 0
+    if (-not $isHidden) {
+      Write-Host "[OK] $n -> visible (correcto)" -ForegroundColor Green
+    } else {
+      Write-Host "[AVISO] $n -> esta oculto pero deberia ser visible (atributos: $($it.Attributes))" -ForegroundColor Yellow
     }
   } else {
     Write-Host "[N/A] $n -> no existe" -ForegroundColor Gray
