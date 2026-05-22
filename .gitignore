@@ -43,6 +43,15 @@ pocketbase/maintenance/logs/
 # Cada PC instalada lo sobrescribe localmente via INSTALAR.bat; ese sobrescrito
 # no se commitea porque normalmente trabajamos en el repo en modo desarrollo.
 
+# system_health.json lo regenera la tarea FCEA-Chequeo-Salud al login + cada 30 min
+# en cada PC instalada (ver pocketbase/maintenance/check_system_health.ps1). Sus
+# valores son especificos de la maquina (GB libres, dias desde backup, etc.), por
+# lo que NO deben quedar trackeados. En instalaciones nuevas el componente
+# SystemHealthIndicator muestra brevemente "Esperando primer chequeo..." hasta
+# que la tarea programada genere el archivo (1-2 minutos tras el primer login).
+public/system_health.json
+dist/system_health.json
+
 # Archivos sueltos de prueba / temporales
 *.tmp
 *.bak
