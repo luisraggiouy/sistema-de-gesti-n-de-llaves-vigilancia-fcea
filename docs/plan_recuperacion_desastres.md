@@ -27,6 +27,18 @@ menos de 3 horas, con la última foto disponible de los datos.
 | **RPO** (Recovery Point Objective) | **≤ 7 días** | Datos perdidos como máximo (si se cumple la actualización semanal) |
 | Pérdida sin actualización | 1 día / día sin actualizar | Sin política semanal el RPO se degrada linealmente |
 
+> **Importante — qué NO se borra durante el mantenimiento automático:** El
+> backup diario solo elimina **archivos ZIP de backup obsoletos** (>14 días)
+> de la carpeta `backups\` de la cabina, para liberar espacio en disco. La
+> **base de datos productiva** (`pocketbase\pb_data\data.db`), el historial
+> de movimientos, usuarios, vigilantes, autorizaciones, objetos olvidados
+> con sus fotos y la agenda **no se borran nunca**. El procedimiento DRP
+> descrito a continuación restaura el último estado de `pb_data\` que viaja
+> dentro del pendrive INSTALADOR DRP (de ahí la importancia de la
+> actualización semanal). Ver
+> [`guia_mantenimiento_paso_a_paso.md`](./guia_mantenimiento_paso_a_paso.md) § 1.1
+> para el detalle exhaustivo de la política de retención.
+
 ---
 
 ## 3. Inventario mínimo de continuidad
@@ -36,7 +48,7 @@ Decanato, oficina alterna, domicilio del responsable o bóveda) el
 siguiente kit:
 
 ### Kit obligatorio
-- 🔑 **1 pendrive INSTALADOR DRP** (16 GB recomendado), actualizado
+- **1 pendrive INSTALADOR DRP** (16 GB recomendado), actualizado
   semanalmente. Contiene:
   - Código fuente completo del sistema
   - `pb_data\` con TODOS los datos productivos al día del último backup
@@ -46,11 +58,11 @@ siguiente kit:
   - Documentación completa
 
 ### Kit recomendado adicional
-- 🔑 **1 pendrive RECUPERACIÓN** (8 GB), regenerado mensualmente.
-- 🔑 **1 pendrive CÓDIGO FUENTE** (cualquier capacidad), regenerado
+- **1 pendrive RECUPERACIÓN** (8 GB), regenerado mensualmente.
+- **1 pendrive CÓDIGO FUENTE** (cualquier capacidad), regenerado
   cuando hay cambios mayores. Custodia institucional permanente.
-- 🔌 **1 switch Ethernet de 5 puertos** + 5 cables RJ-45 de 2 m.
-- 📋 **Cuaderno físico de movimientos** (registro paralelo manual de las
+- **1 switch Ethernet de 5 puertos** + 5 cables RJ-45 de 2 m.
+- **Cuaderno físico de movimientos** (registro paralelo manual de las
   últimas semanas, para recargar los datos perdidos entre el último
   backup y el incidente).
 

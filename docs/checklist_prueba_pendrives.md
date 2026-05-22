@@ -172,12 +172,12 @@ Solo si hay 3 PCs disponibles en una LAN.
 
 El esquema de pendrives se considera **aprobado** si:
 
-- ✅ Los 3 pendrives se generan sin errores.
-- ✅ La instalación en PC limpia funciona en modo Desarrollo.
-- ✅ La recuperación restaura un sistema con `pb_data` perdido.
-- ✅ El código fuente se puede levantar en otra PC.
-- ✅ El desinstalador preserva los datos y limpia el sistema.
-- ✅ La reinstalación + restauración manual de `pb_data` reproduce el
+- Los 3 pendrives se generan sin errores.
+- La instalación en PC limpia funciona en modo Desarrollo.
+- La recuperación restaura un sistema con `pb_data` perdido.
+- El código fuente se puede levantar en otra PC.
+- El desinstalador preserva los datos y limpia el sistema.
+- La reinstalación + restauración manual de `pb_data` reproduce el
   estado anterior.
 
 ---

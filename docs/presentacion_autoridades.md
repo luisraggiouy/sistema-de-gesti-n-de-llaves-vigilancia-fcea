@@ -72,11 +72,11 @@ El sistema fue **desarrollado íntegramente por la Facultad**, con código propi
 
 El sistema opera como un **appliance físico completamente aislado**:
 
-- ✅ **Sin conexión a internet** — los datos nunca salen del edificio
-- ✅ **Sin integración con la red interna** de la Facultad — no hay superficie de ataque
-- ✅ **Base de datos local** — toda la información reside en el propio dispositivo
-- ✅ **Acceso por roles** — vigilantes, terminal de usuario y dashboard tienen permisos diferenciados
-- ✅ **Sin datos sensibles** — solo se almacena nombre, celular y tipo de usuario
+- **Sin conexión a internet** — los datos nunca salen del edificio
+- **Sin integración con la red interna** de la Facultad — no hay superficie de ataque
+- **Base de datos local** — toda la información reside en el propio dispositivo
+- **Acceso por roles** — vigilantes, terminal de usuario y dashboard tienen permisos diferenciados
+- **Sin datos sensibles** — solo se almacena nombre, celular y tipo de usuario
 
 Los datos están **más seguros que en un cuaderno físico** que cualquiera puede hojear.
 

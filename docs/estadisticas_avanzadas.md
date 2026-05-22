@@ -32,7 +32,7 @@ El sistema ofrece tres tipos diferentes de visualizaciones estadísticas para an
 ### 3. Gráficos de Línea Temporal
 
 - **Funcionalidad**: Muestran la evolución de la actividad a lo largo del tiempo por turno
-- **Características**: 
+- **Características**:
   - Líneas separadas para cada turno (Matutino, Vespertino, Nocturno)
   - Línea adicional para el total de operaciones
 - **Uso recomendado**: Ideal para detectar patrones temporales, picos de actividad o evaluar tendencias

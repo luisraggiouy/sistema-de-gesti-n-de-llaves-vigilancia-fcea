@@ -1,9 +1,9 @@
 # Especificacion de Requisitos de Software (SRS)
 ## Sistema de Gestion de Llaves - FCEA UdelaR
 
-**Version:** 5.1  
-**Fecha:** Mayo 2026  
-**Elaborado por:** Luis Raggio  
+**Version:** 5.1
+**Fecha:** Mayo 2026
+**Elaborado por:** Luis Raggio
 **Institucion:** Facultad de Ciencias Economicas y de Administracion - Universidad de la Republica
 
 ---
@@ -1640,7 +1640,7 @@ RECUPERACION_SISTEMA_LLAVES_FCEA\
 |---------|-------|-------|---------|
 | 1.0 | Enero 2026 | Luis Raggio | Version inicial |
 | 2.0 | Enero 2026 | Luis Raggio | Agregado modulo Dashboard |
-| 3.0 | Enero 2026 |  Luis Raggio | Sistema de turnos y vigilantes |
+| 3.0 | Enero 2026 | Luis Raggio | Sistema de turnos y vigilantes |
 | 3.5 | Febrero 2026 | Luis Raggio | Historial y exportacion |
 | 3.6 | Febrero 2026 | Luis Raggio | Documentacion completa SRS |
 | 4.0 | Abril 2026 | Equipo Desarrollo | Actualización completa: respaldos 52 semanas, sistema pendrive, encabezado bienvenida, etc. |

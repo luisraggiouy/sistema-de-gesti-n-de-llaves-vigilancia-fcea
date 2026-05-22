@@ -1,6 +1,6 @@
 # Índice de documentación – v2.0
 
-## 🆕 Documentación principal (v2.0)
+##  Documentación principal (v2.0)
 
 | Documento                                       | Para qué sirve                                   |
 |-------------------------------------------------|--------------------------------------------------|
@@ -8,7 +8,7 @@
 | [`INSTALACION.md`](./INSTALACION.md)            | Despliegue paso a paso (1 PC o 3 PCs)            |
 | [`OPERACION.md`](./OPERACION.md)                | Día a día: encendido, backups, watchdog, troubleshooting |
 
-## 🔐 Funcionalidades y seguridad
+##  Funcionalidades y seguridad
 
 | Documento                                                                   | Contenido                                  |
 |-----------------------------------------------------------------------------|--------------------------------------------|
@@ -16,14 +16,14 @@
 | [`seguridad_identificacion_usuarios.md`](./seguridad_identificacion_usuarios.md) | Política de identificación de usuarios |
 | [`funcionalidad_autorizaciones.md`](./funcionalidad_autorizaciones.md)       | Flujo de autorizaciones                    |
 
-## 📊 Reportes y datos
+##  Reportes y datos
 
 | Documento                                                          | Contenido                            |
 |--------------------------------------------------------------------|--------------------------------------|
 | [`estadisticas_avanzadas.md`](./estadisticas_avanzadas.md)         | Gráficos avanzados del Dashboard     |
 | [`instructivo_acceso_dashboard.md`](./instructivo_acceso_dashboard.md) | Cómo entrar al Dashboard         |
 
-## 🛠️ Mantenimiento y continuidad
+##  Mantenimiento y continuidad
 
 | Documento                                                                   | Contenido                                        |
 |-----------------------------------------------------------------------------|--------------------------------------------------|
@@ -32,7 +32,7 @@
 | [`guia_mantenimiento_paso_a_paso.md`](./guia_mantenimiento_paso_a_paso.md)   | Procedimientos manuales detallados (referencia ante alertas) |
 | [`checklist_prueba_pendrives.md`](./checklist_prueba_pendrives.md)           | Plan de pruebas de los 3 pendrives + desinstalador |
 
-## 📋 Otros
+##  Otros
 
 | Documento                                                | Contenido                                       |
 |----------------------------------------------------------|-------------------------------------------------|

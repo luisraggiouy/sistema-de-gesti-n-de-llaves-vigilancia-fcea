@@ -87,6 +87,28 @@ Esto registra 3 tareas programadas:
 > Las terminales solo necesitan `FCEA-Sistema-Llaves-AutoStart`; no instalan
 > watchdog ni backup (los scripts se autoexcluyen al detectar `rol != monitor`).
 
+### 3.1. Qué se elimina y qué NO se elimina con el mantenimiento automático
+
+La retención por defecto del backup es de **14 días**. **Lo único que se borra
+automáticamente** son los **archivos ZIP de la carpeta `backups\`** con más de
+14 días de antigüedad (para que la carpeta no crezca indefinidamente).
+
+**Lo que NO se borra nunca con el mantenimiento automático:**
+
+- ❌ La base de datos productiva (`pocketbase\pb_data\data.db` y archivos asociados)
+- ❌ El historial de solicitudes, entregas, devoluciones e intercambios de llaves
+- ❌ Los registros de autorizaciones de acceso
+- ❌ Los objetos olvidados y sus fotos
+- ❌ Los usuarios registrados, vigilantes y catálogo de llaves
+- ❌ Las anotaciones de la agenda diaria
+- ❌ Los logs de operación de PocketBase
+
+Los ZIPs son únicamente **copias de seguridad** del estado de `pb_data\` en un
+momento dado; al eliminar los más viejos sólo se libera espacio en disco, los
+datos productivos permanecen intactos. Para retención de largo plazo (años) se
+usa el archivado anual a pendrive permanente (ver
+[`guia_mantenimiento_paso_a_paso.md`](./guia_mantenimiento_paso_a_paso.md) § 5.1).
+
 ---
 
 ## 4. Verificar la instalación

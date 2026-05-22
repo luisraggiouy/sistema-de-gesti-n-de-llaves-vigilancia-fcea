@@ -45,7 +45,7 @@ Si el vigilante escribe en los campos de búsqueda, el listado se filtra en tiem
 | Llave / Lugar | Busca por nombre del lugar autorizado |
 
 **Resultado de búsqueda:**
-- ✅ Verde con ícono de escudo: se encontraron autorizaciones
+- Verde con ícono de escudo: se encontraron autorizaciones
 - ❌ Rojo con ícono de escudo tachado: no hay autorización registrada
 
 Cada tarjeta de autorización muestra:
@@ -65,10 +65,10 @@ Al hacer clic en **+ Nueva** o en el ícono de edición de una tarjeta, se abre 
 
 | Campo | Obligatorio | Descripción |
 |-------|-------------|-------------|
-| Nombre de la persona | ✅ | Nombre completo |
+| Nombre de la persona | | Nombre completo |
 | CI | No | Cédula de identidad sin puntos ni guiones |
-| Llave / Lugar autorizado | ✅ | Nombre del lugar o llave |
-| Autorizado por | ✅ | Nombre y cargo de quien autoriza (ej: "Director IESTA Juan González") |
+| Llave / Lugar autorizado | | Nombre del lugar o llave |
+| Autorizado por | | Nombre y cargo de quien autoriza (ej: "Director IESTA Juan González") |
 | Fecha de autorización | No | Por defecto: fecha actual |
 | Email de referencia | No | Correo del autorizante para respaldo |
 | Vigencia desde | No | Fecha de inicio de la vigencia |
