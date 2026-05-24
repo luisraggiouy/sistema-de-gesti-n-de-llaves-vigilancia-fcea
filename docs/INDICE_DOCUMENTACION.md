@@ -41,7 +41,3 @@
 
 ---
 
-> **Nota sobre v1.x:** La documentación de la arquitectura monolítica
-> (instalación en 1 sola PC con kiosk dual) quedó **obsoleta** y fue removida
-> en v2.0. Para acceder a ella, ver el tag `v1.0-monolitico-pre-3pc` del
-> repositorio en GitHub.
