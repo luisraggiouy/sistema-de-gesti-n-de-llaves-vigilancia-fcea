@@ -70,39 +70,96 @@ function Get-LocalIPv4 {
 }
 
 # ------------------------------------------------------------
-# Helper: ¿hay un PocketBase corriendo en alguna IP de la red?
-# Hace un ping rapido a las IPs candidatas y prueba el puerto 8090.
+# Helper: descubrir el servidor PocketBase en la red local.
+#
+# Estrategia (en orden):
+#   1) Probar IPs "preferidas" (.10, .1, .100, .50) con timeout corto.
+#   2) Si nada respondio, escanear TODO el segmento /24 en paralelo
+#      (255 IPs, ~3 seg total con timeout de 200ms por IP).
+#
+# Cualquier host que tenga abierto el puerto TCP 8090 se considera
+# servidor candidato. Devuelve la IP o $null.
 # ------------------------------------------------------------
+function Test-PuertoAbierto {
+    param([string]$Ip, [int]$Puerto = 8090, [int]$TimeoutMs = 300)
+    try {
+        $tcp = New-Object System.Net.Sockets.TcpClient
+        $iar = $tcp.BeginConnect($Ip, $Puerto, $null, $null)
+        $ok  = $iar.AsyncWaitHandle.WaitOne($TimeoutMs, $false)
+        $conectado = ($ok -and $tcp.Connected)
+        $tcp.Close()
+        return $conectado
+    } catch {
+        return $false
+    }
+}
+
 function Find-PocketBaseEnRed {
-    param([string]$LocalIp)
+    param(
+        [string]$LocalIp,
+        [switch]$EscaneoCompleto   # Si true, recorre toda la /24 (mas lento, ~3-5 seg)
+    )
 
     if (-not $LocalIp) { return $null }
     if ($LocalIp -notlike '192.168.*' -and $LocalIp -notlike '10.*' -and $LocalIp -notlike '172.*') {
         return $null
     }
 
-    # Inferir prefijo /24 de la red local
     $parts = $LocalIp.Split('.')
     if ($parts.Count -ne 4) { return $null }
     $prefix = "$($parts[0]).$($parts[1]).$($parts[2])"
+    $miOcteto = [int]$parts[3]
 
-    # Candidatos comunes para el servidor (en este orden)
+    # ---- Fase 1: candidatos preferidos (rapido) ----
     $candidatos = @("${prefix}.10","${prefix}.1","${prefix}.100","${prefix}.50")
-
     foreach ($ip in $candidatos) {
         if ($ip -eq $LocalIp) { continue }
-        try {
-            $tcp = New-Object System.Net.Sockets.TcpClient
-            $iar = $tcp.BeginConnect($ip, 8090, $null, $null)
-            $ok  = $iar.AsyncWaitHandle.WaitOne(400, $false)
-            if ($ok -and $tcp.Connected) {
-                $tcp.Close()
-                return $ip
-            }
-            $tcp.Close()
-        } catch {}
+        if (Test-PuertoAbierto -Ip $ip -Puerto 8090 -TimeoutMs 400) {
+            return $ip
+        }
     }
-    return $null
+
+    if (-not $EscaneoCompleto) { return $null }
+
+    # ---- Fase 2: barrido /24 en paralelo (con runspaces) ----
+    # Lanzamos hasta 50 sockets simultaneos para que el escaneo total
+    # de las 255 IPs tome ~3-5 segundos en lugar de minutos.
+    try {
+        $pool = [runspacefactory]::CreateRunspacePool(1, 50)
+        $pool.Open()
+        $jobs = @()
+
+        for ($i = 1; $i -le 254; $i++) {
+            if ($i -eq $miOcteto) { continue }
+            $ipTest = "${prefix}.$i"
+            $ps = [powershell]::Create().AddScript({
+                param($ip, $port, $timeout)
+                try {
+                    $tcp = New-Object System.Net.Sockets.TcpClient
+                    $iar = $tcp.BeginConnect($ip, $port, $null, $null)
+                    if ($iar.AsyncWaitHandle.WaitOne($timeout, $false) -and $tcp.Connected) {
+                        $tcp.Close()
+                        return $ip
+                    }
+                    $tcp.Close()
+                } catch {}
+                return $null
+            }).AddArgument($ipTest).AddArgument(8090).AddArgument(200)
+            $ps.RunspacePool = $pool
+            $jobs += [PSCustomObject]@{ PS = $ps; Handle = $ps.BeginInvoke() }
+        }
+
+        $encontrada = $null
+        foreach ($j in $jobs) {
+            $res = $j.PS.EndInvoke($j.Handle)
+            if ($res -and -not $encontrada) { $encontrada = "$res" }
+            $j.PS.Dispose()
+        }
+        $pool.Close(); $pool.Dispose()
+        return $encontrada
+    } catch {
+        return $null
+    }
 }
 
 # ------------------------------------------------------------
@@ -192,11 +249,23 @@ if (-not $resultado.rol -and $localIp) {
     }
 }
 
-# 4) Por busqueda en la red: si hay un servidor activo, soy terminal
+# 4) Por busqueda en la red: si hay un servidor activo, soy terminal.
+#    Hacemos ESCANEO COMPLETO de la /24 - tarda 3-5 segundos pero
+#    asi NO hay que preguntarle la IP al usuario en las terminales.
 if (-not $resultado.rol) {
-    $servidorRemoto = Find-PocketBaseEnRed -LocalIp $localIp
+    $servidorRemoto = Find-PocketBaseEnRed -LocalIp $localIp -EscaneoCompleto
     if ($servidorRemoto) {
         $resultado.rol         = 'terminal-a'
+        $resultado.ip_servidor = $servidorRemoto
+    }
+}
+
+# 4b) Si ya sabemos que somos terminal-* o dashboard pero todavia no
+#     tenemos IP del servidor (porque vino por hostname/IP fija),
+#     hacer ESCANEO COMPLETO para descubrirla solos.
+if ($resultado.rol -and $resultado.rol -ne 'monitor' -and -not $resultado.ip_servidor) {
+    $servidorRemoto = Find-PocketBaseEnRed -LocalIp $localIp -EscaneoCompleto
+    if ($servidorRemoto) {
         $resultado.ip_servidor = $servidorRemoto
     }
 }

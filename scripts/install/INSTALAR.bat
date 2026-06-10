@@ -28,8 +28,28 @@ REM ============================================================
 setlocal EnableDelayedExpansion
 cd /d "%~dp0\..\.."
 
-REM Guardar la ruta del pendrive (raiz del lanzador externo)
-set "PENDRIVE_ROOT=%~dp0..\..\.."
+REM ------------------------------------------------------------
+REM  Determinar la ruta del pendrive
+REM ------------------------------------------------------------
+REM  Caso A: el wrapper externo (INSTALAR.ps1 v3.0) ya nos paso
+REM          la ruta real del pendrive via FCEA_PENDRIVE_ROOT.
+REM          Esto es OBLIGATORIO cuando este .bat se invoca desde
+REM          la copia ya instalada en C:\sistema-llaves-fcea\ ya
+REM          que en ese caso %~dp0..\..\.. apunta a C:\ y NO al
+REM          pendrive real.
+REM  Caso B: no hay variable - usar la heuristica historica
+REM          (3 niveles arriba del .bat).
+REM ------------------------------------------------------------
+if defined FCEA_PENDRIVE_ROOT (
+  set "PENDRIVE_ROOT=%FCEA_PENDRIVE_ROOT%"
+  echo  [INFO] Usando pendrive pasado por wrapper: %FCEA_PENDRIVE_ROOT%
+) else (
+  set "PENDRIVE_ROOT=%~dp0..\..\.."
+)
+
+REM Normalizar (sacar trailing backslash si lo hay)
+if "%PENDRIVE_ROOT:~-1%"=="\" set "PENDRIVE_ROOT=%PENDRIVE_ROOT:~0,-1%"
+
 if exist "%PENDRIVE_ROOT%\LEEME.txt" (
   set "DESDE_PENDRIVE=1"
 ) else (
@@ -139,7 +159,11 @@ if /i "%FCEA_ROL%"=="monitor"    set "ROL=S"
 if /i "%FCEA_ROL%"=="terminal-a" set "ROL=A"
 if /i "%FCEA_ROL%"=="terminal-b" set "ROL=B"
 if /i "%FCEA_ROL%"=="dashboard"  set "ROL=D"
-if defined FCEA_IP_SERVIDOR ( set "IP_SERVIDOR=%FCEA_IP_SERVIDOR%" ) else ( set "IP_SERVIDOR=127.0.0.1" )
+if defined FCEA_IP_SERVIDOR (
+  set "IP_SERVIDOR=%FCEA_IP_SERVIDOR%"
+) else (
+  set "IP_SERVIDOR=127.0.0.1"
+)
 if "%MODO%"=="2" goto MODO_ECONOMICA_AUTO
 if "%MODO%"=="3" goto MODO_MIXTA_AUTO
 if "%MODO%"=="4" goto MODO_IDEAL_AUTO
@@ -173,6 +197,7 @@ call :PERSISTIR_INSTALL_CONFIG "desarrollo" "%HW_TIPO%"
 call :INSTALAR_DEPENDENCIAS
 call :CONFIGURAR_SERVIDOR_LOCAL
 call :RESTAURAR_DATOS_PENDRIVE
+call :CONFIGURAR_INICIO_AUTO
 echo.
 echo  Modo desarrollo instalado.
 echo  - PocketBase en  : http://127.0.0.1:8090
@@ -181,6 +206,7 @@ echo                     o http://127.0.0.1:4173 ^(npm run preview^)
 echo.
 echo  En la UI veras un boton para alternar Monitor / Terminal
 echo  y el boton "Dashboard" visible (hardware="desarrollo").
+echo  - Inicio automatico al login: configurado.
 goto FIN
 
 REM ============================================================
@@ -226,25 +252,59 @@ set /p ROL="Rol [S/A/B/D]: "
 
 set IP_SERVIDOR=127.0.0.1
 if /i not "%ROL%"=="S" (
-  set /p IP_SERVIDOR="IP de la PC SERVIDOR en la red (ej. 192.168.50.10): "
+  echo.
+  echo  Buscando servidor FCEA en la red local automaticamente...
+  echo  ^(esto tarda unos 5-10 segundos - escaneo paralelo de la subred^)
+  set "IP_SERVIDOR_AUTO="
+  for /f "delims=" %%i in ('powershell -NoProfile -ExecutionPolicy Bypass -File "%REPO_ROOT%\scripts\lib\autodetectar_rol.ps1"') do (
+    for /f "tokens=3 delims=|" %%j in ("%%i") do set "IP_SERVIDOR_AUTO=%%j"
+  )
+  if defined IP_SERVIDOR_AUTO if not "!IP_SERVIDOR_AUTO!"=="" if not "!IP_SERVIDOR_AUTO!"=="127.0.0.1" (
+    echo.
+    echo  [OK] Servidor FCEA encontrado automaticamente en: !IP_SERVIDOR_AUTO!
+    echo.
+    set "IP_SERVIDOR=!IP_SERVIDOR_AUTO!"
+    set "CONFIRMAR_IP="
+    set /p CONFIRMAR_IP="Confirmar (Enter para aceptar, N para escribirla manualmente): "
+    if /i "!CONFIRMAR_IP!"=="N" (
+      set /p IP_SERVIDOR="IP de la PC SERVIDOR en la red (ej. 192.168.50.10): "
+    )
+  ) else (
+    echo.
+    echo  [!] No se encontro el servidor automaticamente.
+    echo      Asegurese de que la PC servidor este encendida y conectada al switch.
+    echo.
+    set /p IP_SERVIDOR="IP de la PC SERVIDOR en la red (ej. 192.168.50.10): "
+  )
 )
 
 :ROL_YA_DEFINIDO
 
 REM Resolver rol_id y url_pb segun la respuesta
+REM (Usamos if planos en lugar de "else if" porque CMD parsea mal
+REM  el patron ) else if ( con DelayedExpansion y rompe el resto del script.)
+set "ROL_VALIDO=0"
 if /i "%ROL%"=="S" (
-  set ROL_ID=monitor
-  set PB_URL=http://127.0.0.1:8090
-) else if /i "%ROL%"=="A" (
-  set ROL_ID=terminal-a
-  set PB_URL=http://!IP_SERVIDOR!:8090
-) else if /i "%ROL%"=="B" (
-  set ROL_ID=terminal-b
-  set PB_URL=http://!IP_SERVIDOR!:8090
-) else if /i "%ROL%"=="D" (
-  set ROL_ID=dashboard
-  set PB_URL=http://!IP_SERVIDOR!:8090
-) else (
+  set "ROL_ID=monitor"
+  set "PB_URL=http://127.0.0.1:8090"
+  set "ROL_VALIDO=1"
+)
+if /i "%ROL%"=="A" (
+  set "ROL_ID=terminal-a"
+  set "PB_URL=http://!IP_SERVIDOR!:8090"
+  set "ROL_VALIDO=1"
+)
+if /i "%ROL%"=="B" (
+  set "ROL_ID=terminal-b"
+  set "PB_URL=http://!IP_SERVIDOR!:8090"
+  set "ROL_VALIDO=1"
+)
+if /i "%ROL%"=="D" (
+  set "ROL_ID=dashboard"
+  set "PB_URL=http://!IP_SERVIDOR!:8090"
+  set "ROL_VALIDO=1"
+)
+if "!ROL_VALIDO!"=="0" (
   echo Rol invalido. Abortando.
   exit /b 1
 )
@@ -258,10 +318,18 @@ REM                              porque suele ser una PC aparte de reportes)
 set "HW_TIPO=tradicional"
 if "%MODO%"=="2" set "HW_TIPO=tradicional"
 if "%MODO%"=="3" (
-  if /i "%ROL%"=="S" ( set "HW_TIPO=tactil" ) else ( set "HW_TIPO=tradicional" )
+  if /i "%ROL%"=="S" (
+    set "HW_TIPO=tactil"
+  ) else (
+    set "HW_TIPO=tradicional"
+  )
 )
 if "%MODO%"=="4" (
-  if /i "%ROL%"=="D" ( set "HW_TIPO=tradicional" ) else ( set "HW_TIPO=tactil" )
+  if /i "%ROL%"=="D" (
+    set "HW_TIPO=tradicional"
+  ) else (
+    set "HW_TIPO=tactil"
+  )
 )
 
 REM Si el lanzador ya nos dio el hardware via FCEA_HW, lo respetamos
@@ -273,9 +341,9 @@ if defined FCEA_HW (
   echo.
   echo  Hardware detectado para este rol: !HW_TIPO!
   echo.
-  echo    [Enter] Aceptar el detectado (!HW_TIPO!)
-  echo    [T]     Forzar TACTIL       (kiosk pantalla completa)
-  echo    [R]     Forzar TRADICIONAL  (mouse+teclado)
+  echo    [Enter] Aceptar el detectado ^(!HW_TIPO!^)
+  echo    [T]     Forzar TACTIL       ^(kiosk pantalla completa^)
+  echo    [R]     Forzar TRADICIONAL  ^(mouse+teclado^)
   echo.
   set "HW_OVERRIDE="
   set /p HW_OVERRIDE="Confirmar hardware (Enter/T/R): "
@@ -423,94 +491,90 @@ if errorlevel 1 (
 goto :eof
 
 REM ============================================================
-REM  RESTAURAR_DATOS_PENDRIVE
-REM  Detecta si el pendrive trae pb_data productivo y, en ese
-REM  caso, lo restaura sobre la nueva instalacion.
+REM  RESTAURAR_DATOS_PENDRIVE (REESCRITO 2026-06-07)
+REM  REGLA DE ORO: NUNCA, BAJO NINGUNA CIRCUNSTANCIA, sobreescribir
+REM  datos vivos. Los datos productivos viven en
+REM  C:\ProgramData\FCEA-Sistema-Llaves\pb_data, FUERA de la
+REM  carpeta de instalacion. Esa carpeta:
+REM    - se preserva al reinstalar/desinstalar.
+REM    - solo se inicializa desde el pendrive si esta VACIA.
 REM ============================================================
 :RESTAURAR_DATOS_PENDRIVE
 echo.
 echo ============================================================
-echo  Verificando datos productivos en el pendrive...
+echo  Configurando ubicacion persistente de datos...
 echo ============================================================
 
+set "PERSIST_DIR=C:\ProgramData\FCEA-Sistema-Llaves"
+set "PERSIST_PBDATA=%PERSIST_DIR%\pb_data"
+set "PERSIST_PBBACKUPS=%PERSIST_DIR%\pb_backups"
 set "PENDRIVE_PBDATA=%PENDRIVE_ROOT%\sistema-llaves-fcea\pocketbase\pb_data"
 set "PENDRIVE_PBBACKUPS=%PENDRIVE_ROOT%\sistema-llaves-fcea\pocketbase\pb_backups"
 
+REM Crear estructura persistente si no existe
+if not exist "%PERSIST_DIR%"      mkdir "%PERSIST_DIR%"
+if not exist "%PERSIST_PBDATA%"   mkdir "%PERSIST_PBDATA%"
+if not exist "%PERSIST_PBBACKUPS%" mkdir "%PERSIST_PBBACKUPS%"
+
+REM Eliminar la pb_data vacia que pocketbase haya creado dentro de
+REM la carpeta de instalacion (asegura que solo exista la persistente).
+REM IMPORTANTE: el echo NO usa parentesis literales porque rompen
+REM el bloque if (...) en CMD ("... was unexpected at this time.").
+if exist "pocketbase\pb_data" (
+  echo Eliminando pb_data local. Los datos viven en %PERSIST_PBDATA%
+  rmdir /S /Q "pocketbase\pb_data" 2>nul
+)
+if exist "pocketbase\pb_backups" (
+  rmdir /S /Q "pocketbase\pb_backups" 2>nul
+)
+
+REM Decidir si hay que restaurar desde el pendrive
+set "HAY_PERSIST=0"
+if exist "%PERSIST_PBDATA%\data.db" set "HAY_PERSIST=1"
+
+if "%HAY_PERSIST%"=="1" (
+  echo.
+  echo  ============================================================
+  echo   [OK] DATOS PERSISTENTES YA EXISTEN EN %PERSIST_PBDATA%
+  echo  ============================================================
+  echo   NO se sobreescriben. El sistema usara estos datos vivos.
+  echo   Si querias reemplazarlos por el snapshot del pendrive,
+  echo   borra %PERSIST_PBDATA% manualmente y vuelve a instalar.
+  echo  ============================================================
+  goto :eof
+)
+
+REM No hay datos persistentes -> primera instalacion en esta PC.
+REM Si el pendrive trae datos, los usamos como semilla inicial.
 if not exist "%PENDRIVE_PBDATA%\data.db" (
-  echo No se detectaron datos productivos en el pendrive.
+  echo.
+  echo No hay datos persistentes y el pendrive no trae datos productivos.
   echo La instalacion arrancara con base de datos vacia.
   goto :eof
 )
 
 echo.
 echo  ============================================================
-echo   *** SE DETECTARON DATOS PRODUCTIVOS EN EL PENDRIVE ***
+echo   PRIMERA INSTALACION: SEMBRANDO DATOS DESDE EL PENDRIVE
 echo  ============================================================
 if exist "%PENDRIVE_ROOT%\ULTIMO_BACKUP.txt" (
   echo.
   type "%PENDRIVE_ROOT%\ULTIMO_BACKUP.txt"
 )
 echo.
-echo  Estos datos contienen TODOS los registros del sistema:
-echo    - Llaves / salones / oficinas
-echo    - Vigilantes con horarios y licencias
-echo    - Usuarios solicitantes y registrados
-echo    - Llaves frecuentes de cada usuario
-echo    - Historial completo de movimientos
-echo    - Autorizaciones (pendientes y aprobadas)
-echo    - Objetos olvidados
-echo    - Configuracion del sistema
-echo    - Archivos adjuntos (fotos, etc.)
-echo  ============================================================
-echo.
-
-REM Si el lanzador del pendrive seteo FCEA_RESTAURAR_AUTO=1, restaurar
-REM sin preguntar (instalacion 100%% desatendida).
-if defined FCEA_RESTAURAR_AUTO (
-  echo  [Modo automatico] Restaurando datos sin pedir confirmacion...
-  set "RESTAURAR=S"
-) else (
-  set /p RESTAURAR="Restaurar TODOS los datos del pendrive? [S/N] (default: S): "
-  if "!RESTAURAR!"=="" set RESTAURAR=S
-)
-
-if /i not "!RESTAURAR!"=="S" (
-  echo.
-  echo  [OMITIDO] Los datos NO se restauraron. El sistema arrancara
-  echo            con base de datos vacia.
-  echo            Puede restaurar manualmente mas tarde copiando:
-  echo              %PENDRIVE_PBDATA% -^> pocketbase\pb_data\
-  goto :eof
-)
-
-echo.
-echo Restaurando pb_data productivo...
-if exist pocketbase\pb_data (
-  REM Hacer un backup de la base vacia recien creada por si acaso
-  if not exist pocketbase\pb_data.vacio_inicial (
-    move pocketbase\pb_data pocketbase\pb_data.vacio_inicial >nul 2>&1
-  ) else (
-    rmdir /S /Q pocketbase\pb_data
-  )
-)
-mkdir pocketbase\pb_data
-robocopy "%PENDRIVE_PBDATA%" "pocketbase\pb_data" /MIR /NFL /NDL /NJH /NJS /NP >nul
+echo Copiando datos del pendrive a %PERSIST_PBDATA% ...
+robocopy "%PENDRIVE_PBDATA%" "%PERSIST_PBDATA%" /MIR /NFL /NDL /NJH /NJS /NP >nul
 
 if exist "%PENDRIVE_PBBACKUPS%" (
-  echo Restaurando pb_backups historicos...
-  if not exist pocketbase\pb_backups mkdir pocketbase\pb_backups
-  robocopy "%PENDRIVE_PBBACKUPS%" "pocketbase\pb_backups" /MIR /NFL /NDL /NJH /NJS /NP >nul
+  echo Copiando pb_backups historicos a %PERSIST_PBBACKUPS% ...
+  robocopy "%PENDRIVE_PBBACKUPS%" "%PERSIST_PBBACKUPS%" /MIR /NFL /NDL /NJH /NJS /NP >nul
 )
 
 echo.
 echo  ============================================================
-echo   [OK] DATOS PRODUCTIVOS RESTAURADOS CORRECTAMENTE
+echo   [OK] DATOS INICIALES SEMBRADOS EN %PERSIST_PBDATA%
 echo  ============================================================
-echo   Al iniciar el sistema vera todos los registros que tenia
-echo   al momento del ultimo backup del pendrive.
-echo.
-echo   Movimientos posteriores al backup deberan recargarse
-echo   manualmente desde el cuaderno fisico de respaldo.
+echo   A partir de ahora estos datos sobreviven a reinstalaciones.
 echo  ============================================================
 goto :eof
 
@@ -543,7 +607,7 @@ REM  esta ejecutandose" antes de que el sistema termine de arrancar.
 REM ------------------------------------------------------------
 set "HEALTH_CHECK=%REPO_ROOT%\pocketbase\maintenance\check_system_health.ps1"
 if exist "%HEALTH_CHECK%" (
-  echo Generando estado de salud inicial (modo PostInstall)...
+  echo Generando estado de salud inicial ^(modo PostInstall^)...
   powershell -NoProfile -ExecutionPolicy Bypass -File "%HEALTH_CHECK%" -PostInstall >nul 2>&1
 )
 goto :eof
