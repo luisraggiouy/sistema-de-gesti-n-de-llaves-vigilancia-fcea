@@ -9,9 +9,18 @@ un **monitor táctil resistivo 3nStar TCM008**.
 
 | PC  | RAM   | Monitor                    | Uso previsto                       |
 |-----|-------|----------------------------|------------------------------------|
-| PC1 | 8 GB  | 3nStar TCM008 (touch)      | **Monitor Vigilancia + Servidor**  |
-| PC2 | 8 GB  | Monitor común + M/T        | **Terminal-A** (usuarios)          |
+| PC1 | 8 GB  | Monitor común + M/T        | **Monitor Vigilancia + Servidor**  |
+| PC2 | 8 GB  | 3nStar TCM008 (touch)      | **Terminal-A** (usuarios)          |
 | PC3 | 8 GB  | 3nStar TCM008 (touch)      | **Terminal-B** (usuarios)          |
+
+> **Justificación del reparto**: el Monitor Vigilancia se usa 8 h por
+> día con filtros, búsquedas y edición de registros — es MUCHO más
+> productivo con teclado físico y mouse que con touch resistivo. Las
+> dos Terminales de usuario, en cambio, tienen UX simplísima
+> (identificarse → tocar llave → confirmar) y aprovechan perfectamente
+> el panel táctil. Además, PC1 (común) hostea también el servidor
+> PocketBase, minimizando reboots en la máquina crítica.
+
 
 > El TCM008 es un panel **resistivo**: NO soporta scroll por gesto y
 > NO despliega el teclado virtual del sistema automáticamente cuando
@@ -77,11 +86,23 @@ Componente **`TerminalScreensaver`** (`src/components/terminal/`):
 
 ## 3. `public/config.json` por PC
 
-**Terminal táctil (PC3):**
+**Monitor Vigilancia + Servidor (PC1, común con teclado + mouse):**
 ```json
 {
   "modo": "produccion",
-  "rol": "terminal-b",
+  "rol": "monitor",
+  "hardware": "tradicional",
+  "pocketbase_url": "http://127.0.0.1:8090",
+  "red": { "ip_servidor": "127.0.0.1", "ip_terminal_a": "192.168.1.11", "ip_terminal_b": "192.168.1.12" },
+  "ui": { "teclado_virtual_forzado": false, "tema": "claro" }
+}
+```
+
+**Terminal-A (PC2, touch TCM008):**
+```json
+{
+  "modo": "produccion",
+  "rol": "terminal-a",
   "hardware": "tactil",
   "pocketbase_url": "http://192.168.1.10:8090",
   "red": { "ip_servidor": "192.168.1.10", "ip_terminal_a": "192.168.1.11", "ip_terminal_b": "192.168.1.12" },
@@ -96,42 +117,19 @@ Componente **`TerminalScreensaver`** (`src/components/terminal/`):
 }
 ```
 
-**Terminal tradicional (PC2):**
-```json
-{
-  "modo": "produccion",
-  "rol": "terminal-a",
-  "hardware": "tradicional",
-  "pocketbase_url": "http://192.168.1.10:8090",
-  "red": { "ip_servidor": "192.168.1.10", "ip_terminal_a": "192.168.1.11", "ip_terminal_b": "192.168.1.12" },
-  "ui": { "teclado_virtual_forzado": false, "tema": "claro" }
-}
-```
+**Terminal-B (PC3, touch TCM008):** idéntico a Terminal-A pero cambiando `"rol": "terminal-b"`.
 
-**Monitor Vigilancia + Servidor (PC1):**
-```json
-{
-  "modo": "produccion",
-  "rol": "monitor",
-  "hardware": "tactil",
-  "pocketbase_url": "http://127.0.0.1:8090",
-  "red": { "ip_servidor": "127.0.0.1", "ip_terminal_a": "192.168.1.11", "ip_terminal_b": "192.168.1.12" },
-  "ui": {
-    "teclado_virtual_forzado": true,
-    "tema": "claro",
-    "scrollbar_ancha": true,
-    "screensaver_activo": false
-  }
-}
-```
+> El vigilante (PC1) usa teclado físico y mouse: NO se le monta teclado
+> virtual, NI scrollbar ancha, NI screensaver. Es Windows normal con
+> el Monitor Vigilancia a pantalla completa.
 
-> El screensaver se apaga en el Monitor Vigilancia (`screensaver_activo: false`)
-> porque el vigilante lo usa constantemente y el overlay sería molesto.
 
 ## 4. Configuración de Windows en las 2 PCs táctiles
 
 Ver `scripts/Fix-ModoTactil.ps1`. Ejecutar UNA vez como Administrador
-en las PCs con TCM008 (PC1 y PC3). Corrige:
+en las PCs con TCM008 (**PC2 y PC3**). **No ejecutar en PC1** (Vigilancia)
+— PC1 se usa con teclado físico y no requiere estos ajustes. Corrige:
+
 
 1. Desactiva el teclado virtual táctil del sistema (para que no se
    solape con el custom de la app).
@@ -145,15 +143,16 @@ Genera un backup `.reg` en la misma carpeta por si hay que revertir.
 ## 5. Cómo validar en el sitio (checklist rápido)
 
 - [ ] Las 3 PCs cargan `TerminalUsuario` / `MonitorVigilancia` sin errores.
-- [ ] En PC1 y PC3 (táctiles), al tocar la lista de llaves aparecen los botones ▲ / ▼.
-- [ ] En PC1 y PC3, al tocar un campo de texto se muestra SOLO el teclado
+- [ ] En PC2 y PC3 (táctiles), al tocar la lista de llaves aparecen los botones ▲ / ▼.
+- [ ] En PC2 y PC3, al tocar un campo de texto se muestra SOLO el teclado
       virtual custom (no el de Windows).
-- [ ] Después de 1 min sin uso, PC3 muestra el overlay de bienvenida.
-      PC1 (vigilancia) NO.
-- [ ] En PC2 (Terminal-A con teclado físico), NO aparecen botones ▲ / ▼
-      ni teclado virtual — se comporta exactamente como antes.
+- [ ] Después de 1 min sin uso, PC2 y PC3 muestran el overlay de bienvenida.
+- [ ] En PC1 (Vigilancia con teclado físico), NO aparecen botones ▲ / ▼
+      ni teclado virtual y NO aparece screensaver — se comporta como una
+      PC normal con la web del Monitor a pantalla completa.
 - [ ] Las 3 PCs comparten la misma agenda de usuarios y llaves
       (el polling de 3 s en `SolicitudesContext` funciona sobre la LAN).
+
 
 ## 6. Rollback rápido
 
