@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { TouchInput } from '@/components/ui/touch-input';
-
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TipoUsuario, tiposUsuario, DepartamentoTAS, departamentosTAS, UsuarioRegistrado } from '@/data/fceaData';
 import { useUsuariosRegistrados } from '@/hooks/useUsuariosRegistrados';
+import { useTouchUX } from '@/hooks/useTouchUX';
 import { User, Phone, Mail, UserCog, UserPlus, CheckCircle, Building2, Building } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -40,6 +39,26 @@ const esCelularValido = (celular: string) => {
 export function RegistrationModal({ open, onOpenChange, onRegistered }: RegistrationModalProps) {
   const { toast } = useToast();
   const { registrarUsuario, buscarPorCelular } = useUsuariosRegistrados();
+  const { isTouch, scrollbarAncha } = useTouchUX();
+
+  // Al recibir foco un input dentro del modal, el VirtualKeyboard del
+  // TouchInput se monta debajo y puede empujar el botón "Registrarse"
+  // fuera de vista. Hacemos scroll al input activo para que quede centrado
+  // sobre el teclado. Se dispara solo en modo táctil.
+  const handleFocusCapture = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (!isTouch) return;
+    const target = e.target as HTMLElement;
+    if (!target || (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA')) return;
+    // Damos tiempo al VirtualKeyboard a montarse (empuja layout) antes de
+    // hacer scroll, así el input queda centrado sobre el teclado.
+    window.setTimeout(() => {
+      try {
+        target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      } catch {
+        target.scrollIntoView();
+      }
+    }, 120);
+  };
 
   const [nombre, setNombre] = useState('');
   const [celular, setCelular] = useState('');
@@ -121,7 +140,13 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
+      <DialogContent
+        onFocusCapture={handleFocusCapture}
+        className={
+          "sm:max-w-md max-h-[85vh] overflow-y-auto " +
+          (scrollbarAncha ? "scrollbar-touch" : "")
+        }
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="w-5 h-5 text-primary" />
@@ -213,9 +238,17 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
               <SelectTrigger className="h-11">
                 <SelectValue placeholder="Seleccione tipo" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                className={scrollbarAncha ? "scrollbar-touch" : ""}
+              >
                 {tiposUsuario.map((tipo) => (
-                  <SelectItem key={tipo} value={tipo} className="py-3">{tipo}</SelectItem>
+                  <SelectItem
+                    key={tipo}
+                    value={tipo}
+                    className={isTouch ? "py-4 text-base" : "py-3"}
+                  >
+                    {tipo}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -235,13 +268,25 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
                   <SelectTrigger className="h-11">
                     <SelectValue placeholder="Seleccione departamento o sección" />
                   </SelectTrigger>
-                  <SelectContent className="max-h-60">
+                  <SelectContent
+                    className={
+                      (isTouch ? "max-h-[70vh] " : "max-h-60 ") +
+                      (scrollbarAncha ? "scrollbar-touch" : "")
+                    }
+                  >
                     {departamentosTAS.map((dep) => (
-                      <SelectItem key={dep} value={dep} className="py-2">{dep}</SelectItem>
+                      <SelectItem
+                        key={dep}
+                        value={dep}
+                        className={isTouch ? "py-4 text-base" : "py-2"}
+                      >
+                        {dep}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+
               {departamento === 'Otro' && (
                 <div className="space-y-2">
                   <Label htmlFor="reg-depto-otro" className="flex items-center gap-2">
