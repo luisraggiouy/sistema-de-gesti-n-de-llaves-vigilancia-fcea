@@ -1,10 +1,13 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
+import { TouchInput } from '@/components/ui/touch-input';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UsuarioRegistrado } from '@/data/fceaData';
 import { Phone, User, UserPlus, Check, Mail, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTouchUX } from '@/hooks/useTouchUX';
+
 
 interface UserSearchInputProps {
   onUserSelect: (usuario: UsuarioRegistrado) => void;
@@ -14,10 +17,12 @@ interface UserSearchInputProps {
 }
 
 export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, buscarUsuarios }: UserSearchInputProps) {
+  const { isTouch } = useTouchUX();
   const [busqueda, setBusqueda] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
 
   const sugerencias = useMemo(() => {
     if (busqueda.length < 2) return [];
@@ -111,14 +116,27 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
           ) : (
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           )}
-          <Input
-            ref={inputRef}
-            placeholder="Ingrese su numero de celular o su email..."
-            value={busqueda}
-            onChange={(e) => handleInputChange(e.target.value)}
-            onFocus={() => busqueda.length >= 2 && setShowSuggestions(true)}
-            className="pl-10 h-12 text-lg"
-          />
+          {isTouch ? (
+            <TouchInput
+              placeholder="Ingrese su numero de celular o su email..."
+              value={busqueda}
+              onChange={(v) => handleInputChange(v)}
+              onFocus={() => busqueda.length >= 2 && setShowSuggestions(true)}
+              className="pl-10 h-14 text-lg"
+              inputMode="text"
+              autoComplete="off"
+            />
+          ) : (
+            <Input
+              ref={inputRef}
+              placeholder="Ingrese su numero de celular o su email..."
+              value={busqueda}
+              onChange={(e) => handleInputChange(e.target.value)}
+              onFocus={() => busqueda.length >= 2 && setShowSuggestions(true)}
+              className="pl-10 h-12 text-lg"
+            />
+          )}
+
 
           {/* Advertencia si intenta buscar por nombre */}
           {tipoBusqueda === 'nombre' && busqueda.length >= 2 && (

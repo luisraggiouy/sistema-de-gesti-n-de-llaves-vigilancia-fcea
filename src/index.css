@@ -131,3 +131,61 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* ============================================================
+   UX táctil (monitores 3nStar TCM008 y similares)
+   ============================================================
+   Estas clases se activan condicionalmente desde `useTouchUX`
+   cuando `hardware === "tactil"` o `ui.scrollbar_ancha === true`
+   en `public/config.json`.
+
+   Objetivo: en monitores resistivos que NO soportan scroll por
+   gesto, la barra de scroll nativa del navegador debe ser gruesa
+   y de alto contraste para ser tocable con el dedo. */
+
+.scrollbar-touch::-webkit-scrollbar {
+  width: 25px;
+  height: 25px;
+}
+
+.scrollbar-touch::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.4);
+  border-radius: 12px;
+}
+
+.scrollbar-touch::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.6);
+  border-radius: 12px;
+  border: 3px solid hsl(var(--background));
+}
+
+.scrollbar-touch::-webkit-scrollbar-thumb:hover,
+.scrollbar-touch::-webkit-scrollbar-thumb:active {
+  background: hsl(var(--primary) / 0.85);
+}
+
+/* Firefox: propiedad estándar (no permite tanto detalle). */
+.scrollbar-touch {
+  scrollbar-width: auto;
+  scrollbar-color: hsl(var(--primary) / 0.6) hsl(var(--muted) / 0.4);
+}
+
+/* Animación de latido/pulso para el CTA del screensaver: mantiene
+   pixels en movimiento (previene DPMS off del monitor) y sirve
+   como pista visual de "toque acá". */
+@keyframes screensaver-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 0.92;
+  }
+}
+
+.animate-screensaver-pulse {
+  animation: screensaver-pulse 2s ease-in-out infinite;
+}
+
+

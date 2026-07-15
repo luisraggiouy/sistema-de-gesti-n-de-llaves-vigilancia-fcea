@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { TouchInput } from '@/components/ui/touch-input';
+
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TipoUsuario, tiposUsuario, DepartamentoTAS, departamentosTAS, UsuarioRegistrado } from '@/data/fceaData';
@@ -137,13 +139,15 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
               <User className="w-4 h-4 text-muted-foreground" />
               Nombre completo *
             </Label>
-            <Input
+            <TouchInput
               id="reg-nombre"
               placeholder="Ingrese su nombre"
               value={nombre}
-              onChange={(e) => setNombre(soloLetras(e.target.value))}
+              onChange={(v) => setNombre(soloLetras(v))}
               className="h-11"
+              autoComplete="off"
             />
+
           </div>
 
           {/* Celular */}
@@ -152,14 +156,17 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
               <Phone className="w-4 h-4 text-muted-foreground" />
               Número de celular
             </Label>
-            <Input
+            <TouchInput
               id="reg-celular"
               type="tel"
+              inputMode="tel"
               placeholder="094 123 456"
               value={celular}
-              onChange={(e) => setCelular(e.target.value)}
+              onChange={(v) => setCelular(v)}
               className={`h-11 ${celular && !celularValido ? 'border-destructive' : ''}`}
+              autoComplete="off"
             />
+
             {celular && !celularValido && (
               <p className="text-xs text-destructive">
                 Ingrese un número válido (ej: 094 123 456 o +54 9 11 1234 5678)
@@ -173,14 +180,17 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
               <Mail className="w-4 h-4 text-muted-foreground" />
               Correo electrónico
             </Label>
-            <Input
+            <TouchInput
               id="reg-email"
               type="email"
+              inputMode="email"
               placeholder="usuario@ejemplo.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(v) => setEmail(v)}
               className={`h-11 ${email && !emailValido ? 'border-destructive' : ''}`}
+              autoComplete="off"
             />
+
             {email && !emailValido && (
               <p className="text-xs text-destructive">Ingrese un email válido (ej: nombre@dominio.com)</p>
             )}
@@ -238,13 +248,15 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
                     <Building2 className="w-4 h-4 text-muted-foreground" />
                     Especifique el departamento o sección *
                   </Label>
-                  <Input
+                  <TouchInput
                     id="reg-depto-otro"
                     placeholder="Escriba el nombre del departamento o sección"
                     value={departamentoOtro}
-                    onChange={(e) => setDepartamentoOtro(e.target.value)}
+                    onChange={(v) => setDepartamentoOtro(v)}
                     className="h-11"
+                    autoComplete="off"
                   />
+
                 </div>
               )}
             </>
@@ -256,13 +268,15 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
                 <Building className="w-4 h-4 text-muted-foreground" />
                 Nombre de la empresa *
               </Label>
-              <Input
+              <TouchInput
                 id="reg-empresa"
                 placeholder="Ingrese el nombre de la empresa"
                 value={nombreEmpresa}
-                onChange={(e) => setNombreEmpresa(e.target.value)}
+                onChange={(v) => setNombreEmpresa(v)}
                 className="h-11"
+                autoComplete="off"
               />
+
             </div>
           )}
         </div>

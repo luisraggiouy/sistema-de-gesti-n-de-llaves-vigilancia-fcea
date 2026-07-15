@@ -45,8 +45,29 @@ export interface RuntimeConfig {
   ui: {
     teclado_virtual_forzado: boolean;
     tema: "claro" | "oscuro";
+    /**
+     * Ensancha las barras de scroll (ScrollArea + listas de terminal) para
+     * uso táctil. Especialmente útil con monitores resistivos como el
+     * 3nStar TCM008 que no soportan scroll por gesto y solo scrollean
+     * tocando la barra lateral. Por defecto true cuando hardware==="tactil".
+     */
+    scrollbar_ancha?: boolean;
+    /**
+     * Activa el screensaver / overlay de bienvenida en la Terminal.
+     * Cuando no hay interacción durante `screensaver_delay_ms`, se muestra
+     * un overlay a pantalla completa con el mensaje `screensaver_texto`.
+     * Objetivo: evitar que el usuario encuentre el monitor apagado sin
+     * saber cómo prenderlo, manteniendo pixels vivos y dando una pista
+     * visual clara de "toque para continuar".
+     */
+    screensaver_activo?: boolean;
+    /** Milisegundos de inactividad antes de mostrar el overlay. Default 60000. */
+    screensaver_delay_ms?: number;
+    /** Texto del overlay. Default "¡BIENVENIDO/A! TOQUE LA PANTALLA PARA SOLICITAR SU/S LLAVES". */
+    screensaver_texto?: string;
   };
 }
+
 
 /**
  * Configuración por defecto usada si `config.json` no se puede cargar

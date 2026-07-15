@@ -9,6 +9,8 @@ import { RequestConfirmation } from '@/components/terminal/RequestConfirmation';
 import { RequestSuccess } from '@/components/terminal/RequestSuccess';
 import { RegistrationModal } from '@/components/terminal/RegistrationModal';
 import { ExchangeConfirmation } from '@/components/terminal/ExchangeConfirmation';
+import { TerminalScreensaver } from '@/components/terminal/TerminalScreensaver';
+
 import { Lugar, UsuarioRegistrado } from '@/data/fceaData';
 import { useHistorialLlaves } from '@/hooks/useHistorialLlaves';
 import { useUsuariosRegistrados } from '@/hooks/useUsuariosRegistrados';
@@ -313,6 +315,14 @@ export default function TerminalUsuario() {
           onConfirmar={handleExchangeConfirm}
         />
       )}
+
+      {/* Screensaver / overlay de bienvenida. En hardware táctil se muestra
+          tras N segundos de inactividad y evita que el monitor se apague
+          sin que el próximo usuario sepa cómo prenderlo. En hardware
+          tradicional (o desarrollo) el componente no renderiza nada. */}
+      <TerminalScreensaver />
     </div>
   );
 }
+
+

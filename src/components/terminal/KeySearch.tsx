@@ -1,8 +1,11 @@
 import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
+import { TouchInput } from '@/components/ui/touch-input';
+import { ScrollableList } from '@/components/ui/scrollable-list';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   tiposLugar, 
@@ -135,12 +138,14 @@ export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest, tipoUs
       <div className="space-y-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <Input
+          <TouchInput
             placeholder="Buscar por nombre o tipo..."
             value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
+            onChange={(v) => setBusqueda(v)}
             className="pl-10 h-12 text-lg"
+            autoComplete="off"
           />
+
         </div>
         
         <div className="flex gap-3">
@@ -170,9 +175,10 @@ export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest, tipoUs
         </div>
       </div>
 
-      {/* Lista de llaves */}
-      <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+      {/* Lista de llaves — ScrollableList: en modo táctil muestra botones flotantes ▲/▼ y scrollbar ancha. */}
+      <ScrollableList className="space-y-2 max-h-80 pr-1">
         {lugaresFiltrados.length === 0 ? (
+
           <p className="text-center text-muted-foreground py-8">
             No se encontraron llaves con esos criterios
           </p>
@@ -278,11 +284,12 @@ export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest, tipoUs
             );
           })
         )}
-      </div>
-      
+      </ScrollableList>
+
       <p className="text-sm text-muted-foreground text-center">
         Mostrando {lugaresFiltrados.length} de {lugaresDisponibles.length} llaves
       </p>
+
     </div>
   );
 }
