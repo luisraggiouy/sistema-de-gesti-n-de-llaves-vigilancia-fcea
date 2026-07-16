@@ -364,6 +364,7 @@ if /i "%ROL%"=="S" (
   call :RESTAURAR_DATOS_PENDRIVE
   call :CONFIGURAR_MANTENIMIENTO_AUTO
   call :CONFIGURAR_INICIO_AUTO
+  call :APLICAR_FIX_TACTIL "!HW_TIPO!"
   echo.
   echo  Servidor instalado correctamente.
   echo  - PocketBase escucha en: http://0.0.0.0:8090
@@ -375,6 +376,7 @@ if /i "%ROL%"=="S" (
 ) else (
   call :INSTALAR_DEPENDENCIAS
   call :CONFIGURAR_INICIO_AUTO
+  call :APLICAR_FIX_TACTIL "!HW_TIPO!"
   echo.
   echo  Terminal !ROL_ID! instalada correctamente.
   echo  - Apuntando a PocketBase: !PB_URL!
@@ -384,6 +386,7 @@ if /i "%ROL%"=="S" (
 )
 
 goto FIN
+
 
 REM ============================================================
 REM  SUBRUTINAS
@@ -632,6 +635,49 @@ if errorlevel 1 (
   echo [ADVERTENCIA] No se pudo registrar el inicio automatico.
   echo               Ejecute manualmente como Administrador:
   echo                 powershell -ExecutionPolicy Bypass -File "%CFG_AUTO%"
+)
+goto :eof
+
+REM ============================================================
+REM  APLICAR_FIX_TACTIL
+REM  Args: %1 = hardware ("tactil" / "tradicional" / "desarrollo")
+REM
+REM  Si el hardware detectado es "tactil", aplica Fix-ModoTactil.ps1:
+REM    - Desactiva el teclado virtual de Windows (que solapa al de la app)
+REM    - Desactiva el "Modo Tablet" de Windows 10/11
+REM    - Desactiva gestos Windows Ink (press-and-hold = click derecho, etc.)
+REM    - Impide que Windows apague el monitor por inactividad
+REM    - Oculta el boton del teclado tactil de la barra de tareas
+REM
+REM  Es idempotente y guarda backup del registro previo en scripts\.
+REM  Si el hardware NO es tactil, es un no-op (no toca nada del sistema).
+REM ============================================================
+:APLICAR_FIX_TACTIL
+if /i not "%~1"=="tactil" (
+  goto :eof
+)
+echo.
+echo ============================================================
+echo  Aplicando configuracion tactil de Windows ^(Fix-ModoTactil^)
+echo ============================================================
+set "FIX_TACTIL=%REPO_ROOT%\scripts\Fix-ModoTactil.ps1"
+if not exist "%FIX_TACTIL%" (
+  echo [AVISO] No se encontro %FIX_TACTIL%. Omito.
+  echo         Si el teclado virtual de Windows aparece al tocar un input,
+  echo         ejecute manualmente como Administrador:
+  echo           powershell -ExecutionPolicy Bypass -File "%FIX_TACTIL%"
+  goto :eof
+)
+powershell -NoProfile -ExecutionPolicy Bypass -File "%FIX_TACTIL%"
+if errorlevel 1 (
+  echo [ADVERTENCIA] Fix-ModoTactil.ps1 termino con error.
+  echo               El sistema igual funciona pero podria aparecer el
+  echo               teclado virtual de Windows sobre el de la app.
+  echo               Ejecute manualmente como Administrador:
+  echo                 powershell -ExecutionPolicy Bypass -File "%FIX_TACTIL%"
+) else (
+  echo  [OK] Configuracion tactil de Windows aplicada.
+  echo       Reiniciar la PC hara que TODOS los cambios tengan efecto.
 )
 goto :eof
 
