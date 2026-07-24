@@ -1,6 +1,7 @@
 ﻿import PocketBase from 'pocketbase';
 import { create } from 'zustand';
 import { DEFAULT_CONFIG, getRuntimeConfig, loadRuntimeConfig } from '@/lib/runtimeConfig';
+import { registrarError } from '@/lib/errorLog';
 
 /**
  * Cliente de PocketBase.
@@ -107,6 +108,30 @@ pb.afterSend = (response, data) => {
       useConnectionStore.getState().setConnected(false);
       startReconnectionAttempts();
     }
+    // Registrar cualquier error de red / 5xx en el errorLog
+    // para que aparezca en el DiagnosticoModal (kioskos sin DevTools).
+    try {
+      registrarError('pb.afterSend', {
+        status: response.status,
+        url: response.url,
+        message: `Fallo de red o servidor (${response.status})`,
+        data,
+      });
+    } catch { /* nunca romper la respuesta */ }
+  } else if (!response.ok) {
+    // 4xx: NO es "desconectado" (el server contesta), pero es un error
+    // real de la request (validacion, permisos, not found...) que hay
+    // que capturar SI o SI para poder diagnosticarlo desde el kiosko.
+    consecutiveFailures = 0;
+    useConnectionStore.getState().setConnected(true);
+    try {
+      registrarError('pb.afterSend', {
+        status: response.status,
+        url: response.url,
+        message: `Request rechazada (${response.status})`,
+        data,
+      });
+    } catch { /* nunca romper la respuesta */ }
   } else {
     consecutiveFailures = 0;
     useConnectionStore.getState().setConnected(true);

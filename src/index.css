@@ -133,46 +133,25 @@ All colors MUST be HSL.
 }
 
 /* ============================================================
-   UX táctil (monitores 3nStar TCM008 y similares)
+   v2.8 (2026-07-23) — ROLLBACK P2/P3/P4/P5
    ============================================================
-   Estas clases se activan condicionalmente desde `useTouchUX`
-   cuando `hardware === "tactil"` o `ui.scrollbar_ancha === true`
-   en `public/config.json`.
-
-   Objetivo: en monitores resistivos que NO soportan scroll por
-   gesto, la barra de scroll nativa del navegador debe ser gruesa
-   y de alto contraste para ser tocable con el dedo. */
-
-.scrollbar-touch::-webkit-scrollbar {
-  width: 25px;
-  height: 25px;
-}
-
-.scrollbar-touch::-webkit-scrollbar-track {
-  background: hsl(var(--muted) / 0.4);
-  border-radius: 12px;
-}
-
-.scrollbar-touch::-webkit-scrollbar-thumb {
-  background: hsl(var(--primary) / 0.6);
-  border-radius: 12px;
-  border: 3px solid hsl(var(--background));
-}
-
-.scrollbar-touch::-webkit-scrollbar-thumb:hover,
-.scrollbar-touch::-webkit-scrollbar-thumb:active {
-  background: hsl(var(--primary) / 0.85);
-}
-
-/* Firefox: propiedad estándar (no permite tanto detalle). */
-.scrollbar-touch {
-  scrollbar-width: auto;
-  scrollbar-color: hsl(var(--primary) / 0.6) hsl(var(--muted) / 0.4);
-}
+   En versiones anteriores este archivo definia:
+     - `.scrollbar-touch`  → scrollbar engordada 40 px con thumb primary
+     - `html.hw-tactil ...` → aplicar esas reglas al documento entero
+     - `.scrollbar-thin-transparent`
+     - `.floating-scroll-buttons` (posicion, hover, disabled)
+   Todo eso conformaba una capa de "modo tactil" que ahora se
+   revirtio: las 3 PCs del piloto (Monitor + Terminal A + Terminal B)
+   corren con mouse + teclado y usan la scrollbar nativa estandar
+   del navegador. Si en algun momento se vuelve a apostar a un
+   monitor tactil, hay que restaurar estos bloques desde el
+   historial de git (commit v2.7 / v2.5).
+   ============================================================ */
 
 /* Animación de latido/pulso para el CTA del screensaver: mantiene
    pixels en movimiento (previene DPMS off del monitor) y sirve
-   como pista visual de "toque acá". */
+   como pista visual de "toque acá". Se sigue usando por
+   TerminalScreensaver aunque las PCs no sean tactiles. */
 @keyframes screensaver-pulse {
   0%, 100% {
     transform: scale(1);

@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Vigilante, Turno, EstadoLicencia, DiaSemana, estadosLicencia, diasSemanaLabels } from '@/data/fceaData';
 import { UserPlus, Trash2, Crown, Sun, Sunset, Moon, Maximize2, Minimize2, CheckCircle2, Palmtree, Stethoscope, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ConfirmarAccionSensible } from '@/components/ConfirmarAccionSensible';
 
 interface GuardManagementModalProps {
   open: boolean;
@@ -49,19 +50,49 @@ export function GuardManagementModal({
   const [maximizado, setMaximizado] = useState(false);
   const [cambiosRealizados, setCambiosRealizados] = useState(0);
 
-  const handleAgregar = () => {
+  // v2.8 (2026-07-23): estado para el modal `ConfirmarAccionSensible`
+  // al borrar vigilante. Los switches de licencia/jefe/dias son
+  // reversibles con un clic y quedan fuera del alcance del modal.
+  const [confirmDeleteVigilante, setConfirmDeleteVigilante] = useState<Vigilante | null>(null);
+
+  const handleAgregar = async () => {
     if (!nuevoNombre.trim()) return;
-    onAgregar(nuevoNombre.trim(), nuevoTurno, esJefe);
-    setNuevoNombre('');
-    setEsJefe(false);
-    setCambiosRealizados(prev => prev + 1);
-    toast({
-      title: "Vigilante agregado",
-      description: `${nuevoNombre.trim()} fue agregado al turno ${nuevoTurno}`,
-    });
+    const nombreParaMostrar = nuevoNombre.trim();
+    const turnoParaMostrar = nuevoTurno;
+    // v2.8.2 (2026-07-24): esperar a que el backend confirme la creacion
+    // ANTES de mostrar el toast de exito. Antes se disparaba el toast
+    // sincronicamente aunque el `create` de PocketBase todavia no
+    // hubiera retornado (o hubiera fallado), lo cual explicaba el
+    // sintoma: "aparece el mensaje verde pero no aparece en la lista".
+    try {
+      await onAgregar(nombreParaMostrar, turnoParaMostrar, esJefe);
+      setNuevoNombre('');
+      setEsJefe(false);
+      setCambiosRealizados(prev => prev + 1);
+      toast({
+        title: "Vigilante agregado",
+        description: `${nombreParaMostrar} fue agregado al turno ${turnoParaMostrar}`,
+      });
+    } catch (e) {
+      console.error('Error al agregar vigilante:', e);
+      toast({
+        title: "Error al agregar vigilante",
+        description: "No se pudo guardar. Verificá la conexión con el servidor e intentá nuevamente.",
+        variant: "destructive",
+      });
+    }
   };
 
+
+  // v2.8 (2026-07-23): `handleEliminar` ahora solo abre el modal
+  // intimidatorio. El borrado real vive en `confirmarEliminar`.
   const handleEliminar = (v: Vigilante) => {
+    setConfirmDeleteVigilante(v);
+  };
+
+  const confirmarEliminar = () => {
+    const v = confirmDeleteVigilante;
+    if (!v) return;
     onEliminar(v.id);
     setCambiosRealizados(prev => prev + 1);
     toast({
@@ -352,6 +383,27 @@ export function GuardManagementModal({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* v2.8 (2026-07-23): modal `ConfirmarAccionSensible` para
+          proteger el borrado de vigilantes. */}
+      <ConfirmarAccionSensible
+        open={!!confirmDeleteVigilante}
+        onOpenChange={(v) => { if (!v) setConfirmDeleteVigilante(null); }}
+        tipoAccion="borrar"
+        entidad="vigilante"
+        detalle={
+          confirmDeleteVigilante
+            ? `${confirmDeleteVigilante.nombre} — ${confirmDeleteVigilante.turno}`
+            : undefined
+        }
+        descripcionExtra={
+          "Vas a eliminar este vigilante del equipo. Perdera su turno, su rol de jefe (si lo tenia) y su configuracion de dias laborales. Las solicitudes historicas que este vigilante haya gestionado se mantienen, pero ya no aparecera en el listado de personal activo. Esta accion NO se puede deshacer."
+        }
+        onConfirmar={() => {
+          confirmarEliminar();
+          setConfirmDeleteVigilante(null);
+        }}
+      />
     </Dialog>
   );
 }

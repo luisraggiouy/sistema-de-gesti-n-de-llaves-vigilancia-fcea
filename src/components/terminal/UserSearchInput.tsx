@@ -1,12 +1,9 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { TouchInput } from '@/components/ui/touch-input';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UsuarioRegistrado } from '@/data/fceaData';
 import { Phone, User, UserPlus, Check, Mail, Search } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useTouchUX } from '@/hooks/useTouchUX';
 
 
 interface UserSearchInputProps {
@@ -16,12 +13,24 @@ interface UserSearchInputProps {
   buscarUsuarios: (texto: string) => UsuarioRegistrado[];
 }
 
+/**
+ * Buscador de usuarios por celular o email (sin autocompletar por nombre).
+ *
+ * v2.8 (2026-07-23) — ROLLBACK P2:
+ *   Antes, en modo tactil, este componente renderizaba un `Sheet`
+ *   lateral (drawer desde la derecha) con las coincidencias para
+ *   que el teclado virtual del `TouchInput` no las tapara. Ese
+ *   experimento se revirtio: ahora usamos siempre el Input normal +
+ *   listado absolute debajo del input, aun en pantallas tactiles.
+ *   El teclado on-screen de Windows (TabTip) sabe reacomodarse solo
+ *   cuando aparece, y con mouse+teclado es la UX esperada.
+ */
 export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, buscarUsuarios }: UserSearchInputProps) {
-  const { isTouch } = useTouchUX();
   const [busqueda, setBusqueda] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
 
   const sugerencias = useMemo(() => {
@@ -38,15 +47,23 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
     return 'nombre'; // no permitido
   }, [busqueda]);
 
+  // Cierre "click fuera" del listado de sugerencias.
+  //
+  // Usamos `pointerdown` (no `mousedown`) para captar bien tanto mouse
+  // como touch en Chromium 120+. Si el click cae dentro del container
+  // (input o panel) no cerramos.
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setShowSuggestions(false);
-      }
+    const handlePointerDown = (e: PointerEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (containerRef.current && containerRef.current.contains(target)) return;
+      if (suggestionsRef.current && suggestionsRef.current.contains(target)) return;
+      setShowSuggestions(false);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
   }, []);
+
 
   const handleSelect = (usuario: UsuarioRegistrado) => {
     onUserSelect(usuario);
@@ -116,26 +133,14 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
           ) : (
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           )}
-          {isTouch ? (
-            <TouchInput
-              placeholder="Ingrese su numero de celular o su email..."
-              value={busqueda}
-              onChange={(v) => handleInputChange(v)}
-              onFocus={() => busqueda.length >= 2 && setShowSuggestions(true)}
-              className="pl-10 h-14 text-lg"
-              inputMode="text"
-              autoComplete="off"
-            />
-          ) : (
-            <Input
-              ref={inputRef}
-              placeholder="Ingrese su numero de celular o su email..."
-              value={busqueda}
-              onChange={(e) => handleInputChange(e.target.value)}
-              onFocus={() => busqueda.length >= 2 && setShowSuggestions(true)}
-              className="pl-10 h-12 text-lg"
-            />
-          )}
+          <Input
+            ref={inputRef}
+            placeholder="Ingrese su numero de celular o su email..."
+            value={busqueda}
+            onChange={(e) => handleInputChange(e.target.value)}
+            onFocus={() => busqueda.length >= 2 && setShowSuggestions(true)}
+            className="pl-10 h-12 text-lg"
+          />
 
 
           {/* Advertencia si intenta buscar por nombre */}
@@ -150,21 +155,27 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
             </Card>
           )}
 
-          {/* Sugerencias cuando hay resultados */}
+          {/* Sugerencias cuando hay resultados. Card absolute debajo del
+              input, con scroll vertical interno si la lista es larga. */}
           {showSuggestions && tipoBusqueda !== 'nombre' && sugerencias.length > 0 && (
-            <Card className="absolute z-50 w-full mt-1 py-2 shadow-lg max-h-60 overflow-y-auto">
+            <Card
+              ref={suggestionsRef}
+              className="absolute z-50 w-full mt-1 py-2 shadow-lg overflow-y-auto max-h-60"
+            >
               {sugerencias.map((usuario) => (
                 <button
                   key={usuario.id}
                   onClick={() => handleSelect(usuario)}
-                  className={cn("w-full px-4 py-3 text-left hover:bg-muted/50 transition-colors", "flex items-center gap-3")}
+                  className="w-full text-left hover:bg-muted/50 transition-colors flex items-center gap-3 px-4 py-3"
                 >
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                    <User className="w-4 h-4 text-muted-foreground" />
+                  <div className="rounded-full bg-muted flex items-center justify-center flex-shrink-0 w-8 h-8">
+                    <User className="text-muted-foreground w-4 h-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-foreground truncate">{usuario.nombre}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground truncate">
+                      {usuario.nombre}
+                    </p>
+                    <p className="text-muted-foreground text-sm">
                       {getContactInfo(usuario)} • {usuario.tipo}
                       {usuario.tipo === 'Empresa' && usuario.nombreEmpresa && ` • Empresa: ${usuario.nombreEmpresa}`}
                       {usuario.tipo === 'Personal TAS' && usuario.departamento && ` • Depto: ${usuario.departamento}`}
@@ -174,6 +185,7 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
               ))}
             </Card>
           )}
+
 
           {/* Sin resultados */}
           {showSuggestions && tipoBusqueda !== 'nombre' && busqueda.length >= 2 && sugerencias.length === 0 && (

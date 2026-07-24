@@ -1,6 +1,7 @@
 ﻿import { useState, useCallback, useEffect } from 'react';
 import { Vigilante, Turno, EstadoLicencia, DiaSemana, obtenerTurnoActual } from '@/data/fceaData';
 import pb from '@/lib/pocketbase';
+import { registrarError } from '@/lib/errorLog';
 
 function obtenerTurnoAnterior(turnoActual: Turno): Turno {
   switch (turnoActual) {
@@ -47,14 +48,55 @@ export function useVigilantes() {
 
   const agregarVigilante = useCallback(async (nombre: string, turno: Turno, esJefe: boolean = false) => {
     try {
+      // v2.8.2 (2026-07-24): fix bug piloto FCEA donde tras agregar un
+      // vigilante aparecia el toast "Vigilante agregado" pero NO se
+      // veia en el listado del modal. Causas identificadas:
+      //   1) El objeto local no incluia `estadoLicencia: 'activo'`, lo
+      //      cual podia dejar filas "fantasma" segun como se renderize.
+      //   2) Si el `create` de PocketBase devolvia un record con
+      //      normalizacion (ej. turno en minusculas) o si tras cierto
+      //      tiempo se recargaba desde el servidor, la fila quedaba
+      //      fuera del filtro visual `v.turno === turno`.
+      // Solucion: mapear el record del servidor con la MISMA logica que
+      // `cargarVigilantes`, y forzar una recarga desde servidor como
+      // fallback para garantizar consistencia visual.
       const record = await pb.collection('vigilante').create({ nombre, turno, es_jefe: esJefe });
-      const nuevo: Vigilante = { id: record.id, nombre, turno, esJefe };
-      setVigilantes(prev => [...prev, nuevo]);
+      const nuevo: Vigilante = {
+        id: record.id,
+        nombre: (record as any).nombre ?? nombre,
+        turno: ((record as any).turno as Turno) ?? turno,
+        esJefe: (record as any).es_jefe ?? esJefe,
+        estadoLicencia: ((record as any).estadoLicencia as EstadoLicencia) || 'activo',
+        diasLaborales: (record as any).diasLaborales
+          ? (typeof (record as any).diasLaborales === 'string'
+              ? JSON.parse((record as any).diasLaborales)
+              : (record as any).diasLaborales) as DiaSemana[]
+          : undefined,
+      };
+      setVigilantes(prev => {
+        // Evitar duplicados si por alguna razon ya estaba
+        if (prev.some(v => v.id === nuevo.id)) return prev;
+        return [...prev, nuevo];
+      });
       return nuevo;
     } catch (e) {
+      // v2.8.3 (2026-07-24 noche): BUG CRITICO detectado por auditoria.
+      // Antes el catch se tragaba el error silenciosamente y el modal
+      // creia que todo salio bien, mostrando toast VERDE de exito
+      // cuando en realidad el vigilante NO se creo. Ahora:
+      //   1) Registramos el error en errorLog para que aparezca en el
+      //      DiagnosticoModal (Ctrl+Shift+D).
+      //   2) Intentamos recargar la lista por si el create llego a
+      //      persistir a pesar del error de red/respuesta.
+      //   3) RE-LANZAMOS el error para que el modal (GuardManagementModal)
+      //      lo capture en su try/catch y muestre el toast ROJO correcto.
       console.error('Error agregando vigilante:', e);
+      registrarError('agregarVigilante', e);
+      try { await cargarVigilantes(); } catch { /* noop */ }
+      throw e;
     }
-  }, []);
+  }, [cargarVigilantes]);
+
 
   const eliminarVigilante = useCallback(async (vigilanteId: string) => {
     try {

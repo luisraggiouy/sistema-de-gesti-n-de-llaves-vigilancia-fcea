@@ -17,9 +17,30 @@ $ErrorActionPreference = "Continue"
 
 $repoRoot   = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $configPath = Join-Path $repoRoot "public\config.json"
-$src        = Join-Path $repoRoot "pocketbase\pb_data"
 $backupsDir = Join-Path $repoRoot "backups"
 $logFile    = Join-Path $repoRoot "pocketbase\maintenance\logs\backup.log"
+
+# Detectar automaticamente la ruta real de pb_data.
+# Puede estar en:
+#   a) $repoRoot\pocketbase\pb_data          (instalacion "portable")
+#   b) C:\ProgramData\FCEA-Sistema-Llaves\pb_data  (instalacion "productiva")
+# La ruta activa se determina buscando data.db en cada candidato.
+$src = $null
+$candidatosPbData = @(
+  (Join-Path $repoRoot "pocketbase\pb_data"),
+  "C:\ProgramData\FCEA-Sistema-Llaves\pb_data"
+)
+foreach ($c in $candidatosPbData) {
+  if (Test-Path (Join-Path $c "data.db")) {
+    $src = $c
+    break
+  }
+}
+if (-not $src) {
+  # Fallback al comportamiento original: probablemente falle, pero no
+  # rompemos scripts anteriores que asumian esta ruta.
+  $src = Join-Path $repoRoot "pocketbase\pb_data"
+}
 
 New-Item -ItemType Directory -Force -Path (Split-Path $logFile) | Out-Null
 New-Item -ItemType Directory -Force -Path $backupsDir | Out-Null

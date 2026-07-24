@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 import { SolicitudLlave, Lugar, ordenNatural } from '@/data/fceaData';
 import pb, { useConnectionStore, startReconnectionAttempts } from '@/lib/pocketbase';
 import { useToast } from '@/hooks/use-toast';
+import { registrarError } from '@/lib/errorLog';
 
 interface AccionUndo {
   id: string;
@@ -287,33 +288,89 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
   }, [cargarLugares, cargarSolicitudes]);
 
   const agregarSolicitud = useCallback(async (solicitud: Omit<SolicitudLlave, 'id'>) => {
+    // Payload minimo garantizado (solo campos que sabemos existen en el schema
+    // original de la coleccion). Los campos "extra" (departamento, nombre_empresa,
+    // es_intercambio) se agregan en un segundo intento como update, para evitar
+    // que un schema desactualizado en el servidor rechace el CREATE completo
+    // con 400 (validation error) y perdamos la solicitud en silencio.
+    const payloadBase: Record<string, unknown> = {
+      lugar_nombre: solicitud.lugar.nombre,
+      lugar_id: solicitud.lugar.id,
+      tipo_lugar: solicitud.lugar.tipo,
+      usuario_nombre: solicitud.usuario.nombre,
+      usuario_celular: solicitud.usuario.celular,
+      tipo_usuario: solicitud.usuario.tipo,
+      estado: solicitud.estado,
+      // hora_solicitud es TEXT en el schema: mandarlo como ISO string
+      hora_solicitud:
+        solicitud.horaSolicitud instanceof Date
+          ? solicitud.horaSolicitud.toISOString()
+          : (solicitud.horaSolicitud ?? new Date().toISOString()),
+      hora_entrega:
+        solicitud.horaEntrega instanceof Date
+          ? solicitud.horaEntrega.toISOString()
+          : (solicitud.horaEntrega ?? ''),
+      hora_devolucion:
+        solicitud.horaDevolucion instanceof Date
+          ? solicitud.horaDevolucion.toISOString()
+          : (solicitud.horaDevolucion ?? ''),
+      entregado_por: solicitud.entregadoPor ?? '',
+      recibido_por: solicitud.recibidoPor ?? '',
+      turno: solicitud.turno ?? '',
+      terminal: solicitud.terminal,
+    };
+    const camposExtra: Record<string, unknown> = {
+      departamento: (solicitud.usuario as any).departamento ?? '',
+      nombre_empresa: (solicitud.usuario as any).nombreEmpresa ?? '',
+      es_intercambio: solicitud.esIntercambio ?? false,
+    };
+
     try {
+      // Intento 1: crear con TODOS los campos (rapido si el schema esta al dia).
       const record = await pb.collection('solicitudes').create({
-        lugar_nombre: solicitud.lugar.nombre,
-        lugar_id: solicitud.lugar.id,
-        tipo_lugar: solicitud.lugar.tipo,
-        usuario_nombre: solicitud.usuario.nombre,
-        usuario_celular: solicitud.usuario.celular,
-        tipo_usuario: solicitud.usuario.tipo,
-        departamento: (solicitud.usuario as any).departamento ?? '',
-        nombre_empresa: (solicitud.usuario as any).nombreEmpresa ?? '',
-        estado: solicitud.estado,
-        hora_solicitud: solicitud.horaSolicitud,
-        hora_entrega: solicitud.horaEntrega ?? '',
-        hora_devolucion: solicitud.horaDevolucion ?? '',
-        entregado_por: solicitud.entregadoPor ?? '',
-        recibido_por: solicitud.recibidoPor ?? '',
-        turno: solicitud.turno ?? '',
-        terminal: solicitud.terminal,
-        es_intercambio: solicitud.esIntercambio ?? false,
+        ...payloadBase,
+        ...camposExtra,
       });
       const nueva: SolicitudLlave = { ...solicitud, id: record.id };
       setSolicitudes(prev => [nueva, ...prev]);
       return nueva;
-    } catch (e) {
-      console.error('Error agregando solicitud:', e);
+    } catch (e: any) {
+      // Si el server rechaza por schema (400) reintentamos con payload minimo.
+      const status = e?.status;
+      registrarError('agregarSolicitud.intento1', e);
+      if (status === 400) {
+        try {
+          const record = await pb.collection('solicitudes').create(payloadBase);
+          // Intento a posteriori guardar los extras (best-effort).
+          try {
+            await pb.collection('solicitudes').update(record.id, camposExtra);
+          } catch (eExtra) {
+            registrarError('agregarSolicitud.updateExtras', eExtra);
+          }
+          const nueva: SolicitudLlave = { ...solicitud, id: record.id };
+          setSolicitudes(prev => [nueva, ...prev]);
+          toast({
+            title: 'Solicitud registrada (modo compatibilidad)',
+            description:
+              'El servidor tiene un schema viejo. Se guardaron los datos basicos; actualice el schema para incluir todos los campos.',
+          });
+          return nueva;
+        } catch (e2) {
+          registrarError('agregarSolicitud.intento2', e2);
+        }
+      }
+      // Fallo definitivo: avisar al usuario. Antes fallaba silencioso y el
+      // pedido nunca aparecia en el Monitor.
+      toast({
+        title: 'No se pudo registrar la solicitud',
+        description:
+          'La terminal no pudo guardar el pedido en el servidor. Avise a un vigilante. Detalles en Diagnostico (Ctrl+Shift+D).',
+        variant: 'destructive',
+        duration: 10000,
+      });
+      return undefined;
     }
-  }, []);
+  }, [toast]);
 
   const agregarSolicitudes = useCallback(async (
     lugaresSeleccionados: Lugar[],

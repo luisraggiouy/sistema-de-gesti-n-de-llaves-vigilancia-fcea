@@ -13,11 +13,19 @@ import {
 } from '@/data/fceaData';
 import { useToast } from '@/hooks/use-toast';
 import { DateInput } from '@/components/ui/date-input';
+import { ConfirmarAccionSensible } from '@/components/ConfirmarAccionSensible';
 
 export function AutorizacionesTab() {
   const { toast } = useToast();
   const [refreshKey, setRefreshKey] = useState(0);
   const [modo, setModo] = useState<'buscar' | 'nueva'>('buscar');
+
+  // v2.8 (2026-07-23): estados para el modal `ConfirmarAccionSensible`.
+  //   - `confirmDelete`: autorizacion que se va a borrar (pendiente).
+  //   - `confirmGuardarEdit`: bandera para confirmar edicion; los datos
+  //     ya viven en `form` + `editingId`.
+  const [confirmDelete, setConfirmDelete] = useState<Autorizacion | null>(null);
+  const [confirmGuardarEdit, setConfirmGuardarEdit] = useState(false);
 
   // Búsqueda
   const [busqPersona, setBusqPersona] = useState('');
@@ -73,38 +81,63 @@ export function AutorizacionesTab() {
     setModo('nueva');
   };
 
+  // v2.8 (2026-07-23): armado del payload separado del guardado real
+  // para poder pasar por el modal `ConfirmarAccionSensible` cuando se
+  // trata de una EDICION (`editingId` presente). Crear nueva no exige
+  // confirmacion (no es destructivo: siempre se puede borrar despues).
+  const buildAutorizacionData = () => ({
+    personaNombre: form.personaNombre.trim(),
+    personaCI: form.personaCI.trim() || undefined,
+    lugarAutorizado: form.lugarAutorizado.trim(),
+    autorizadoPor: form.autorizadoPor.trim(),
+    fechaAutorizacion: form.fechaAutorizacion || new Date().toISOString().split('T')[0],
+    fechaDesde: form.fechaDesde || undefined,
+    fechaHasta: form.fechaHasta || undefined,
+    horario: form.horario.trim() || undefined,
+    emailReferencia: form.emailReferencia.trim() || undefined,
+    observaciones: form.observaciones.trim() || undefined,
+  });
+
   const handleGuardar = () => {
     if (!form.personaNombre.trim() || !form.lugarAutorizado.trim() || !form.autorizadoPor.trim()) {
       toast({ title: 'Campos requeridos', description: 'Nombre, lugar y autorizado por son obligatorios', variant: 'destructive' });
       return;
     }
-    const data = {
-      personaNombre: form.personaNombre.trim(),
-      personaCI: form.personaCI.trim() || undefined,
-      lugarAutorizado: form.lugarAutorizado.trim(),
-      autorizadoPor: form.autorizadoPor.trim(),
-      fechaAutorizacion: form.fechaAutorizacion || new Date().toISOString().split('T')[0],
-      fechaDesde: form.fechaDesde || undefined,
-      fechaHasta: form.fechaHasta || undefined,
-      horario: form.horario.trim() || undefined,
-      emailReferencia: form.emailReferencia.trim() || undefined,
-      observaciones: form.observaciones.trim() || undefined,
-    };
 
+    // Si estoy editando -> pasar por modal intimidatorio.
+    // Si es autorizacion nueva -> guardar directo (no es destructivo).
     if (editingId) {
-      actualizarAutorizacion(editingId, data);
-      toast({ title: 'Autorización actualizada', description: `${data.personaNombre} — ${data.lugarAutorizado}` });
-    } else {
-      guardarAutorizacion(data);
-      toast({ title: 'Autorización registrada', description: `${data.personaNombre} — ${data.lugarAutorizado}` });
+      setConfirmGuardarEdit(true);
+      return;
     }
+
+    const data = buildAutorizacionData();
+    guardarAutorizacion(data);
+    toast({ title: 'Autorización registrada', description: `${data.personaNombre} — ${data.lugarAutorizado}` });
     resetForm();
     setModo('buscar');
     refresh();
   };
 
+  const confirmarGuardarEdit = () => {
+    if (!editingId) return;
+    const data = buildAutorizacionData();
+    actualizarAutorizacion(editingId, data);
+    toast({ title: 'Autorización actualizada', description: `${data.personaNombre} — ${data.lugarAutorizado}` });
+    resetForm();
+    setModo('buscar');
+    refresh();
+  };
+
+  // v2.8 (2026-07-23): borrar ahora pasa por `ConfirmarAccionSensible`
+  // en vez del `window.confirm()` viejo.
   const handleEliminar = (a: Autorizacion) => {
-    if (!confirm(`¿Eliminar autorización de ${a.personaNombre} para ${a.lugarAutorizado}?`)) return;
+    setConfirmDelete(a);
+  };
+
+  const confirmarEliminar = () => {
+    const a = confirmDelete;
+    if (!a) return;
     eliminarAutorizacion(a.id);
     toast({ title: 'Autorización eliminada', variant: 'destructive' });
     refresh();
@@ -275,6 +308,39 @@ export function AutorizacionesTab() {
           </div>
         </ScrollArea>
       )}
+
+      {/* v2.8 (2026-07-23): modales `ConfirmarAccionSensible` para
+          proteger BORRAR autorizacion y EDITAR autorizacion (crear
+          nueva no requiere confirmacion). */}
+      <ConfirmarAccionSensible
+        open={!!confirmDelete}
+        onOpenChange={(v) => { if (!v) setConfirmDelete(null); }}
+        tipoAccion="borrar"
+        entidad="autorizacion"
+        detalle={confirmDelete ? `${confirmDelete.personaNombre} — ${confirmDelete.lugarAutorizado}` : undefined}
+        descripcionExtra={
+          "Vas a eliminar esta autorizacion. La persona ya no aparecera al verificar autorizaciones para ese lugar. Esta accion NO se puede deshacer."
+        }
+        onConfirmar={() => {
+          confirmarEliminar();
+          setConfirmDelete(null);
+        }}
+      />
+
+      <ConfirmarAccionSensible
+        open={confirmGuardarEdit}
+        onOpenChange={(v) => { if (!v) setConfirmGuardarEdit(false); }}
+        tipoAccion="editar"
+        entidad="autorizacion"
+        detalle={form.personaNombre ? `${form.personaNombre} — ${form.lugarAutorizado}` : undefined}
+        descripcionExtra={
+          "Vas a modificar los datos de una autorizacion existente. Los cambios reemplazan a los datos anteriores en el momento; verifica bien nombre, CI, lugar, vigencia y autorizante antes de guardar."
+        }
+        onConfirmar={() => {
+          confirmarGuardarEdit();
+          setConfirmGuardarEdit(false);
+        }}
+      />
     </div>
   );
 }

@@ -36,9 +36,27 @@ if errorlevel 1 (
   echo  Aparecera una ventana de "Control de cuentas de usuario";
   echo  haga click en SI para continuar.
   echo.
-  powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
+  echo  Se abrira una nueva ventana negra elevada. NO la cierre
+  echo  hasta ver el mensaje final del instalador.
+  echo.
+  REM  IMPORTANTE: lanzamos "cmd.exe /k" en vez del .bat directo.
+  REM  Motivos:
+  REM    1) Si el .bat tiene cualquier error temprano (ruta con
+  REM       espacios, tildes o caracteres especiales; parser CMD
+  REM       fallando; etc.) la ventana NO se cierra al instante
+  REM       y el usuario puede leer el error.
+  REM    2) Lanzar el .bat "pelado" con Start-Process -FilePath
+  REM       '%~f0' fallaba silenciosamente cuando la ruta del
+  REM       pendrive tenia espacios (ej: "E:\INSTALAR SISTEMA.bat"),
+  REM       produciendo el sintoma: "pantalla negra, UAC, se cerro
+  REM       sin hacer nada".
+  powershell -NoProfile -Command "Start-Process -FilePath cmd.exe -ArgumentList '/k', '\"%~f0\"' -Verb RunAs"
   exit /b
 )
+
+REM Asegurar que el directorio actual sea la carpeta del .bat
+REM y no C:\Windows\System32 (default tras Start-Process RunAs).
+pushd "%~dp0" 2>nul
 
 set "PENDRIVE_ROOT=%~dp0"
 if "%PENDRIVE_ROOT:~-1%"=="\" set "PENDRIVE_ROOT=%PENDRIVE_ROOT:~0,-1%"
@@ -70,8 +88,14 @@ REM  asumimos que es un residuo de una desinstalacion incompleta
 REM  y la borramos en silencio antes de seguir, en lugar de
 REM  confundir al usuario con un menu de "reinstalar/actualizar".
 REM ------------------------------------------------------------
+REM  (v5.1) La base productiva puede estar en:
+REM    a) C:\ProgramData\FCEA-Sistema-Llaves\pb_data\data.db  (produccion)
+REM    b) %INSTALL_DIR%\pocketbase\pb_data\data.db            (legacy/dev)
 set "SISTEMA_VALIDO=0"
 if exist "%INSTALL_DIR%\pocketbase\pocketbase.exe" (
+  if exist "C:\ProgramData\FCEA-Sistema-Llaves\pb_data\data.db" (
+    set "SISTEMA_VALIDO=1"
+  )
   if exist "%INSTALL_DIR%\pocketbase\pb_data\data.db" (
     set "SISTEMA_VALIDO=1"
   )
@@ -83,13 +107,20 @@ if "!SISTEMA_VALIDO!"=="1" (
   echo.
   echo  Que desea hacer?
   echo.
-  echo    [1] ACTUALIZAR DATOS
-  echo        Refresca solo la base de datos con los datos del
-  echo        pendrive. Tarda menos de 1 minuto. No reinstala.
+  echo    [1] ACTUALIZAR SOLO DATOS ^(base de datos^)
+  echo        Refresca UNICAMENTE pb_data\ ^(usuarios, llaves,
+  echo        historial^). NO actualiza codigo ni scripts ni
+  echo        la interfaz. Elija esta opcion SOLO si el sistema
+  echo        ya esta funcionando bien y solo quiere cargar
+  echo        datos nuevos.
+  echo        Si vino a aplicar un UPDATE del sistema
+  echo        ^(cambios de UI, scripts, kiosk, etc.^),
+  echo        ELIJA [2] REINSTALAR DESDE CERO.
   echo.
-  echo    [2] REINSTALAR DESDE CERO
-  echo        Vuelve a copiar todo el sistema. Los datos actuales
-  echo        se respaldan en C:\backup_fcea_*.
+  echo    [2] REINSTALAR DESDE CERO ^(recomendado para updates^)
+  echo        Vuelve a copiar todo el sistema ^(codigo + scripts +
+  echo        interfaz + datos^). Los datos actuales se respaldan
+  echo        automaticamente en C:\backup_fcea_pre_reinstalacion_*.
   echo.
   echo    [3] CANCELAR
   echo.
@@ -107,8 +138,8 @@ REM Limpiamos antes de continuar para que el instalador interno no
 REM se confunda y para no mostrar el menu de "reinstalar/actualizar".
 if exist "%INSTALL_DIR%" (
   echo  Se detectaron archivos residuales en %INSTALL_DIR%
-  echo  (instalacion incompleta o desinstalacion previa con archivos
-  echo  en uso). Limpiando antes de continuar...
+  echo  ^(instalacion incompleta o desinstalacion previa con archivos
+  echo  en uso^). Limpiando antes de continuar...
   echo.
   taskkill /F /IM pocketbase.exe >nul 2>&1
   REM Matar node.exe y chrome.exe del sistema FCEA por si quedaron handles
@@ -159,18 +190,18 @@ echo  ============================================================
 echo.
 echo    [1] DESARROLLO EN 1 SOLA PC
 echo        Instala todo el sistema en esta unica PC:
-echo          - PocketBase (servidor de datos)
+echo          - PocketBase ^(servidor de datos^)
 echo          - Monitor de Vigilancia
 echo          - Terminal de Usuario
 echo          - Dashboard de reportes
 echo        Boton en la UI para alternar entre vistas.
 echo        Ideal para pruebas, demos y el desarrollador.
 echo.
-echo    [2] PRODUCCION EN 3 PCs (autodeteccion)
+echo    [2] PRODUCCION EN 3 PCs ^(autodeteccion^)
 echo        Instalacion en una de las 3 PCs reales:
-echo          - El ROL (servidor/terminal-A/terminal-B/dashboard)
+echo          - El ROL ^(servidor/terminal-A/terminal-B/dashboard^)
 echo            se detecta automaticamente por hostname / IP.
-echo          - El HARDWARE (tactil vs tradicional) se detecta
+echo          - El HARDWARE ^(tactil vs tradicional^) se detecta
 echo            automaticamente por los drivers de Windows.
 echo        No pregunta nada mas: ejecute en cada PC del puesto.
 echo.
@@ -196,7 +227,7 @@ set "FCEA_HW=desarrollo"
 set "FCEA_IP_SERVIDOR=127.0.0.1"
 echo.
 echo  [Modo elegido] DESARROLLO en 1 sola PC.
-echo  - Rol     : %FCEA_ROL%  (todo junto)
+echo  - Rol     : %FCEA_ROL%  ^(todo junto^)
 echo  - Hardware: %FCEA_HW%
 echo.
 goto CONFIRMAR_E_INSTALAR
@@ -266,13 +297,13 @@ echo   IP servidor    : !FCEA_IP_SERVIDOR!
 echo   Carpeta destino: %INSTALL_DIR%
 echo  ============================================================
 echo.
-echo  Pasos que se ejecutaran (sin mas preguntas):
-echo    [1/5] Copiar sistema desde pendrive (con barra de progreso)
+echo  Pasos que se ejecutaran ^(sin mas preguntas^):
+echo    [1/5] Copiar sistema desde pendrive ^(con barra de progreso^)
 echo    [2/5] Copiar Node.js portable
 echo    [3/5] Configurar PocketBase y firewall
 echo    [4/5] Restaurar TODOS los datos del pendrive
-echo          (llaves, vigilantes, usuarios, autorizaciones,
-echo           objetos olvidados, historial)
+echo          ^(llaves, vigilantes, usuarios, autorizaciones,
+echo           objetos olvidados, historial^)
 echo    [5/5] Abrir Chrome automaticamente con el sistema corriendo
 echo.
 echo  Tiempo estimado: 5 a 15 minutos.
@@ -355,6 +386,12 @@ echo.
 REM Marcar que la restauracion debe hacerse SIN preguntar
 set "FCEA_RESTAURAR_AUTO=1"
 
+REM IMPORTANTE: pasarle al INSTALAR.bat interno la ruta REAL del
+REM pendrive. Sin esto, el interno recibe "cd" a C:\sistema-llaves-fcea
+REM y su heuristica %~dp0..\..\.. le da C:\ (no el pendrive), lo que
+REM hace que no encuentre Node.js portable ni pb_data del pendrive.
+set "FCEA_PENDRIVE_ROOT=%PENDRIVE_ROOT%"
+
 cd /d "%INSTALL_DIR%"
 call scripts\install\INSTALAR.bat
 
@@ -391,7 +428,7 @@ echo  ============================================================
 echo.
 echo   Lanzando INICIAR.bat con modo automatico:
 echo   arranca PocketBase + frontend + Chrome con el monitor /
-echo   terminal segun el rol detectado (!FINAL_ROL!).
+echo   terminal segun el rol detectado ^(!FINAL_ROL!^).
 echo.
 
 REM Lanzar INICIAR.bat en una ventana NORMAL (no minimizada) la
@@ -402,6 +439,37 @@ start "FCEA - Iniciando Sistema" cmd /c "%INSTALL_DIR%\scripts\install\INICIAR.b
 REM Dar tiempo a que Chrome se levante visible al usuario
 echo   Esperando 10 segundos a que el sistema termine de arrancar...
 timeout /t 10 /nobreak >nul
+
+REM ------------------------------------------------------------
+REM  PASO 8: CONFIGURAR INICIO AUTOMATICO (sin intervencion del usuario)
+REM
+REM  Crea la tarea programada de Windows "FCEA-Sistema-Llaves-AutoStart"
+REM  para que INICIAR.bat se ejecute automaticamente al iniciar sesion.
+REM  Ya corremos con permisos de Administrador (UAC del inicio de este
+REM  launcher), asi que se registra sin pedir nada mas.
+REM  El script es idempotente: si la tarea ya existe la reemplaza.
+REM ------------------------------------------------------------
+echo.
+echo  ============================================================
+echo   [6/6] CONFIGURANDO INICIO AUTOMATICO DEL SISTEMA
+echo  ============================================================
+echo   El sistema arrancara solo cada vez que se prenda esta PC.
+echo.
+set "AUTOINIT_SCRIPT=%INSTALL_DIR%\scripts\install\CONFIGURAR_INICIO_AUTOMATICO.ps1"
+if exist "%AUTOINIT_SCRIPT%" (
+  powershell -NoProfile -ExecutionPolicy Bypass -File "%AUTOINIT_SCRIPT%"
+  if errorlevel 1 (
+    echo   [AVISO] La configuracion de inicio automatico fallo.
+    echo           El sistema fue instalado pero NO arrancara solo al prender la PC.
+    echo           Podes correr manualmente:
+    echo             powershell -ExecutionPolicy Bypass -File "%AUTOINIT_SCRIPT%"
+  ) else (
+    echo   [OK] Inicio automatico configurado.
+  )
+) else (
+  echo   [AVISO] No se encontro %AUTOINIT_SCRIPT%
+  echo           El sistema fue instalado pero NO arrancara solo al prender la PC.
+)
 
 echo.
 echo  ============================================================
@@ -425,7 +493,7 @@ echo.
 echo  ============================================================
 echo.
 echo  Presione cualquier tecla para cerrar este instalador.
-echo  (El sistema seguira corriendo en otras ventanas.)
+echo  ^(El sistema seguira corriendo en otras ventanas.^)
 echo.
 pause >nul
 exit /b 0
@@ -440,7 +508,7 @@ echo   ACTUALIZANDO DATOS DEL SISTEMA
 echo  ============================================================
 echo.
 
-echo [1/4] Suspendiendo watchdog (si esta activo)...
+echo [1/4] Suspendiendo watchdog ^(si esta activo^)...
 schtasks /End /TN "FCEA-Watchdog-PocketBase" >nul 2>&1
 schtasks /End /TN "FCEA-Watchdog" >nul 2>&1
 

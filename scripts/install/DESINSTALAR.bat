@@ -134,19 +134,78 @@ echo       Regla FCEA-PocketBase-8090 eliminada (si existia). >> "%LOG%"
 
 REM ------------------------------------------------------------
 REM  4) Respaldar pb_data y pb_backups
+REM
+REM  IMPORTANTE (fix 2026-07-24):
+REM  El respaldo cubre DOS ubicaciones porque historicamente los
+REM  datos productivos podian estar en cualquiera de las dos:
+REM
+REM    a) C:\ProgramData\FCEA-Sistema-Llaves\pb_data   (PERSISTENTE)
+REM       -> es la ruta canonica actual. NO se borra al desinstalar.
+REM          Igual la copiamos aca por seguridad, como redundancia.
+REM
+REM    b) C:\sistema-llaves-fcea\pocketbase\pb_data    (LEGACY / bug)
+REM       -> antes de fix del 2026-07-24, PocketBase escribia aca
+REM          por usar --dir=pb_data (ruta relativa). Al borrar
+REM          la carpeta de instalacion, estos datos se perdian.
+REM          Ahora los copiamos ANTES de borrar.
+REM
+REM  Se elige la MAS NUEVA (por fecha de data.db) como fuente
+REM  principal en %BACKUP_DIR%\pb_data. La otra queda en
+REM  %BACKUP_DIR%\pb_data_secundaria por si hiciera falta.
 REM ------------------------------------------------------------
 echo.
 echo [4/7] Respaldando pb_data y pb_backups en %BACKUP_DIR%...
-if exist "%INSTALL_DIR%\pocketbase\pb_data" (
-  robocopy "%INSTALL_DIR%\pocketbase\pb_data" "%BACKUP_DIR%\pb_data" /MIR /NFL /NDL /NJH /NJS /NP >nul
-  echo       pb_data respaldado. >> "%LOG%"
+
+set "PROGDATA_PBDATA=C:\ProgramData\FCEA-Sistema-Llaves\pb_data"
+set "LEGACY_PBDATA=%INSTALL_DIR%\pocketbase\pb_data"
+
+REM Determinar cual data.db es mas nuevo (o cual existe)
+set "FUENTE_PRIMARIA="
+set "FUENTE_SECUNDARIA="
+if exist "%PROGDATA_PBDATA%\data.db" (
+  if exist "%LEGACY_PBDATA%\data.db" (
+    for /f "delims=" %%v in ('powershell -NoProfile -Command "if ((Get-Item '%PROGDATA_PBDATA%\data.db').LastWriteTime -ge (Get-Item '%LEGACY_PBDATA%\data.db').LastWriteTime) { 'PERSISTENTE' } else { 'LEGACY' }"') do set "GANADOR=%%v"
+    if "!GANADOR!"=="PERSISTENTE" (
+      set "FUENTE_PRIMARIA=%PROGDATA_PBDATA%"
+      set "FUENTE_SECUNDARIA=%LEGACY_PBDATA%"
+      echo       [DBG] Persistente es mas nueva - prioridad al persistente. >> "%LOG%"
+    ) else (
+      set "FUENTE_PRIMARIA=%LEGACY_PBDATA%"
+      set "FUENTE_SECUNDARIA=%PROGDATA_PBDATA%"
+      echo       [DBG] Legacy es mas nueva ^(bug pre-fix^) - prioridad al legacy. >> "%LOG%"
+    )
+  ) else (
+    set "FUENTE_PRIMARIA=%PROGDATA_PBDATA%"
+    echo       [DBG] Solo existe persistente. >> "%LOG%"
+  )
 ) else (
-  echo       pb_data no encontrado, se omite. >> "%LOG%"
+  if exist "%LEGACY_PBDATA%\data.db" (
+    set "FUENTE_PRIMARIA=%LEGACY_PBDATA%"
+    echo       [DBG] Solo existe legacy. >> "%LOG%"
+  )
 )
 
-if exist "%INSTALL_DIR%\pocketbase\pb_backups" (
+if defined FUENTE_PRIMARIA (
+  echo       Respaldando fuente primaria: !FUENTE_PRIMARIA!
+  robocopy "!FUENTE_PRIMARIA!" "%BACKUP_DIR%\pb_data" /MIR /NFL /NDL /NJH /NJS /NP >nul
+  echo       pb_data primaria respaldada desde !FUENTE_PRIMARIA! >> "%LOG%"
+) else (
+  echo       No hay data.db en ninguna ubicacion, se omite. >> "%LOG%"
+)
+
+if defined FUENTE_SECUNDARIA (
+  echo       Respaldando fuente secundaria: !FUENTE_SECUNDARIA!
+  robocopy "!FUENTE_SECUNDARIA!" "%BACKUP_DIR%\pb_data_secundaria" /MIR /NFL /NDL /NJH /NJS /NP >nul
+  echo       pb_data secundaria respaldada desde !FUENTE_SECUNDARIA! >> "%LOG%"
+)
+
+REM pb_backups: chequear tambien en ambos lugares (ProgramData tiene prioridad)
+if exist "C:\ProgramData\FCEA-Sistema-Llaves\pb_backups" (
+  robocopy "C:\ProgramData\FCEA-Sistema-Llaves\pb_backups" "%BACKUP_DIR%\pb_backups" /MIR /NFL /NDL /NJH /NJS /NP >nul
+  echo       pb_backups respaldado desde ProgramData. >> "%LOG%"
+) else if exist "%INSTALL_DIR%\pocketbase\pb_backups" (
   robocopy "%INSTALL_DIR%\pocketbase\pb_backups" "%BACKUP_DIR%\pb_backups" /MIR /NFL /NDL /NJH /NJS /NP >nul
-  echo       pb_backups respaldado. >> "%LOG%"
+  echo       pb_backups respaldado desde instalacion. >> "%LOG%"
 ) else (
   echo       pb_backups no encontrado, se omite. >> "%LOG%"
 )
@@ -188,13 +247,13 @@ if exist "%INSTALL_DIR%" (
     echo   Algunos archivos siguen en uso dentro de %INSTALL_DIR%.
     echo.
     echo   Esto ocurre porque alguna ventana o servicio todavia
-    echo   tiene archivos abiertos (Chrome, Node, antivirus, etc.).
+    echo   tiene archivos abiertos ^(Chrome, Node, antivirus, etc.^).
     echo.
     echo   Que hacer ahora:
-    echo     1) Cierre TODAS las ventanas del sistema FCEA
-    echo        (Chrome, terminales cmd negras, etc.)
-    echo     2) Reinicie la PC (recomendado).
-    echo     3) Vuelva a ejecutar este desinstalador.
+    echo     1^) Cierre TODAS las ventanas del sistema FCEA
+    echo        ^(Chrome, terminales cmd negras, etc.^)
+    echo     2^) Reinicie la PC ^(recomendado^).
+    echo     3^) Vuelva a ejecutar este desinstalador.
     echo.
     echo   Sus datos YA fueron respaldados en:
     echo     %BACKUP_DIR%
@@ -243,7 +302,7 @@ for %%T in (
 )
 
 if !RESIDUOS! GTR 0 (
-  echo       [AVISO] Quedaron !RESIDUOS! residuo(s). Revise el log: %LOG%
+  echo       [AVISO] Quedaron !RESIDUOS! residuo^(s^). Revise el log: %LOG%
   echo       [AVISO] Total de residuos detectados: !RESIDUOS!. >> "%LOG%"
 ) else (
   echo       OK - Sin residuos detectados.

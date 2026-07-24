@@ -3,25 +3,29 @@ import { getRuntimeConfig } from "@/lib/runtimeConfig";
 import { useTouchDetection } from "@/hooks/useTouchDetection";
 
 /**
- * Config derivada de UX táctil, calculada a partir de `hardware` +
- * flags opcionales de `ui.*` en `public/config.json`.
+ * Config del screensaver de bienvenida de la Terminal.
  *
- * Centraliza las decisiones de "cómo adaptamos la interfaz cuando el
- * monitor es táctil pero limitado" (caso 3nStar TCM008 resistivo):
- *   - Scroll: la barra debe ser gorda (≥ 25 px) para ser toqueable.
- *   - Listas: complementadas con botones flotantes ▲ / ▼.
- *   - Screensaver: overlay a pantalla completa tras N segundos de
- *     inactividad, para que el monitor no se apague y el próximo
- *     usuario vea una pista clara.
+ * v2.8 (2026-07-23) — ROLLBACK P2/P3/P4/P5:
+ *   Antes este hook exponia tambien flags `scrollbarAncha`,
+ *   `isTouchProduccion`, `isTouchEfectivo`, etc., que alimentaban
+ *   toda una capa de UX tactil (Sheet lateral, chevrones flotantes
+ *   ▲/▼, scrollbar gorda 25 px, chips gigantes). Ese experimento se
+ *   revirtio: ahora las 3 PCs (Monitor + Terminal A + Terminal B)
+ *   corren en modo mouse + teclado, aun cuando la pantalla sea
+ *   tactil. Si en el futuro llega hardware capacitivo, Windows aporta
+ *   TabTip on-demand y no hace falta codigo especifico.
  *
- * Los tres flags se activan por defecto cuando `hardware === "tactil"`,
- * pero se pueden encender/apagar puntualmente vía `config.json`.
+ * Este hook quedo SOLO para decidir si mostrar el screensaver de
+ * bienvenida ("BIENVENIDO/A, TOQUE LA PANTALLA...") en la Terminal.
+ * El screensaver a su vez cumple doble proposito:
+ *   1. Mantiene pixels en movimiento para que el monitor no entre en
+ *      DPMS-off si Windows fallo en desactivar el ahorro de energia.
+ *   2. Le da al proximo usuario una pista visual clara de que la PC
+ *      esta viva y que debe tocar/hacer click para empezar.
  */
 export interface TouchUXConfig {
-  /** True si la app debe tratar esta PC como táctil. */
+  /** True si esta PC se considera tactil (para el texto del screensaver). */
   isTouch: boolean;
-  /** True si debe mostrar barra de scroll ancha (touch-friendly). */
-  scrollbarAncha: boolean;
   /** True si el screensaver de bienvenida debe estar activo. */
   screensaverActivo: boolean;
   /** Delay de inactividad antes del screensaver (ms). */
@@ -47,16 +51,53 @@ export function useTouchUX(): TouchUXConfig {
 
     const uiCfg = cfg?.ui ?? {};
 
-    // Defaults: si estamos en modo táctil, ambos features arrancan encendidos.
-    const scrollbarAncha =
-      uiCfg.scrollbar_ancha !== undefined
-        ? Boolean(uiCfg.scrollbar_ancha)
-        : isTouch;
+    // Regla dura: si el rol es "monitor" o "dashboard", NUNCA aplicamos
+    // screensaver ni consideramos la PC tactil (aunque el config.json
+    // diga hardware=tactil por error).
+    const rolLower = String(cfg?.rol ?? "").toLowerCase();
+    const esMonitor = rolLower === "monitor" || rolLower === "dashboard";
 
-    const screensaverActivo =
-      uiCfg.screensaver_activo !== undefined
-        ? Boolean(uiCfg.screensaver_activo)
-        : isTouch;
+    const isTouchEfectivo = esMonitor ? false : isTouch;
+
+    // Screensaver v2.5 (julio 2026), preservado en v2.8:
+    //
+    // El screensaver del FRONTEND solo existe como FALLBACK para el caso
+    // patologico en que Windows por algun motivo dejara la pantalla
+    // activa pero nosotros quisieramos oscurecerla despues de X minutos
+    // de inactividad para no "quemar" un panel viejo.
+    //
+    // El instalador (`scripts/lib/configurar_energia.ps1`) desactiva
+    // COMPLETAMENTE el ahorro de energia de Windows, DPMS, screensaver
+    // y USB-suspend en las 3 PCs del piloto. Cuando eso corre sin
+    // warnings escribe `ui.energia_ahorro_desactivado = true` en el
+    // config.json. En ese caso NO queremos que el frontend muestre nada
+    // por su cuenta: la pantalla queda encendida 24/7.
+    //
+    // Reglas de decision (en orden):
+    //   1. Rol monitor / dashboard    -> screensaver SIEMPRE OFF
+    //   2. `ui.energia_ahorro_desactivado === true`  (setup OK)
+    //      -> screensaver OFF por defecto, salvo que el operador lo
+    //         fuerce con `ui.screensaver_activo: true`.
+    //   3. `ui.energia_ahorro_desactivado === false` (setup con warnings)
+    //      -> screensaver ON por defecto en modo tactil (fallback), se
+    //         puede apagar con `ui.screensaver_activo: false`.
+    //   4. Flag ausente (config viejo) -> se preserva el comportamiento
+    //      historico: OFF por defecto, ON solo si el operador lo pide.
+    const energiaAhorroOff = uiCfg.energia_ahorro_desactivado === true;
+    const energiaAhorroKO  = uiCfg.energia_ahorro_desactivado === false;
+
+    let screensaverActivo: boolean;
+    if (esMonitor) {
+      screensaverActivo = false;
+    } else if (typeof uiCfg.screensaver_activo === "boolean") {
+      screensaverActivo = uiCfg.screensaver_activo;
+    } else if (energiaAhorroOff) {
+      screensaverActivo = false;
+    } else if (energiaAhorroKO && isTouchEfectivo) {
+      screensaverActivo = true;
+    } else {
+      screensaverActivo = false;
+    }
 
     const screensaverDelayMs =
       typeof uiCfg.screensaver_delay_ms === "number" &&
@@ -71,8 +112,7 @@ export function useTouchUX(): TouchUXConfig {
         : SCREENSAVER_TEXTO_DEFAULT;
 
     return {
-      isTouch,
-      scrollbarAncha,
+      isTouch: isTouchEfectivo,
       screensaverActivo,
       screensaverDelayMs,
       screensaverTexto,

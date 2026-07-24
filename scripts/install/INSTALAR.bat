@@ -250,7 +250,7 @@ echo    [D] DASHBOARD  (opcional, PC de reportes)
 echo.
 set /p ROL="Rol [S/A/B/D]: "
 
-set IP_SERVIDOR=127.0.0.1
+set IP_SERVIDOR=
 if /i not "%ROL%"=="S" (
   echo.
   echo  Buscando servidor FCEA en la red local automaticamente...
@@ -266,17 +266,55 @@ if /i not "%ROL%"=="S" (
     set "IP_SERVIDOR=!IP_SERVIDOR_AUTO!"
     set "CONFIRMAR_IP="
     set /p CONFIRMAR_IP="Confirmar (Enter para aceptar, N para escribirla manualmente): "
-    if /i "!CONFIRMAR_IP!"=="N" (
-      set /p IP_SERVIDOR="IP de la PC SERVIDOR en la red (ej. 192.168.50.10): "
-    )
+    if /i "!CONFIRMAR_IP!"=="N" set "IP_SERVIDOR="
   ) else (
     echo.
     echo  [!] No se encontro el servidor automaticamente.
-    echo      Asegurese de que la PC servidor este encendida y conectada al switch.
+    echo      Asegurese de que la PC servidor este encendida, con
+    echo      el sistema abierto (icono FCEA en la bandeja) y
+    echo      conectada al mismo switch/router que esta PC.
     echo.
-    set /p IP_SERVIDOR="IP de la PC SERVIDOR en la red (ej. 192.168.50.10): "
   )
+
+  REM Loop de validacion: no aceptar IP vacia, "127.0.0.1", ni
+  REM formato invalido. Antes CMD tomaba Enter vacio y quedaba
+  REM la Terminal apuntando a localhost -> "Failed to fetch".
+  :PEDIR_IP_MANUAL
+  if not defined IP_SERVIDOR (
+    set /p IP_SERVIDOR="IP del Monitor Vigilancia (ej. 192.168.1.10): "
+  )
+  if "!IP_SERVIDOR!"=="" (
+    echo  [ERROR] Debe ingresar una IP. Reintente.
+    goto PEDIR_IP_MANUAL
+  )
+  if "!IP_SERVIDOR!"=="127.0.0.1" (
+    echo  [ERROR] 127.0.0.1 no es valido para una terminal.
+    echo          La terminal debe apuntar al Monitor Vigilancia REMOTO,
+    echo          no a si misma.
+    set "IP_SERVIDOR="
+    goto PEDIR_IP_MANUAL
+  )
+  if "!IP_SERVIDOR!"=="localhost" (
+    echo  [ERROR] "localhost" no es valido para una terminal.
+    set "IP_SERVIDOR="
+    goto PEDIR_IP_MANUAL
+  )
+  REM Validar formato IPv4 con powershell (regex mas confiable que en batch)
+  set "IP_OK=0"
+  for /f "delims=" %%v in ('powershell -NoProfile -Command "if ('!IP_SERVIDOR!' -match '^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$') { 'OK' } else { 'BAD' }"') do set "IP_CHECK=%%v"
+  if not "!IP_CHECK!"=="OK" (
+    echo  [ERROR] "!IP_SERVIDOR!" no tiene formato de IPv4 valida.
+    set "IP_SERVIDOR="
+    goto PEDIR_IP_MANUAL
+  )
+
+  REM Verificar que el servidor responde en 8090. Salto a la subrutina
+  REM ESPERAR_SERVIDOR que hace el retry loop de 3 min. La sacamos del
+  REM bloque `if /i not "%ROL%"=="S"` porque CMD no maneja bien labels
+  REM y goto dentro de bloques con parentesis (rompe el flujo del if).
+  call :ESPERAR_SERVIDOR
 )
+if not defined IP_SERVIDOR set IP_SERVIDOR=127.0.0.1
 
 :ROL_YA_DEFINIDO
 
@@ -392,6 +430,88 @@ REM ============================================================
 REM  SUBRUTINAS
 REM ============================================================
 
+REM ============================================================
+REM  ESPERAR_SERVIDOR  (nueva en v2.1.1)
+REM
+REM  Espera hasta 3 minutos a que el servidor responda en
+REM  http://%IP_SERVIDOR%:8090/api/health. Se llama desde el flujo
+REM  de instalacion de una TERMINAL (no del servidor).
+REM
+REM  Motivo: en una instalacion "en frio" (Monitor recien encendido,
+REM  Windows todavia arrancando servicios de red, PocketBase demorando
+REM  en abrir el 8090) el chequeo unico anterior fallaba y forzaba al
+REM  operador a elegir "seguir sin confirmar" o a reiniciar el instalador.
+REM  Ahora damos 3 min de gracia con progreso visual cada 30 s.
+REM
+REM  Al terminar:
+REM    - Si el servidor respondio, IP_SERVIDOR queda con el valor bueno.
+REM    - Si el operador elige "N" (volver a ingresar IP), limpia
+REM      IP_SERVIDOR y hace goto :PEDIR_IP_MANUAL (que esta en el
+REM      cuerpo principal - CMD permite saltar hacia afuera).
+REM    - Si elige "S", vuelve al caller con IP_SERVIDOR intacta.
+REM ============================================================
+:ESPERAR_SERVIDOR
+echo.
+echo  Verificando que !IP_SERVIDOR!:8090 responda ^(hasta 3 minutos^)...
+echo  Si el Monitor recien se prendio, esperamos a que PocketBase termine
+echo  de arrancar. Cancele con Ctrl+C si prefiere revisar la red primero.
+echo.
+set "PING_CHECK=FAIL"
+set /a INTENTO=0
+
+:LOOP_ESPERAR_SERVIDOR
+set /a INTENTO+=1
+for /f "delims=" %%v in ('powershell -NoProfile -Command "try { $r = Invoke-WebRequest -Uri 'http://!IP_SERVIDOR!:8090/api/health' -TimeoutSec 3 -UseBasicParsing -ErrorAction Stop; if ($r.StatusCode -eq 200) { 'OK' } else { 'FAIL' } } catch { 'FAIL' }"') do set "PING_CHECK=%%v"
+if "!PING_CHECK!"=="OK" (
+  echo  [OK] Servidor responde en http://!IP_SERVIDOR!:8090 ^(intento !INTENTO!^)
+  goto :eof
+)
+REM Cada 6 intentos (~30s) mostramos progreso legible; los demas usamos
+REM un punto sin salto de linea para no ensuciar la consola.
+set /a MOSTRAR_PROGRESO=INTENTO %% 6
+if !MOSTRAR_PROGRESO!==0 (
+  set /a SEG_TRANSCURRIDOS=INTENTO * 5
+  echo  [!SEG_TRANSCURRIDOS!s] Servidor aun no responde. Reintentando...
+) else (
+  <nul set /p="."
+)
+if !INTENTO! GEQ 36 goto TIMEOUT_ESPERAR_SERVIDOR
+REM Espera ~5 s. Usamos Start-Sleep (no timeout /t) para respetar Ctrl+C.
+powershell -NoProfile -Command "Start-Sleep -Seconds 5" >nul 2>&1
+goto LOOP_ESPERAR_SERVIDOR
+
+:TIMEOUT_ESPERAR_SERVIDOR
+echo.
+echo.
+echo  [ADVERTENCIA] Despues de 3 minutos no se pudo contactar
+echo                http://!IP_SERVIDOR!:8090
+echo                Posibles causas:
+echo                  - Monitor Vigilancia apagado
+echo                  - PocketBase no esta corriendo en el Monitor
+echo                  - Firewall bloqueando el puerto 8090
+echo                  - IP incorrecta o cable de red desconectado
+echo.
+echo    [S] Continuar igualmente ^(configurar y arreglar despues con
+echo        REPARAR_CONEXION_SERVIDOR.bat cuando el Monitor este listo^)
+echo    [R] Reintentar ^(otros 3 minutos^)
+echo    [N] Volver a ingresar la IP
+echo.
+set "SEGUIR="
+set /p SEGUIR="Opcion [S/R/N]: "
+if /i "!SEGUIR!"=="R" (
+  echo  Reintentando...
+  set /a INTENTO=0
+  goto LOOP_ESPERAR_SERVIDOR
+)
+if /i not "!SEGUIR!"=="S" (
+  set "IP_SERVIDOR="
+  REM Salir de la subrutina y saltar a PEDIR_IP_MANUAL del cuerpo principal.
+  REM Nota: goto desde dentro de call: rompe la subrutina y salta al label,
+  REM lo que es exactamente lo que queremos aqui.
+  goto PEDIR_IP_MANUAL
+)
+goto :eof
+
 :ESCRIBIR_CONFIG
 REM Args: %1=modo %2=rol %3=ip_servidor %4=ip_term_a %5=ip_term_b %6=teclado_forzado %7=hardware
 echo Escribiendo public\config.json (modo=%~1, rol=%~2, hw=%~7)...
@@ -417,6 +537,15 @@ REM Si modo es desarrollo, pocketbase_url debe ser 127.0.0.1
 if "%~1"=="desarrollo" (
   powershell -Command "(Get-Content public\config.json) -replace 'http://%~3:8090', 'http://127.0.0.1:8090' | Set-Content public\config.json"
 )
+REM Propagar el config.json al bundle compilado (dist/) para que el
+REM navegador sirva SIEMPRE la configuracion recien escrita (no la que
+REM vino cocida en el pendrive). Sin esto, la SPA quedaba leyendo
+REM dist\config.json con modo=desarrollo y mostraba el boton
+REM "Monitor Vigilancia" en las terminales de produccion.
+if exist "dist" (
+  copy /Y "public\config.json" "dist\config.json" >nul 2>&1
+  del /Q "dist\install_config.json" >nul 2>&1
+)
 goto :eof
 
 :ESCRIBIR_CONFIG_PROD
@@ -440,6 +569,14 @@ echo Escribiendo public\config.json (rol=%~1, pb=%~2, hw=%~5)...
   echo   }
   echo }
 ) > public\config.json
+REM Propagar el config.json al bundle compilado (dist/) — igual que en
+REM ESCRIBIR_CONFIG. Sin esto, la SPA leia dist\config.json con datos
+REM viejos del pendrive y mostraba UI de desarrollo en terminales de
+REM produccion.
+if exist "dist" (
+  copy /Y "public\config.json" "dist\config.json" >nul 2>&1
+  del /Q "dist\install_config.json" >nul 2>&1
+)
 goto :eof
 
 :PERSISTIR_INSTALL_CONFIG
@@ -458,18 +595,51 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "%LIB_PERSIST%" -Modo "%~1" 
 goto :eof
 
 :INSTALAR_DEPENDENCIAS
+REM ------------------------------------------------------------
+REM  MODO OFFLINE-FIRST (pilotos sin internet):
+REM    Si el pendrive ya trae node_modules\ y dist\ precompilados,
+REM    saltamos npm install y npm run build. Esto es CRITICO en
+REM    PCs sin internet (como el servidor de FCEA): npm install
+REM    intenta contactar registry.npmjs.org y se cuelga hasta el
+REM    timeout, aunque las dependencias ya esten copiadas.
+REM
+REM    Un node_modules valido tiene .package-lock.json en su raiz
+REM    (lo escribe npm al terminar la instalacion, es una marca
+REM    de integridad razonable). Un dist valido tiene index.html.
+REM ------------------------------------------------------------
 echo.
+if exist "node_modules\.package-lock.json" (
+  if exist "dist\index.html" (
+    echo [OK] node_modules\ y dist\ ya estan presentes ^(pendrive DRP^).
+    echo      Saltando npm install y npm run build ^(modo offline^).
+    goto :eof
+  )
+)
+
+REM Si llegamos aca, hay que ejecutar npm normalmente. Requiere
+REM internet o un cache local de npm. Sin internet, esto puede
+REM colgarse minutos hasta timeout.
 echo Instalando dependencias de Node.js (puede tardar)...
-call npm install --no-audit --no-fund
-if errorlevel 1 (
-  echo [ERROR] Fallo npm install.
-  exit /b 1
+if not exist "node_modules\.package-lock.json" (
+  call npm install --no-audit --no-fund --prefer-offline
+  if errorlevel 1 (
+    echo [ERROR] Fallo npm install.
+    echo         Si esta PC no tiene internet, el pendrive debe
+    echo         llevar node_modules\ precompilado ^(rehacer pendrive^).
+    exit /b 1
+  )
+) else (
+  echo [OK] node_modules ya presente, saltando npm install.
 )
 echo.
-echo Construyendo frontend (npm run build)...
-call npm run build
-if errorlevel 1 (
-  echo [ADVERTENCIA] El build fallo. Puede ejecutar el sistema en modo dev con: npm run dev
+if not exist "dist\index.html" (
+  echo Construyendo frontend (npm run build)...
+  call npm run build
+  if errorlevel 1 (
+    echo [ADVERTENCIA] El build fallo. Puede ejecutar el sistema en modo dev con: npm run dev
+  )
+) else (
+  echo [OK] dist\ ya presente, saltando npm run build.
 )
 goto :eof
 
@@ -531,53 +701,98 @@ if exist "pocketbase\pb_backups" (
   rmdir /S /Q "pocketbase\pb_backups" 2>nul
 )
 
-REM Decidir si hay que restaurar desde el pendrive
-set "HAY_PERSIST=0"
-if exist "%PERSIST_PBDATA%\data.db" set "HAY_PERSIST=1"
+REM ------------------------------------------------------------
+REM  Buscar el "candidato ganador": la fuente MAS NUEVA entre:
+REM    1) Base persistente actual (C:\ProgramData\...\pb_data\data.db)
+REM    2) Ultimo backup del desinstalador   (C:\backup_fcea_*\pb_data\data.db)
+REM    3) Base productiva "atrapada" bug-legacy
+REM         (C:\sistema-llaves-fcea\pocketbase\pb_data\data.db)
+REM    4) Semilla del pendrive             (%PENDRIVE_PBDATA%\data.db)
+REM
+REM  Se usa data.db.LastWriteTime como criterio. La fuente elegida se
+REM  copia sobre la persistente. NUNCA se pierde nada: los candidatos
+REM  no elegidos siguen en su lugar (backup_fcea_*, pendrive, etc).
+REM ------------------------------------------------------------
+echo.
+echo Buscando la fuente de datos MAS NUEVA disponible ^(persistente / backup local / pendrive^)...
 
-if "%HAY_PERSIST%"=="1" (
+set "FUENTE_ELEGIDA="
+set "FUENTE_ORIGEN="
+
+REM Delegamos la comparacion a un script PowerShell externo (mucho mas robusto
+REM que embeber PowerShell inline en CMD con backslash-newline).
+set "PICK_TMP=%TEMP%\fcea_pick_seed_%RANDOM%.txt"
+set "PICKER=%REPO_ROOT%\scripts\lib\elegir_fuente_datos.ps1"
+if exist "%PICKER%" (
+  powershell -NoProfile -ExecutionPolicy Bypass -File "%PICKER%" -RutaPendrivePbData "%PENDRIVE_PBDATA%" -Salida "%PICK_TMP%"
+) else (
+  echo [ADVERTENCIA] No se encontro %PICKER%.
+  echo               Se usara solo la semilla del pendrive como respaldo.
+  if exist "%PENDRIVE_PBDATA%\data.db" (
+    echo pendrive^|%PENDRIVE_PBDATA%>"%PICK_TMP%"
+  ) else (
+    echo ninguno^|>"%PICK_TMP%"
+  )
+)
+
+if exist "%PICK_TMP%" (
+  for /f "tokens=1,2 delims=|" %%a in ('type "%PICK_TMP%"') do (
+    set "FUENTE_ORIGEN=%%a"
+    set "FUENTE_ELEGIDA=%%b"
+  )
+  del /q "%PICK_TMP%" 2>nul
+)
+
+if "%FUENTE_ORIGEN%"=="ninguno" (
   echo.
   echo  ============================================================
-  echo   [OK] DATOS PERSISTENTES YA EXISTEN EN %PERSIST_PBDATA%
-  echo  ============================================================
-  echo   NO se sobreescriben. El sistema usara estos datos vivos.
-  echo   Si querias reemplazarlos por el snapshot del pendrive,
-  echo   borra %PERSIST_PBDATA% manualmente y vuelve a instalar.
+  echo   No hay ninguna fuente de datos disponible.
+  echo   La instalacion arrancara con base de datos VACIA.
   echo  ============================================================
   goto :eof
 )
 
-REM No hay datos persistentes -> primera instalacion en esta PC.
-REM Si el pendrive trae datos, los usamos como semilla inicial.
-if not exist "%PENDRIVE_PBDATA%\data.db" (
+if "%FUENTE_ORIGEN%"=="persistente" (
   echo.
-  echo No hay datos persistentes y el pendrive no trae datos productivos.
-  echo La instalacion arrancara con base de datos vacia.
+  echo  ============================================================
+  echo   [OK] LA BASE PERSISTENTE YA ES LA MAS NUEVA
+  echo  ============================================================
+  echo   %PERSIST_PBDATA%
+  echo   NO se sobreescribe. El sistema usara estos datos vivos.
+  echo  ============================================================
   goto :eof
 )
 
 echo.
 echo  ============================================================
-echo   PRIMERA INSTALACION: SEMBRANDO DATOS DESDE EL PENDRIVE
+echo   RESTAURANDO DATOS DESDE: %FUENTE_ORIGEN%
 echo  ============================================================
+echo   Origen : %FUENTE_ELEGIDA%
+echo   Destino: %PERSIST_PBDATA%
 if exist "%PENDRIVE_ROOT%\ULTIMO_BACKUP.txt" (
   echo.
   type "%PENDRIVE_ROOT%\ULTIMO_BACKUP.txt"
 )
 echo.
-echo Copiando datos del pendrive a %PERSIST_PBDATA% ...
-robocopy "%PENDRIVE_PBDATA%" "%PERSIST_PBDATA%" /MIR /NFL /NDL /NJH /NJS /NP >nul
+robocopy "%FUENTE_ELEGIDA%" "%PERSIST_PBDATA%" /MIR /NFL /NDL /NJH /NJS /NP >nul
 
-if exist "%PENDRIVE_PBBACKUPS%" (
-  echo Copiando pb_backups historicos a %PERSIST_PBBACKUPS% ...
+REM Copiar pb_backups asociado si existe (mismo padre que la fuente elegida)
+for %%F in ("%FUENTE_ELEGIDA%") do set "FUENTE_PADRE=%%~dpF"
+if "%FUENTE_PADRE:~-1%"=="\" set "FUENTE_PADRE=%FUENTE_PADRE:~0,-1%"
+set "FUENTE_PBBACKUPS=%FUENTE_PADRE%\pb_backups"
+if exist "%FUENTE_PBBACKUPS%" (
+  echo Copiando pb_backups asociados a %PERSIST_PBBACKUPS% ...
+  robocopy "%FUENTE_PBBACKUPS%" "%PERSIST_PBBACKUPS%" /MIR /NFL /NDL /NJH /NJS /NP >nul
+) else if exist "%PENDRIVE_PBBACKUPS%" (
+  echo Copiando pb_backups historicos del pendrive a %PERSIST_PBBACKUPS% ...
   robocopy "%PENDRIVE_PBBACKUPS%" "%PERSIST_PBBACKUPS%" /MIR /NFL /NDL /NJH /NJS /NP >nul
 )
 
 echo.
 echo  ============================================================
-echo   [OK] DATOS INICIALES SEMBRADOS EN %PERSIST_PBDATA%
-echo  ============================================================
-echo   A partir de ahora estos datos sobreviven a reinstalaciones.
+echo   [OK] DATOS RESTAURADOS EN %PERSIST_PBDATA%
+echo   PocketBase usa esta ruta persistente (--dir absoluto).
+echo   Sobrevive a futuras reinstalaciones y desinstalaciones.
 echo  ============================================================
 goto :eof
 
@@ -681,7 +896,45 @@ if errorlevel 1 (
 )
 goto :eof
 
+REM ============================================================
+REM  CREAR_ACCESO_KIOSK
+REM
+REM  Copia scripts\lib\abrir_llaves_kiosk.bat al Escritorio publico
+REM  con el nombre "abrir llaves FCEA modo kiosk.bat", asi cualquier
+REM  usuario que inicie sesion en la PC ve el icono. Sirve para
+REM  volver al kiosk despues de haber salido con Alt+F4.
+REM
+REM  Idempotente: si ya existe, lo sobrescribe.
+REM ============================================================
+:CREAR_ACCESO_KIOSK
+set "SRC_KIOSK=%REPO_ROOT%\scripts\lib\abrir_llaves_kiosk.bat"
+if not exist "%SRC_KIOSK%" (
+  echo [AVISO] No se encontro %SRC_KIOSK%. No creo el acceso directo del kiosk.
+  goto :eof
+)
+REM Escritorio publico (visible para todos los usuarios de la PC).
+set "DST_KIOSK_ALL=%PUBLIC%\Desktop\abrir llaves FCEA modo kiosk.bat"
+REM Escritorio del usuario actual como respaldo (si "Public\Desktop"
+REM no existe o esta protegido, al menos el instalador lo ve).
+set "DST_KIOSK_USR=%USERPROFILE%\Desktop\abrir llaves FCEA modo kiosk.bat"
+
+copy /Y "%SRC_KIOSK%" "%DST_KIOSK_ALL%" >nul 2>&1
+if exist "%DST_KIOSK_ALL%" (
+  echo  [OK] Acceso directo creado: "%DST_KIOSK_ALL%"
+) else (
+  copy /Y "%SRC_KIOSK%" "%DST_KIOSK_USR%" >nul 2>&1
+  if exist "%DST_KIOSK_USR%" (
+    echo  [OK] Acceso directo creado: "%DST_KIOSK_USR%"
+  ) else (
+    echo  [AVISO] No se pudo crear el acceso directo en el Escritorio.
+    echo          El usuario puede lanzar el kiosk manualmente ejecutando:
+    echo            %SRC_KIOSK%
+  )
+)
+goto :eof
+
 :FIN
+call :CREAR_ACCESO_KIOSK
 echo.
 echo ============================================================
 echo  Instalacion finalizada.
@@ -694,3 +947,5 @@ if not defined FCEA_RESTAURAR_AUTO (
   pause
 )
 endlocal
+
+

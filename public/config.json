@@ -1,9 +1,9 @@
 {
   "$schema": "./config.schema.json",
-  "version": "2.0.0",
-  "modo": "desarrollo",
-  "rol": "monitor",
-  "hardware": "desarrollo",
+  "version": "2.1.0",
+  "modo": "produccion",
+  "rol": "",
+  "hardware": "",
   "pocketbase_url": "http://127.0.0.1:8090",
   "red": {
     "ip_servidor": "127.0.0.1",
@@ -15,14 +15,10 @@
     "tema": "claro"
   },
   "_notas": [
-    "Este archivo es leído en tiempo de ejecución por el frontend.",
-    "modo: 'desarrollo' (1 PC con botón Monitor/Terminal) | 'produccion' (kiosk fijo).",
-    "rol: 'monitor' (cabina/servidor) | 'terminal-a' | 'terminal-b' | 'dashboard'.",
-    "hardware: 'tactil' (kiosk, oculta Dashboard) | 'tradicional' (PC de oficina, Dashboard visible) | 'desarrollo' (notebook dev).",
-    "pocketbase_url: URL del servidor PocketBase visible para esta PC.",
-    "  - En modo 'desarrollo' o en la PC servidor: http://127.0.0.1:8090.",
-    "  - En las terminales: http://<ip_servidor>:8090 (ej. http://192.168.50.10:8090).",
-    "teclado_virtual_forzado: si true, muestra el teclado virtual aunque no se detecte touch (útil para pruebas).",
-    "Modificar este archivo NO requiere recompilar el frontend, solo recargar el navegador."
+    "PLANTILLA NEUTRA. El instalador (scripts/install/INSTALAR.bat) sobreescribe",
+    "ESTE archivo Y dist/config.json con los valores autodetectados (rol, hardware,",
+    "ip_servidor, pocketbase_url). Mantener 'rol' y 'hardware' vacios evita que un",
+    "rebuild con esta plantilla muestre UI de desarrollo en una PC de produccion.",
+    "Ver scripts/install/INSTALAR.bat funciones ESCRIBIR_CONFIG y ESCRIBIR_CONFIG_PROD."
   ]
 }

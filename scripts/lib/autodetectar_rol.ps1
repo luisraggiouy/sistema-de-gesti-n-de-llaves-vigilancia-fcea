@@ -270,9 +270,22 @@ if ($resultado.rol -and $resultado.rol -ne 'monitor' -and -not $resultado.ip_ser
     }
 }
 
-# 5) Fallback: soy el servidor + monitor
+# 5) Fallback: NUNCA asumir "soy monitor" silenciosamente.
+#    En la version anterior, si esta PC era una Terminal huerfana
+#    (Monitor Vigilancia apagado durante la instalacion), el fallback
+#    la convertia en monitor con ip_servidor=127.0.0.1 y luego el
+#    frontend no podia contactar a la base -> "Failed to fetch".
+#
+#    Ahora dejamos rol='desconocido' para que el INSTALAR.bat sepa
+#    que tiene que preguntar al usuario. Si este script se invoca en
+#    runtime (no en instalacion), el fallback sigue siendo 'monitor'
+#    porque no hay a quien preguntarle.
 if (-not $resultado.rol) {
-    $resultado.rol = 'monitor'
+    if ($env:FCEA_AUTODETECT_FALLBACK -eq 'monitor') {
+        $resultado.rol = 'monitor'
+    } else {
+        $resultado.rol = 'desconocido'
+    }
 }
 
 # ------------------------------------------------------------

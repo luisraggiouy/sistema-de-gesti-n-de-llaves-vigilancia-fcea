@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Hand } from "lucide-react";
 import { useTouchUX } from "@/hooks/useTouchUX";
+import { getRuntimeConfig } from "@/lib/runtimeConfig";
 
 /**
  * Overlay a pantalla completa que se muestra en la Terminal cuando
@@ -23,18 +24,29 @@ import { useTouchUX } from "@/hooks/useTouchUX";
 export function TerminalScreensaver() {
   const { screensaverActivo, screensaverDelayMs, screensaverTexto } =
     useTouchUX();
+
+  // Defensa dura: si esta PC tiene rol "monitor" (aunque el config.json diga
+  // hardware=tactil por error), nunca se debe mostrar el screensaver.
+  let rolActual = "";
+  try {
+    rolActual = String(getRuntimeConfig()?.rol ?? "").toLowerCase();
+  } catch {
+    rolActual = "";
+  }
+  const esMonitor = rolActual === "monitor" || rolActual === "dashboard";
+
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<number | null>(null);
 
   const resetTimer = useCallback(() => {
-    if (!screensaverActivo) return;
+    if (!screensaverActivo || esMonitor) return;
     if (timerRef.current !== null) {
       window.clearTimeout(timerRef.current);
     }
     timerRef.current = window.setTimeout(() => {
       setVisible(true);
     }, screensaverDelayMs);
-  }, [screensaverActivo, screensaverDelayMs]);
+  }, [screensaverActivo, screensaverDelayMs, esMonitor]);
 
   const ocultar = useCallback(() => {
     setVisible(false);
@@ -42,7 +54,7 @@ export function TerminalScreensaver() {
   }, [resetTimer]);
 
   useEffect(() => {
-    if (!screensaverActivo) {
+    if (!screensaverActivo || esMonitor) {
       setVisible(false);
       return;
     }
@@ -72,9 +84,9 @@ export function TerminalScreensaver() {
         timerRef.current = null;
       }
     };
-  }, [screensaverActivo, resetTimer, visible]);
+  }, [screensaverActivo, resetTimer, visible, esMonitor]);
 
-  if (!screensaverActivo || !visible) return null;
+  if (!screensaverActivo || esMonitor || !visible) return null;
 
   return (
     <div
@@ -82,6 +94,10 @@ export function TerminalScreensaver() {
       aria-label="Toque la pantalla para comenzar"
       onClick={ocultar}
       onTouchStart={ocultar}
+      onPointerDown={ocultar}
+      onMouseDown={ocultar}
+      onKeyDown={ocultar}
+      tabIndex={0}
       className="fixed inset-0 z-[9999] flex flex-col items-center justify-center cursor-pointer select-none"
       style={{
         // Gradiente institucional FCEA sobre fondo primario.

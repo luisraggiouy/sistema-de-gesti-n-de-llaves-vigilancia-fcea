@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SolicitudesProvider } from "@/contexts/SolicitudesContext";
 import { UsuariosRegistradosProvider } from "@/hooks/useUsuariosRegistrados";
+import { DiagnosticoModal } from "@/components/DiagnosticoModal";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import MonitorVigilancia from "./pages/MonitorVigilancia";
@@ -22,6 +23,11 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        {/* Panel de diagnostico global. Se abre con Ctrl+Shift+D o con
+            5 toques rapidos en pantalla. Sirve para depurar errores
+            cuando DevTools (F12) esta bloqueado por politica de la
+            organizacion en los kiosks tactiles. */}
+        <DiagnosticoModal />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />

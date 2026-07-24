@@ -50,7 +50,27 @@ $HealthStatusFileDist = Join-Path $ProjectRoot "dist\system_health.json"
 $BackupsDirNew = Join-Path $ProjectRoot "backups"
 $BackupsDirOld = Join-Path $ProjectRoot "pocketbase\pb_backups"
 $MaintenanceLog = Join-Path $LogsDir "maintenance.log"
-$DatabaseFile = Join-Path $ProjectRoot "pocketbase\pb_data\data.db"
+
+# Detectar automaticamente la ruta real de data.db.
+# Puede estar en:
+#   a) $ProjectRoot\pocketbase\pb_data\data.db          (instalacion portable)
+#   b) C:\ProgramData\FCEA-Sistema-Llaves\pb_data\data.db  (instalacion productiva)
+$DatabaseFile = $null
+$candidatosDbData = @(
+  (Join-Path $ProjectRoot "pocketbase\pb_data\data.db"),
+  "C:\ProgramData\FCEA-Sistema-Llaves\pb_data\data.db"
+)
+foreach ($c in $candidatosDbData) {
+  if (Test-Path $c) {
+    $DatabaseFile = $c
+    break
+  }
+}
+if (-not $DatabaseFile) {
+  # Fallback: mantenemos la ruta clasica; los chequeos "no existe" se
+  # ejecutaran normalmente y avisaran de la ausencia.
+  $DatabaseFile = Join-Path $ProjectRoot "pocketbase\pb_data\data.db"
+}
 
 # Marcador de mantenimiento anual hecho manualmente.
 # Lo actualiza scripts/maintenance/MARCAR_MANTENIMIENTO_ANUAL.ps1 cuando
@@ -243,7 +263,17 @@ try {
 
         Write-Log "Ultimo backup: hace $DaysSinceBackup dias ($($LatestBackup.LastWriteTime))"
 
-        if ($DaysSinceBackup -gt 14) {
+        # -------------------------------------------------------
+        # FIX (v4.4): en instalaciones nuevas, la fecha del ultimo
+        # backup puede ser vieja porque se COPIO del pendrive
+        # (los backups en pb_backups\ conservan su LastWriteTime
+        # original). No queremos alarmar al usuario con "hace 46
+        # dias" cuando la PC se instalo hoy. Si es fresh install
+        # (menos de $GraceDaysSinBackup dias), degradamos la
+        # severidad y ademas no disparamos alerta si aun no
+        # corresponde generar backup semanal.
+        # -------------------------------------------------------
+        if ($DaysSinceBackup -gt 14 -and -not $IsFreshInstall) {
             $HealthStatus.alerts += @{
                 level = "critical"
                 title = "Backup desactualizado"
@@ -380,44 +410,105 @@ try {
 }
 
 # ============================================================================
-# 5. VERIFICAR ACTUALIZACION DE PENDRIVE DE RECUPERACION
+# 5. VERIFICAR ACTUALIZACION DE SEMILLA DEL PENDRIVE (v5.1)
 # ============================================================================
-Write-Log "Verificando actualizacion de pendrive..."
+# Fuente principal: _SEMILLA_INFO.txt en C:\ProgramData\FCEA-Sistema-Llaves\pb_data\
+# Lo escribe actualizar_semilla.ps1 cada vez que se refresca la semilla del
+# pendrive (a mano desde ACTUALIZAR_SEMILLA_PENDRIVE.bat, o automaticamente
+# desde DESINSTALAR SISTEMA.bat antes de borrar).
+#
+# Umbrales (regla dorada de resguardo):
+#   > 45 dias  -> WARNING  (recordar actualizar semilla)
+#   > 90 dias  -> CRITICAL (semilla vieja, riesgo si hay que reinstalar)
+#
+# Solo aplica al rol "monitor". Terminales no tienen la BD productiva.
+# ============================================================================
+Write-Log "Verificando actualizacion de semilla del pendrive..."
 
 try {
-    if (Test-Path $PendriveMarkerFile) {
-        $LastUpdateDate = Get-Content $PendriveMarkerFile -ErrorAction SilentlyContinue
-        if ($LastUpdateDate) {
-            try {
-                $LastUpdate = [DateTime]::Parse($LastUpdateDate)
-                $DaysSinceUpdate = [math]::Round((New-TimeSpan -Start $LastUpdate -End (Get-Date)).TotalDays, 0)
-                $HealthStatus.metrics.pendriveDaysOutdated = $DaysSinceUpdate
+    # Determinar rol actual leyendo config.json
+    $RolActual = ""
+    $ConfigActual = Join-Path $ProjectRoot "public\config.json"
+    if (Test-Path $ConfigActual) {
+        try {
+            $cfg2 = Get-Content $ConfigActual -Raw | ConvertFrom-Json
+            $RolActual = $cfg2.rol
+        } catch { }
+    }
 
-                Write-Log "Pendrive actualizado hace: $DaysSinceUpdate dias"
+    $SemillaInfoFile = "C:\ProgramData\FCEA-Sistema-Llaves\pb_data\_SEMILLA_INFO.txt"
+    $SemillaLegacyMarker = $PendriveMarkerFile
 
-                if ($DaysSinceUpdate -gt 90) {
-                    $HealthStatus.alerts += @{
-                        level = "warning"
-                        title = "Pendrive de recuperacion desactualizado"
-                        message = "El pendrive no se actualiza hace $DaysSinceUpdate dias. Recomendado: actualizar trimestralmente."
-                        action = "Ejecutar: scripts\pendrive\crear_pendrive.ps1 -Drive D: -Tipo instalador (cambiar D: por la letra real). Ver guia § 3.7."
-                        icon = "usb"
-                        documentation = "docs/guia_mantenimiento_paso_a_paso.md"
-                    }
-                    if ($HealthStatus.overallStatus -eq "healthy") {
-                        $HealthStatus.overallStatus = "warning"
-                    }
-                    Write-Log "ADVERTENCIA: Pendrive desactualizado" "WARNING"
+    if ($RolActual -eq "monitor") {
+        $LastSeedDate = $null
+        if (Test-Path $SemillaInfoFile) {
+            $contenido = Get-Content $SemillaInfoFile -Raw -ErrorAction SilentlyContinue
+            if ($contenido -match 'last_seed_written_at:\s*(\S+)') {
+                try { $LastSeedDate = [DateTime]::Parse($Matches[1]) } catch { $LastSeedDate = $null }
+            }
+        }
+        # Fallback: si aun no existe _SEMILLA_INFO.txt pero si el marcador legacy
+        if (-not $LastSeedDate -and (Test-Path $SemillaLegacyMarker)) {
+            $raw = Get-Content $SemillaLegacyMarker -ErrorAction SilentlyContinue
+            try { $LastSeedDate = [DateTime]::Parse($raw) } catch { $LastSeedDate = $null }
+        }
+
+        if ($LastSeedDate) {
+            $DaysSinceSeed = [math]::Round((New-TimeSpan -Start $LastSeedDate -End (Get-Date)).TotalDays, 0)
+            $HealthStatus.metrics.pendriveDaysOutdated = $DaysSinceSeed
+
+            Write-Log "Semilla del pendrive: ultima actualizacion hace $DaysSinceSeed dias"
+
+            if ($DaysSinceSeed -gt 90) {
+                $HealthStatus.alerts += @{
+                    level = "critical"
+                    title = "Semilla del pendrive muy desactualizada"
+                    message = "Hace $DaysSinceSeed dias que no se graba la semilla del pendrive. Si el sistema se rompe, la restauracion perderia $DaysSinceSeed dias de datos."
+                    action = "Enchufe el pendrive del sistema en esta PC y ejecute ACTUALIZAR_SEMILLA_PENDRIVE.bat desde el pendrive. Duracion: 30-60 segundos."
+                    icon = "usb"
+                    documentation = "PLAYBOOK_MANTENIMIENTO.md"
                 }
-            } catch {
-                Write-Log "Error al parsear fecha de actualizacion de pendrive" "WARNING"
+                $HealthStatus.overallStatus = "critical"
+                Write-Log "CRITICO: Semilla del pendrive con $DaysSinceSeed dias" "ERROR"
+            }
+            elseif ($DaysSinceSeed -gt 45) {
+                $HealthStatus.alerts += @{
+                    level = "warning"
+                    title = "Semilla del pendrive desactualizada"
+                    message = "Hace $DaysSinceSeed dias que no se graba la semilla del pendrive. Se recomienda refrescarla cada 45 dias."
+                    action = "Enchufe el pendrive del sistema en esta PC y ejecute ACTUALIZAR_SEMILLA_PENDRIVE.bat desde el pendrive. Duracion: 30-60 segundos."
+                    icon = "usb"
+                    documentation = "PLAYBOOK_MANTENIMIENTO.md"
+                }
+                if ($HealthStatus.overallStatus -eq "healthy") {
+                    $HealthStatus.overallStatus = "warning"
+                }
+                Write-Log "ADVERTENCIA: Semilla del pendrive con $DaysSinceSeed dias" "WARNING"
+            }
+        } else {
+            # Sin registro de semilla: si la instalacion NO es fresca, avisar.
+            if (-not $IsFreshInstall) {
+                $HealthStatus.alerts += @{
+                    level = "warning"
+                    title = "Nunca se grabo la semilla del pendrive"
+                    message = "No hay registro de que se haya grabado la semilla del pendrive en esta PC. Si el sistema se rompe, no habra backup portable disponible."
+                    action = "Enchufe el pendrive del sistema en esta PC y ejecute ACTUALIZAR_SEMILLA_PENDRIVE.bat desde el pendrive. Duracion: 30-60 segundos."
+                    icon = "usb"
+                    documentation = "PLAYBOOK_MANTENIMIENTO.md"
+                }
+                if ($HealthStatus.overallStatus -eq "healthy") {
+                    $HealthStatus.overallStatus = "warning"
+                }
+                Write-Log "ADVERTENCIA: Sin registro de grabacion de semilla" "WARNING"
+            } else {
+                Write-Log "Sin registro de semilla todavia (instalacion nueva, $InstallAgeDays dias)" "INFO"
             }
         }
     } else {
-        Write-Log "No hay registro de actualizacion de pendrive" "INFO"
+        Write-Log "Rol=$RolActual : chequeo de semilla del pendrive solo aplica al Monitor."
     }
 } catch {
-    Write-Log "Error al verificar pendrive: $($_.Exception.Message)" "ERROR"
+    Write-Log "Error al verificar semilla del pendrive: $($_.Exception.Message)" "ERROR"
 }
 
 # ============================================================================

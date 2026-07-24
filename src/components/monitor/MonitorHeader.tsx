@@ -103,21 +103,55 @@ export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProp
           </div>
         </div>
 
-        {/* Fila 2: Botones de navegación y funcionalidades */}
+        {/*
+          Fila 2: Botones de navegación y funcionalidades.
+
+          v2.6 (P7 - piloto FCEA jueves 2026-07-23):
+          `shouldShowNavigationButtons` viene de useDeviceConfig() y es
+          FALSE cuando `hardware === "tactil"` (Terminal en modo kiosk).
+          Es decir:
+            - En Terminal A / Terminal B (kiosk tactil): NO se muestran
+              los botones "Terminal Usuario" ni "Dashboard". Esto es
+              intencional para producción: los usuarios finales no
+              tienen que poder saltar entre pantallas. Si un vigilante
+              necesita el Dashboard va desde el navegador manualmente
+              (Ctrl+L → URL).
+            - En Monitor Vigilancia (PC con monitor + teclado + mouse,
+              hardware="estandar"): SÍ se muestran, porque ese equipo
+              lo maneja el jefe de vigilancia y precisa poder navegar.
+          Si en el jueves esto no se cumple, revisar el config.json de
+          cada máquina y confirmar que las Terminales tienen
+          `"hardware": "tactil"`.
+        */}
+        {/*
+          v2.7 (P6): En producción el botón "Terminal Usuario" se OCULTA
+          siempre en el Monitor de Vigilancia. Era útil solo en desarrollo
+          para saltar entre pantallas. Los vigilantes NO deben navegar al
+          Terminal desde acá (los Terminales A/B tienen su propia PC en
+          modo kiosk). Se mantiene solo bajo `import.meta.env.DEV` — en
+          build de producción Vite tree-shakea el nodo entero.
+
+          El botón "Dashboard" sí se mantiene: el jefe de vigilancia
+          precisa poder ver estadísticas. La condición
+          `shouldShowNavigationButtons` sigue vigente para el caso de
+          Terminales en modo kiosk (allí no se muestra ninguno).
+        */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/50">
           {shouldShowNavigationButtons && (
             <>
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                className="gap-2"
-              >
-                <Link to="/">
-                  <Key className="w-4 h-4" />
-                  Terminal Usuario
-                </Link>
-              </Button>
+              {import.meta.env.DEV && (
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  <Link to="/">
+                    <Key className="w-4 h-4" />
+                    Terminal Usuario
+                  </Link>
+                </Button>
+              )}
               <Button
                 asChild
                 variant="outline"

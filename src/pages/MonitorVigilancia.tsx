@@ -16,10 +16,11 @@ import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, Key, CheckCircle2, Settings2, Users, Settings, History, BookUser, Package, RefreshCw, WifiOff, Loader2 } from 'lucide-react';
+import { ClipboardList, Key, CheckCircle2, Settings2, Users, Settings, History, BookUser, Package, RefreshCw, WifiOff, Loader2, ActivitySquare } from 'lucide-react';
 import { useSonidos } from '@/hooks/useSonidos';
 import { SoundControls } from '@/components/monitor/SoundControls';
 import { useObjetosOlvidados } from '@/hooks/useObjetosOlvidados';
+import { DiagnosticoModal } from '@/components/DiagnosticoModal';
 
 export default function MonitorVigilancia() {
   const { toast } = useToast();
@@ -57,6 +58,11 @@ export default function MonitorVigilancia() {
   const [agendaOpen, setAgendaOpen] = useState(false);
   const [objetosOpen, setObjetosOpen] = useState(false);
   const [registroObjetoOpen, setRegistroObjetoOpen] = useState(false);
+  // v2.6: DiagnosticoModal controlado desde el header. Antes se abria
+  // con "5 toques rapidos" (removido por falsos positivos) o con
+  // Ctrl+Shift+D (sigue funcionando). Ahora ademas hay un boton
+  // discreto en el header — ver <Button ... onClick={setDiagnosticoOpen}>.
+  const [diagnosticoOpen, setDiagnosticoOpen] = useState(false);
 
   const { objetos, objetosEnCustodia, objetosDevueltos, registrarObjeto, devolverObjeto, buscarObjetos } = useObjetosOlvidados();
 
@@ -132,8 +138,25 @@ export default function MonitorVigilancia() {
             <Settings2 className="w-4 h-4" />
             <span className="hidden md:inline">Llaves</span>
           </Button>
+          {/*
+            Boton discreto de diagnostico. Reemplaza al gesto "5 toques
+            rapidos" (v2.6). Icono solo (sin label en pantallas chicas)
+            para no ensuciar la barra. En hover muestra tooltip nativo.
+          */}
+          <Button
+            variant="ghost"
+            onClick={() => setDiagnosticoOpen(true)}
+            className="gap-2 opacity-60 hover:opacity-100"
+            size="sm"
+            title="Diagnóstico del sistema (Ctrl+Shift+D)"
+            aria-label="Diagnóstico del sistema"
+          >
+            <ActivitySquare className="w-4 h-4" />
+          </Button>
         </div>
       </MonitorHeader>
+
+      <DiagnosticoModal open={diagnosticoOpen} onOpenChange={setDiagnosticoOpen} />
 
       <div className="bg-card border-b px-6 py-2">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -207,7 +230,14 @@ export default function MonitorVigilancia() {
         <section>
           <div className="flex items-center gap-3 mb-4">
             <ClipboardList className="w-6 h-6 text-primary" />
-            <h2 className="text-xl font-semibold">Cola de Solicitudes</h2>
+            {/*
+              v2.6: renombrado de "Cola de Solicitudes" -> "Solicitudes
+              pendientes". Feedback del piloto: los vigilantes decian que
+              "cola" les sonaba a fila de espera larga y demoraba, cuando
+              en realidad son solicitudes que hay que atender ya. El
+              nombre nuevo es mas claro sobre lo que hay que hacer.
+            */}
+            <h2 className="text-xl font-semibold">Solicitudes pendientes</h2>
             {solicitudesPendientes.length > 0 && (
               <Badge variant="destructive">{solicitudesPendientes.length} pendiente{solicitudesPendientes.length !== 1 ? 's' : ''}</Badge>
             )}

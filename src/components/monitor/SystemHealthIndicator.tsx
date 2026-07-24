@@ -236,14 +236,11 @@ export function SystemHealthIndicator() {
               </div>
             </div>
 
-            {/* Información de contacto */}
-            {healthData.alerts.length > 0 && (
-              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <strong>¿Necesita ayuda?</strong> Contacte a Personal de Sistemas de FCEA para resolver estos problemas.
-                </p>
-              </div>
-            )}
+            {/* Bloque "Necesita ayuda?" eliminado a pedido del usuario (FCEA v4.4).
+                El sistema es autoservicio: las acciones necesarias ya se detallan
+                dentro de cada alerta ("Accion requerida" / "Recomendacion" +
+                enlace a la guia de mantenimiento). No hay Personal de Sistemas
+                dedicado al que contactar. */}
           </div>
         </DialogContent>
       </Dialog>

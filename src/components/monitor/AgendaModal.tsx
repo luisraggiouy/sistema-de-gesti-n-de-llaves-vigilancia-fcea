@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import pb from '@/lib/pocketbase';
 import { AutorizacionesTab } from './AutorizacionesTab';
 import { HistorialAutorizacionesTab } from './HistorialAutorizacionesTab';
+import { ConfirmarAccionSensible } from '@/components/ConfirmarAccionSensible';
 
 const mapRecord = (r: any): UsuarioRegistrado => ({
   id: r.id,
@@ -40,6 +41,14 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
   const [editData, setEditData] = useState<Partial<UsuarioRegistrado>>({});
   const [usuarios, setUsuarios] = useState<UsuarioRegistrado[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // v2.8 (2026-07-23): estados para el modal `ConfirmarAccionSensible`.
+  //   - `confirmDeleteUsuario`: usuario que se va a borrar (pendiente de
+  //     confirmacion tipeando "CONFIRMAR"). null = modal cerrado.
+  //   - `confirmSaveEdit`: bandera para confirmar guardado del edit inline.
+  //     Se usa true/false porque los datos del edit ya viven en `editData`.
+  const [confirmDeleteUsuario, setConfirmDeleteUsuario] = useState<UsuarioRegistrado | null>(null);
+  const [confirmSaveEdit, setConfirmSaveEdit] = useState(false);
 
   // Fetch fresh data from PocketBase every time the modal opens
   const fetchUsuarios = useCallback(async () => {
@@ -83,7 +92,16 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
     setEditData({});
   };
 
-  const saveEdit = async () => {
+  // v2.8 (2026-07-23): el guardado real del edit se movio a
+  // `confirmarSaveEdit`; el boton "Guardar" del listado ahora solo abre
+  // el modal intimidatorio. Asi tanto EDITAR como BORRAR pasan por la
+  // misma barrera de tipear "CONFIRMAR".
+  const saveEdit = () => {
+    if (!editingId || !editData.nombre?.trim()) return;
+    setConfirmSaveEdit(true);
+  };
+
+  const confirmarSaveEdit = async () => {
     if (!editingId || !editData.nombre?.trim()) return;
     try {
       await pb.collection('usuarios_registrados').update(editingId, {
@@ -103,8 +121,17 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
     }
   };
 
-  const handleDelete = async (u: UsuarioRegistrado) => {
-    if (!confirm(`¿Eliminar a ${u.nombre}? Esta acción no se puede deshacer.`)) return;
+  // v2.8 (2026-07-23): el `window.confirm()` viejo se cambio por el
+  // modal `ConfirmarAccionSensible` para forzar al operador a tipear
+  // "CONFIRMAR". `handleDelete` ahora solo abre el modal; la operacion
+  // real vive en `confirmarDelete`.
+  const handleDelete = (u: UsuarioRegistrado) => {
+    setConfirmDeleteUsuario(u);
+  };
+
+  const confirmarDelete = async () => {
+    const u = confirmDeleteUsuario;
+    if (!u) return;
     try {
       await pb.collection('usuarios_registrados').delete(u.id);
       toast({ title: "Usuario eliminado", description: `${u.nombre} fue eliminado de la agenda`, variant: "destructive" });
@@ -273,6 +300,42 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
           </TabsContent>
         </Tabs>
       </DialogContent>
+
+      {/* v2.8 (2026-07-23): Modales `ConfirmarAccionSensible` para
+          proteger las acciones destructivas del tab Contactos:
+            - Editar usuario (guardar cambios inline)
+            - Borrar usuario
+          Ambos exigen tipear "CONFIRMAR" antes de que se habilite el
+          boton de accion. */}
+      <ConfirmarAccionSensible
+        open={!!confirmDeleteUsuario}
+        onOpenChange={(v) => { if (!v) setConfirmDeleteUsuario(null); }}
+        tipoAccion="borrar"
+        entidad="otro"
+        detalle={confirmDeleteUsuario?.nombre}
+        descripcionExtra={
+          "Vas a eliminar este contacto de la agenda. Las solicitudes de llaves historicas asociadas a este usuario van a mostrar el nombre pero podrian quedar sin datos de contacto. Esta accion NO se puede deshacer."
+        }
+        onConfirmar={async () => {
+          await confirmarDelete();
+          setConfirmDeleteUsuario(null);
+        }}
+      />
+
+      <ConfirmarAccionSensible
+        open={confirmSaveEdit}
+        onOpenChange={(v) => { if (!v) setConfirmSaveEdit(false); }}
+        tipoAccion="editar"
+        entidad="otro"
+        detalle={editData?.nombre}
+        descripcionExtra={
+          "Vas a modificar los datos de este contacto. Los cambios se aplican en el momento sobre la base viva; verifica bien el nombre, celular, email y tipo antes de guardar."
+        }
+        onConfirmar={async () => {
+          await confirmarSaveEdit();
+          setConfirmSaveEdit(false);
+        }}
+      />
     </Dialog>
   );
 }

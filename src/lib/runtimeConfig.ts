@@ -123,9 +123,20 @@ export async function loadRuntimeConfig(): Promise<RuntimeConfig> {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { _notas, $schema, ...config } = raw;
 
+      // Filtrar strings vacíos: la plantilla neutra en `public/config.json`
+      // deja `rol` y `hardware` como "" para que un rebuild NO cocine
+      // "monitor" ni "desarrollo" en el bundle. Si el instalador todavía
+      // no reescribió el archivo (raro), preferimos caer al DEFAULT_CONFIG
+      // en vez de mostrar UI con `rol=""` (sería "auto" y podría romper).
+      const configLimpio: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(config)) {
+        if (v === "" || v === null || v === undefined) continue;
+        configLimpio[k] = v;
+      }
+
       cachedConfig = {
         ...DEFAULT_CONFIG,
-        ...config,
+        ...configLimpio,
         red: { ...DEFAULT_CONFIG.red, ...(config.red || {}) },
         ui: { ...DEFAULT_CONFIG.ui, ...(config.ui || {}) },
       } as RuntimeConfig;

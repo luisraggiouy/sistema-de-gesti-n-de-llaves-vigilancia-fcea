@@ -58,11 +58,15 @@ export function useDeviceConfig(): DeviceConfig {
         ? "terminal"
         : "auto";
 
-    // En modo desarrollo, mostramos los botones de cambio de vista.
-    // En modo producción tradicional (PC de oficina, no kiosk) también los
-    // mostramos: es el caso donde vigilancia opera con teclado/mouse y
-    // necesita acceder al Dashboard sin trucos.
-    const shouldShowNavigationButtons = isDevMode || isTradicional;
+    // BotÃ³n "Monitor Vigilancia" en el TerminalHeader:
+    //   - Solo se muestra en modo desarrollo (1 PC con todas las vistas), o
+    //   - En modo producciÃ³n cuando esta PC es realmente la del monitor
+    //     (o dashboard) con hardware tradicional. Las terminales de usuario
+    //     (rol terminal-a / terminal-b) NUNCA muestran este botÃ³n porque
+    //     no tiene sentido: los usuarios no navegan al Monitor Vigilancia.
+    const isMonitorRole = rt.rol === "monitor" || rt.rol === "dashboard";
+    const shouldShowNavigationButtons =
+      isDevMode || (isProductionMode && isTradicional && isMonitorRole);
 
     // Botón Dashboard: visible en cualquier escenario donde NO sea un kiosk
     // táctil "puro". El kiosk táctil expone el Dashboard solo vía menú admin.

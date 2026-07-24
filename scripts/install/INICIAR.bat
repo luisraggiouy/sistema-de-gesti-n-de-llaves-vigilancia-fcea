@@ -77,7 +77,11 @@ echo  ============================================================
 echo.
 
 REM ------------------------------------------------------------
-REM  1) Si soy el servidor (monitor), arrancar PocketBase
+REM  1) Si soy el servidor (monitor), arrancar PocketBase.
+REM     Si NO soy servidor, saltar a subrutina de espera+auto-repair.
+REM     Nota: la logica de espera va como :subrutina despues del FIN
+REM     para NO tener labels/goto dentro de bloques if(...) — CMD
+REM     rompe el flujo en ese caso.
 REM ------------------------------------------------------------
 if /i "%ROL%"=="monitor" (
   echo [1/3] Arrancando servidor PocketBase...
@@ -105,8 +109,7 @@ if /i "%ROL%"=="monitor" (
     echo       PocketBase ya esta corriendo. OK.
   )
 ) else (
-  echo [1/3] No soy servidor ^(rol=%ROL%^). Verificando conectividad a %PB_URL%...
-  powershell -NoProfile -Command "try { $r = Invoke-WebRequest -Uri '%PB_URL%/api/health' -TimeoutSec 3 -UseBasicParsing; if ($r.StatusCode -eq 200) { Write-Host '       Servidor PocketBase OK.' } } catch { Write-Host '       [AVISO] No se pudo conectar al servidor. Verifique red y firewall.' }"
+  call :ESPERAR_MONITOR
 )
 
 REM ------------------------------------------------------------
@@ -185,6 +188,22 @@ if errorlevel 1 (
 )
 
 REM ------------------------------------------------------------
+REM  2.5) Esperar a que PocketBase responda antes de abrir Edge/Chrome
+REM       Evita el "Error al registrar" clasico por lanzar el navegador
+REM       cuando el backend todavia no arranco.
+REM ------------------------------------------------------------
+if exist "scripts\lib\esperar_pocketbase.ps1" (
+  echo [2.5/3] Esperando a PocketBase...
+  if /i "%ROL%"=="monitor" (
+    powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\lib\esperar_pocketbase.ps1" -HostName "127.0.0.1" -Puerto 8090 -TimeoutSeg 60
+  ) else (
+    REM Extraer host de PB_URL (ej: http://192.168.1.10:8090 -> 192.168.1.10)
+    for /f "tokens=2 delims=/:" %%h in ("%PB_URL%") do set "PB_HOST=%%h"
+    powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\lib\esperar_pocketbase.ps1" -HostName "!PB_HOST!" -Puerto 8090 -TimeoutSeg 30
+  )
+)
+
+REM ------------------------------------------------------------
 REM  3) Lanzar navegador (todo en PowerShell aparte)
 REM ------------------------------------------------------------
 echo [3/3] Abriendo navegador para rol=%ROL% hardware=%HW% modo=%MODO%...
@@ -229,3 +248,78 @@ if /i "%1"=="/auto" (
   echo Presione cualquier tecla para cerrar esta ventana...
   pause >nul
 )
+goto :eof
+
+REM ============================================================
+REM  SUBRUTINA: ESPERAR_MONITOR (nueva en v2.5.1)
+REM
+REM  Se llama SOLO cuando el rol es terminal-a / terminal-b /
+REM  dashboard. Espera hasta 3 minutos a que el Monitor responda
+REM  en %PB_URL%/api/health. A los 90s, si aun no responde, dispara
+REM  reparar_conexion_servidor.ps1 para re-escanear la red y
+REM  reescribir config.json con la IP correcta del Monitor.
+REM
+REM  Motivo: en un arranque en frio de FCEA (todas las PCs
+REM  prendiendose a la vez a las 6:00 AM), el Monitor puede tardar
+REM  mas que las terminales en tener el puerto 8090 abierto. Antes,
+REM  la terminal hacia UN solo intento con timeout 3s y ya mostraba
+REM  "[AVISO] No se pudo conectar". Con el retry + auto-repair el
+REM  sistema se recupera solo sin llamada a soporte.
+REM
+REM  Sale con la variable global CONECTADO=1 si fue exitoso,
+REM  vacia si a los 3 min no hubo respuesta (la UI mostrara el
+REM  cartel amigable de "sin conexion" y permitira reintentar).
+REM ============================================================
+:ESPERAR_MONITOR
+echo [1/3] No soy servidor ^(rol=%ROL%^). Esperando al Monitor en %PB_URL% ^(hasta 3 min^)...
+set "CONECTADO="
+set "AUTOREPAIR_DONE="
+set /a INTENTO=0
+
+:LOOP_ESPERAR_MONITOR
+set /a INTENTO+=1
+for /f "delims=" %%v in ('powershell -NoProfile -Command "try { $r = Invoke-WebRequest -Uri '%PB_URL%/api/health' -TimeoutSec 3 -UseBasicParsing -ErrorAction Stop; if ($r.StatusCode -eq 200) { 'OK' } else { 'FAIL' } } catch { 'FAIL' }"') do set "PING_CHECK=%%v"
+if "!PING_CHECK!"=="OK" (
+  echo       [OK] Monitor PocketBase responde ^(intento !INTENTO!^).
+  set "CONECTADO=1"
+  goto FIN_ESPERAR_MONITOR
+)
+REM Progreso legible cada 6 intentos (~30s), punto en el resto.
+set /a MOSTRAR_PROGRESO=INTENTO %% 6
+if !MOSTRAR_PROGRESO!==0 (
+  set /a SEG_TRANSCURRIDOS=INTENTO * 5
+  echo       [!SEG_TRANSCURRIDOS!s] Aun sin respuesta del Monitor. Reintentando...
+) else (
+  <nul set /p="."
+)
+REM Auto-reparacion a los ~90s: llama al script de PowerShell que
+REM re-escanea la subred y actualiza config.json con la IP real del
+REM Monitor si la que teniamos cambio (por DHCP nuevo, cable movido...).
+if !INTENTO! EQU 18 (
+  if not defined AUTOREPAIR_DONE (
+    echo.
+    echo       [AUTO-REPAIR] 90s sin respuesta. Buscando Monitor en la red...
+    if exist "scripts\lib\reparar_conexion_servidor.ps1" (
+      powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\lib\reparar_conexion_servidor.ps1" -Silencioso
+      REM Recargar PB_URL de config.json (puede haber cambiado)
+      for /f "delims=" %%i in ('powershell -NoProfile -Command "(Get-Content public\config.json -Raw | ConvertFrom-Json).pocketbase_url"') do set "PB_URL=%%i"
+      echo       [AUTO-REPAIR] Nueva URL: !PB_URL!
+    ) else (
+      echo       [AUTO-REPAIR] No se encontro reparar_conexion_servidor.ps1. Continuando reintentos...
+    )
+    set "AUTOREPAIR_DONE=1"
+  )
+)
+if !INTENTO! GEQ 36 goto FIN_ESPERAR_MONITOR
+powershell -NoProfile -Command "Start-Sleep -Seconds 5" >nul 2>&1
+goto LOOP_ESPERAR_MONITOR
+
+:FIN_ESPERAR_MONITOR
+if not defined CONECTADO (
+  echo.
+  echo       [AVISO] No se pudo conectar al Monitor en 3 minutos.
+  echo               El sistema abrira el navegador igualmente; la UI mostrara
+  echo               un cartel de "sin conexion" y permitira reintentar.
+  echo               Verifique manualmente que el Monitor este encendido y en la misma red.
+)
+goto :eof

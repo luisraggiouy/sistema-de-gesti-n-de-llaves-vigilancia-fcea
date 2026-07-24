@@ -1,4 +1,4 @@
-# Instalación paso a paso del Sistema FCEA
+pr# Instalación paso a paso del Sistema FCEA
 
 > **Para quién es esta guía:** para quien tiene los pendrives `SISTEMA_FCEA`
 > y necesita instalar el sistema en 2 o 3 PCs **desde cero**, sin conocimientos

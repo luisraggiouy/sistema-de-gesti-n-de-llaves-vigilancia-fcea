@@ -56,3 +56,11 @@ dist/system_health.json
 *.tmp
 *.bak
 test_copia.ps1
+
+*.bak_parenfix
+
+*.bak_parenfix2
+
+*.bak_uacfix
+
+scripts/pendrive/rename/

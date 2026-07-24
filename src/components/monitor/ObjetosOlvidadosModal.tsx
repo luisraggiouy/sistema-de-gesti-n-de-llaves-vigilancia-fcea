@@ -180,7 +180,11 @@ export function ObjetosOlvidadosModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={() => onOpenChange(false)} />
-      <div className="relative z-10 bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col" style={{ maxHeight: '90vh' }}>
+      {/* v2.6 (P5): ancho aumentado (max-w-2xl era muy angosto para el
+          monitor vigilancia — 3 columnas de filtros no entraban comodas
+          y la lista se estiraba en vertical). Ahora ocupa 90vw con tope
+          max-w-5xl, y el body usa max-h-[85vh] para dejar aire arriba. */}
+      <div className="relative z-10 bg-white rounded-lg shadow-xl w-[90vw] max-w-5xl mx-4 flex flex-col" style={{ maxHeight: '90vh' }}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b flex-shrink-0">
           <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -198,8 +202,11 @@ export function ObjetosOlvidadosModal({
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-6 min-h-0">
           <div className="flex justify-end mb-4">
-            <Button onClick={onRegistrarClick} className="gap-2" size="sm">
-              <Plus className="w-4 h-4" />
+            {/* v2.6 (P5): boton mas grande (size lg) para que se detecte
+                mejor al toque desde el monitor vigilancia — es la accion
+                principal del modal y antes pasaba desapercibida. */}
+            <Button onClick={onRegistrarClick} className="gap-2" size="lg">
+              <Plus className="w-5 h-5" />
               Registrar Objeto
             </Button>
           </div>
@@ -220,14 +227,16 @@ export function ObjetosOlvidadosModal({
             </TabsContent>
 
             <TabsContent value="buscar" className="space-y-3 mt-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div><Label className="text-xs">Descripción</Label><Input placeholder="Ej: jarra térmica" value={busqueda} onChange={e => setBusqueda(e.target.value)} className="h-9" /></div>
-                <div><Label className="text-xs">Lugar</Label><Input placeholder="Ej: Salón 101" value={busquedaLugar} onChange={e => setBusquedaLugar(e.target.value)} className="h-9" /></div>
-                <div><Label className="text-xs">Desde</Label><DateInput value={fechaDesde} onChange={v => setFechaDesde(v)} className="h-9" /></div>
-                <div><Label className="text-xs">Hasta</Label><DateInput value={fechaHasta} onChange={v => setFechaHasta(v)} className="h-9" /></div>
+              {/* v2.6 (P5): grilla 4 col en desktop, inputs h-11 (mismo tamaño
+                  que el resto del sistema — antes h-9 se veian raquiticos). */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div><Label className="text-sm">Descripción</Label><Input placeholder="Ej: jarra térmica" value={busqueda} onChange={e => setBusqueda(e.target.value)} className="h-11" /></div>
+                <div><Label className="text-sm">Lugar</Label><Input placeholder="Ej: Salón 101" value={busquedaLugar} onChange={e => setBusquedaLugar(e.target.value)} className="h-11" /></div>
+                <div><Label className="text-sm">Desde</Label><DateInput value={fechaDesde} onChange={v => setFechaDesde(v)} className="h-11" /></div>
+                <div><Label className="text-sm">Hasta</Label><DateInput value={fechaHasta} onChange={v => setFechaHasta(v)} className="h-11" /></div>
               </div>
               <Select value={filtroEstado} onValueChange={(v) => setFiltroEstado(v as any)}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos los estados</SelectItem>
                   <SelectItem value="custodia">En custodia</SelectItem>

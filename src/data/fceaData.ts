@@ -16,7 +16,18 @@ export type TipoLugar =
 
 export type TipoUsuario = 'Docente' | 'Alumno' | 'Personal TAS' | 'Empresa';
 
-export type DepartamentoTAS = 
+/**
+ * Departamentos/secciones TAS.
+ *
+ * El tipo acepta:
+ *   - Cualquiera de los 26 valores canónicos (autocompletado en el editor).
+ *   - Cualquier string (para "Otro / Agregar nuevo departamento" en tiempo
+ *     de ejecución sin romper la tipada estricta).
+ *
+ * El truco `(string & {})` mantiene el intellisense de los literales.
+ * Ver: https://github.com/microsoft/TypeScript/issues/29729
+ */
+export type DepartamentoTAS =
   | 'Electrotecnia'
   | 'Servicios Generales'
   | 'Compras'
@@ -42,7 +53,9 @@ export type DepartamentoTAS =
   | 'Asistencia académica'
   | 'Rendiciones'
   | 'Biblioteca'
-  | 'Otro';
+  | 'Otro'
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  | (string & {});
 
 export const departamentosTAS: DepartamentoTAS[] = [
   'Apoyo Docente', 'Asistencia académica', 'Bedelía', 'Biblioteca', 'CAVIDA',

@@ -35,6 +35,7 @@ import {
   ordenNatural 
 } from '@/data/fceaData';
 import { useToast } from '@/hooks/use-toast';
+import { ConfirmarAccionSensible } from '@/components/ConfirmarAccionSensible';
 
 interface KeyManagementModalProps {
   open: boolean;
@@ -81,6 +82,14 @@ export function KeyManagementModal({
   const [editFila, setEditFila] = useState('');
   const [editColumna, setEditColumna] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  // v2.8 (2026-07-23): estados para el modal `ConfirmarAccionSensible`.
+  //   - `askConfirmDelete`: bandera para modal de borrado (los datos
+  //     concretos ya viven en `selectedToDelete` + `lugares`).
+  //   - `askConfirmEdit`: bandera para modal de edicion (los datos ya
+  //     viven en el editForm y `selectedToEdit`).
+  const [askConfirmDelete, setAskConfirmDelete] = useState(false);
+  const [askConfirmEdit, setAskConfirmEdit] = useState(false);
 
   // When a key is selected for editing, populate the form (only on selection change)
   useEffect(() => {
@@ -154,6 +163,11 @@ export function KeyManagementModal({
     }
   };
 
+  // v2.8 (2026-07-23): `handleQuitar` ya no borra directo; ahora abre
+  // el modal `ConfirmarAccionSensible` que exige tipear "CONFIRMAR".
+  // El confirm en linea con "Sí, eliminar" (`showDeleteConfirm`) se
+  // sigue mostrando como paso previo, pero al aceptarlo se dispara el
+  // modal intimidatorio. Doble barrera para acciones destructivas.
   const handleQuitar = () => {
     if (!selectedToDelete) {
       toast({
@@ -163,21 +177,28 @@ export function KeyManagementModal({
       });
       return;
     }
-
-    const lugar = lugares.find(l => l.id === selectedToDelete);
-    if (lugar) {
-      onQuitarLlave(selectedToDelete);
-      setSelectedToDelete(null);
-      setSearchQuery('');
-      
-      toast({
-        title: "Llave eliminada",
-        description: `${lugar.nombre} fue eliminada del sistema`,
-      });
-    }
+    setAskConfirmDelete(true);
   };
 
-  const handleModificar = async () => {
+  const confirmarQuitar = () => {
+    if (!selectedToDelete) return;
+    const lugar = lugares.find(l => l.id === selectedToDelete);
+    if (!lugar) return;
+
+    onQuitarLlave(selectedToDelete);
+    setSelectedToDelete(null);
+    setSearchQuery('');
+    setShowDeleteConfirm(false);
+
+    toast({
+      title: "Llave eliminada",
+      description: `${lugar.nombre} fue eliminada del sistema`,
+    });
+  };
+
+  // v2.8 (2026-07-23): `handleModificar` valida y abre el modal;
+  // el guardado real vive en `confirmarModificar`.
+  const handleModificar = () => {
     if (!selectedToEdit || !editNombre.trim() || !editEdificio || !editTipo || !editZona) {
       toast({
         title: "Campos requeridos",
@@ -186,7 +207,11 @@ export function KeyManagementModal({
       });
       return;
     }
+    setAskConfirmEdit(true);
+  };
 
+  const confirmarModificar = async () => {
+    if (!selectedToEdit) return;
     setIsSaving(true);
     try {
       await onModificarLlave(selectedToEdit, {
@@ -678,6 +703,41 @@ export function KeyManagementModal({
           </TabsContent>
         </Tabs>
       </DialogContent>
+
+      {/* v2.8 (2026-07-23): Modales `ConfirmarAccionSensible` para
+          proteger las acciones destructivas de gestion de llaves.
+            - Borrar llave: dispara despues del confirm inline; hay
+              doble barrera (confirm rojo + tipear "CONFIRMAR").
+            - Editar llave: dispara al tocar "Guardar Cambios". */}
+      <ConfirmarAccionSensible
+        open={askConfirmDelete}
+        onOpenChange={(v) => { if (!v) setAskConfirmDelete(false); }}
+        tipoAccion="borrar"
+        entidad="llave"
+        detalle={selectedToDelete ? lugares.find(l => l.id === selectedToDelete)?.nombre : undefined}
+        descripcionExtra={
+          "Vas a eliminar esta llave del sistema por completo. Ya no aparecera en el tablero, no se podra solicitar desde la terminal y las solicitudes historicas que la referencian van a mostrar el nombre pero sin datos activos. Esta accion NO se puede deshacer desde la interfaz. Queda registro horario del momento en que se elimino."
+        }
+        onConfirmar={() => {
+          confirmarQuitar();
+          setAskConfirmDelete(false);
+        }}
+      />
+
+      <ConfirmarAccionSensible
+        open={askConfirmEdit}
+        onOpenChange={(v) => { if (!v) setAskConfirmEdit(false); }}
+        tipoAccion="editar"
+        entidad="llave"
+        detalle={editNombre || undefined}
+        descripcionExtra={
+          "Vas a modificar los datos de una llave existente (nombre, edificio, tipo, ubicacion en tablero). Los cambios se aplican en el momento. Verifica bien nombre, edificio, tipo, tablero y coordenadas antes de guardar."
+        }
+        onConfirmar={async () => {
+          await confirmarModificar();
+          setAskConfirmEdit(false);
+        }}
+      />
     </Dialog>
   );
 }
