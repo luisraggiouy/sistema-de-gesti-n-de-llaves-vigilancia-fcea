@@ -141,6 +141,15 @@ if exist "%INSTALL_DIR%" (
   echo  ^(instalacion incompleta o desinstalacion previa con archivos
   echo  en uso^). Limpiando antes de continuar...
   echo.
+  REM ----- v2.3 (piloto sabado 2026-07-25) -----
+  REM Matar TAMBIEN pocketbase.exe elevados (procesos lanzados por la
+  REM tarea programada FCEA-Sistema-Llaves-AutoStart) usando el helper
+  REM kill_pocketbase_zombis.ps1. El "taskkill /F /IM" solo no los mata
+  REM y quedan bloqueando data.db, sintoma: HTTP 400 al crear vigilantes.
+  set "LIB_KILL_PB=%PENDRIVE_ROOT%\sistema-llaves-fcea\scripts\lib\kill_pocketbase_zombis.ps1"
+  if exist "!LIB_KILL_PB!" (
+    powershell -NoProfile -ExecutionPolicy Bypass -File "!LIB_KILL_PB!"
+  )
   taskkill /F /IM pocketbase.exe >nul 2>&1
   REM Matar node.exe y chrome.exe del sistema FCEA por si quedaron handles
   powershell -NoProfile -Command ^
@@ -327,6 +336,13 @@ if exist "%INSTALL_DIR%" (
   if exist "%INSTALL_DIR%\public\config.json" (
     copy /Y "%INSTALL_DIR%\public\config.json" "!PRE_BACKUP!\config.json" >nul
   )
+  REM v2.3 (piloto sabado 2026-07-25): antes bastaba con taskkill /F,
+  REM pero si la tarea programada FCEA-Sistema-Llaves-AutoStart lanzo
+  REM PocketBase elevado, taskkill no puede tocarlo. Usamos el helper.
+  set "LIB_KILL_PB=%PENDRIVE_ROOT%\sistema-llaves-fcea\scripts\lib\kill_pocketbase_zombis.ps1"
+  if exist "!LIB_KILL_PB!" (
+    powershell -NoProfile -ExecutionPolicy Bypass -File "!LIB_KILL_PB!"
+  )
   taskkill /F /IM pocketbase.exe >nul 2>&1
   timeout /t 2 /nobreak >nul
   echo Eliminando carpeta previa...
@@ -512,7 +528,16 @@ echo [1/4] Suspendiendo watchdog ^(si esta activo^)...
 schtasks /End /TN "FCEA-Watchdog-PocketBase" >nul 2>&1
 schtasks /End /TN "FCEA-Watchdog" >nul 2>&1
 
-echo [2/4] Deteniendo PocketBase...
+echo [2/4] Deteniendo PocketBase (incluye zombis elevados)...
+REM v2.3 (piloto sabado 2026-07-25): PocketBase lanzado por la tarea
+REM programada corre elevado y taskkill /F no lo mata. El helper si.
+REM Sin este cambio, ACTUALIZAR SOLO DATOS fallaba porque la copia de
+REM data.db se hacia con PocketBase corriendo -> data.db corrupto o
+REM readonly cuando reinicia.
+set "LIB_KILL_PB=%PENDRIVE_ROOT%\sistema-llaves-fcea\scripts\lib\kill_pocketbase_zombis.ps1"
+if exist "!LIB_KILL_PB!" (
+  powershell -NoProfile -ExecutionPolicy Bypass -File "!LIB_KILL_PB!"
+)
 taskkill /F /IM pocketbase.exe >nul 2>&1
 timeout /t 2 /nobreak >nul
 

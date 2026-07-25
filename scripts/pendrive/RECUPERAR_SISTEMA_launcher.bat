@@ -322,7 +322,38 @@ exit /b 0
 
 REM ------------------------------------------------------------
 :DETENER_PROCESOS
-call :LOG "Deteniendo pocketbase.exe, chrome.exe, msedge.exe, node.exe FCEA"
+REM ============================================================
+REM  v6.2 (piloto sabado 2026-07-25): antes de este cambio,
+REM  "taskkill /F /IM pocketbase.exe" NO podia matar la instancia
+REM  de PocketBase que la tarea programada FCEA-Sistema-Llaves-
+REM  AutoStart hubiera lanzado con privilegios elevados. Quedaba
+REM  un zombi con handles sobre data.db, y aunque el recuperador
+REM  seguia adelante creyendo que todo estaba OK, el nuevo
+REM  PocketBase iniciado despues no podia escribir la base
+REM  ("attempt to write a readonly database (8)"). Todos los
+REM  POST/PATCH del frontend fallaban con HTTP 400.
+REM
+REM  Ahora primero corremos el helper kill_pocketbase_zombis.ps1
+REM  que ademas deshabilita temporalmente la tarea programada,
+REM  enumera pocketbase.exe via WMI (ve procesos elevados), los
+REM  mata con Stop-Process -Force (funciona porque el launcher
+REM  ya pidio UAC), y luego rehabilita la tarea.
+REM ============================================================
+call :LOG "Ejecutando kill_pocketbase_zombis.ps1 (fix v5 zombis elevados)"
+set "LIB_KILL_PB=%PENDRIVE_ROOT%\sistema-llaves-fcea\scripts\lib\kill_pocketbase_zombis.ps1"
+if not exist "%LIB_KILL_PB%" set "LIB_KILL_PB=%INSTALL_DIR%\scripts\lib\kill_pocketbase_zombis.ps1"
+if exist "%LIB_KILL_PB%" (
+  powershell -NoProfile -ExecutionPolicy Bypass -File "%LIB_KILL_PB%" >>"%LOG_FILE%" 2>&1
+  if errorlevel 1 (
+    call :LOG "WARN: kill_pocketbase_zombis.ps1 devolvio error - continuo igual"
+  )
+) else (
+  call :LOG "WARN: no se encontro kill_pocketbase_zombis.ps1, uso taskkill legacy"
+)
+
+call :LOG "Deteniendo chrome.exe, msedge.exe, node.exe FCEA y taskkill fallback pocketbase"
+REM taskkill /F como red de seguridad por si el helper fallo o no existe.
+REM No hace dano si pocketbase.exe ya fue matado por el helper.
 taskkill /F /IM pocketbase.exe >>"%LOG_FILE%" 2>&1
 taskkill /F /IM chrome.exe     >>"%LOG_FILE%" 2>&1
 taskkill /F /IM msedge.exe     >>"%LOG_FILE%" 2>&1

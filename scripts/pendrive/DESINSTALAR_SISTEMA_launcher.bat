@@ -109,6 +109,26 @@ echo.
 set "SEED_SCRIPT=%PENDRIVE_ROOT%\sistema-llaves-fcea\scripts\pendrive\actualizar_semilla.ps1"
 if not exist "%SEED_SCRIPT%" goto SEED_MISSING
 
+REM ------------------------------------------------------------
+REM  v5.3 (piloto sabado 2026-07-25): antes de copiar data.db al
+REM  pendrive debemos DETENER PocketBase limpio. Si estaba corriendo
+REM  (por la tarea programada FCEA-Sistema-Llaves-AutoStart), tenia
+REM  lock exclusivo de SQLite y la copia del .db-wal quedaba
+REM  inconsistente (semilla corrupta). Usamos el helper
+REM  kill_pocketbase_zombis.ps1 que ademas mata la instancia elevada
+REM  que taskkill /F no puede matar.
+REM ------------------------------------------------------------
+set "LIB_KILL_PB=%PENDRIVE_ROOT%\sistema-llaves-fcea\scripts\lib\kill_pocketbase_zombis.ps1"
+if exist "%LIB_KILL_PB%" (
+    echo   [i] Deteniendo PocketBase antes de copiar la semilla...
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%LIB_KILL_PB%" >>"%LOGFILE%" 2>&1
+    echo   [log] kill_pocketbase_zombis ejecutado >> "%LOGFILE%"
+) else (
+    echo   [WARN] No se encontro kill_pocketbase_zombis.ps1 - la semilla puede quedar inconsistente si PocketBase esta corriendo.
+    echo   [log] kill_pocketbase_zombis.ps1 no encontrado >> "%LOGFILE%"
+    taskkill /F /IM pocketbase.exe >>"%LOGFILE%" 2>&1
+)
+
 powershell -NoProfile -ExecutionPolicy Bypass -File "%SEED_SCRIPT%" -PendriveRoot "%PENDRIVE_ROOT%"
 set "SEED_EXIT=%ERRORLEVEL%"
 echo   [log] SEED_EXIT=%SEED_EXIT% >> "%LOGFILE%"
