@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SolicitudLlave, AccionUndo } from '@/types/solicitud';
 import { formatearUbicacion, getColorTipoLugar, obtenerVigilantesActuales } from '@/data/fceaData';
+import { formatTiempoEspera, minutosDesde } from '@/utils/formatTiempoEspera';
 import { Key, MapPin, User, Phone, Clock, Undo2, CheckCircle } from 'lucide-react';
 
 interface SolicitudCardProps {
@@ -47,13 +48,10 @@ export function SolicitudCard({
     return `${min}:${seg.toString().padStart(2, '0')}`;
   };
 
-  const tiempoDesdeCreacion = () => {
-    const diff = Date.now() - solicitud.horaSolicitud.getTime();
-    const minutos = Math.floor(diff / 60000);
-    if (minutos < 1) return 'Ahora';
-    if (minutos === 1) return 'Hace 1 min';
-    return `Hace ${minutos} min`;
-  };
+  // v2.7 (piloto sabado 2026-07-25): formato "Hace Xh Ym" en lugar de
+  // "Hace 300 min" (ilegible). Ver src/utils/formatTiempoEspera.ts.
+  const tiempoDesdeCreacion = () =>
+    formatTiempoEspera(minutosDesde(solicitud.horaSolicitud));
 
   const colorTipo = getColorTipoLugar(solicitud.lugar.tipo);
 

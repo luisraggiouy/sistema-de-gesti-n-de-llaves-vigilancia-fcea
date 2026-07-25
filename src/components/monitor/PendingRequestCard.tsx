@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { SolicitudLlave } from '@/types/solicitud';
 import { Vigilante } from '@/data/fceaData';
 import { formatearUbicacion, getColorTipoLugar } from '@/data/fceaData';
+import { formatTiempoEspera, minutosDesde } from '@/utils/formatTiempoEspera';
 import { Key, MapPin, User, Phone, Clock, CheckCircle, Building2, AlertTriangle } from 'lucide-react';
 
 /**
@@ -42,16 +43,11 @@ interface PendingRequestCardProps {
 export function PendingRequestCard({ solicitud, vigilantes, vigilantesAnteriores = [], onEntregar }: PendingRequestCardProps) {
   const colorTipo = getColorTipoLugar(solicitud.lugar.tipo);
 
-  const minutosEspera = Math.max(
-    0,
-    Math.floor((Date.now() - new Date(solicitud.horaSolicitud).getTime()) / 60000),
-  );
+  const minutosEspera = minutosDesde(solicitud.horaSolicitud);
 
-  const tiempoDesdeCreacion = () => {
-    if (minutosEspera < 1) return 'Ahora';
-    if (minutosEspera === 1) return 'Hace 1 min';
-    return `Hace ${minutosEspera} min`;
-  };
+  // v2.7 (piloto sabado 2026-07-25): formato "Hace Xh Ym" en lugar de
+  // "Hace 300 min" (ilegible). Ver src/utils/formatTiempoEspera.ts.
+  const tiempoDesdeCreacion = () => formatTiempoEspera(minutosEspera);
 
   // Nivel de urgencia por tiempo de espera
   const nivelUrgencia: 'normal' | 'aviso' | 'alerta' =
