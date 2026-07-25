@@ -68,10 +68,21 @@ export function useDeviceConfig(): DeviceConfig {
     const shouldShowNavigationButtons =
       isDevMode || (isProductionMode && isTradicional && isMonitorRole);
 
-    // Botón Dashboard: visible en cualquier escenario donde NO sea un kiosk
-    // táctil "puro". El kiosk táctil expone el Dashboard solo vía menú admin.
-    const shouldShowDashboardButton =
-      isDevMode || isTradicional || hardware === undefined;
+    // Botón Dashboard: se muestra siempre EXCEPTO cuando esta PC es
+    // explícitamente un kiosko táctil de usuario (Terminal A/B). En
+    // cualquier otro caso — hardware tradicional, desarrollo, sin
+    // configurar, o incluso producción con `hardware === ""` heredado
+    // del default — el jefe de vigilancia tiene que poder abrir el
+    // Dashboard desde el header del Monitor sin escribir la URL a mano.
+    //
+    // Bug del piloto (dom 2026-07-26): antes esto se colgaba de
+    // `shouldShowNavigationButtons`, que era FALSE para toda PC en
+    // producción que no fuera explícitamente `hardware === "tradicional"`
+    // + rol monitor/dashboard. En una PC de Facultad que el instalador
+    // dejó con `hardware:"desarrollo"` (default del loader) el botón
+    // Dashboard nunca aparecía. Ahora la única forma de ocultarlo es
+    // que hardware sea literalmente "tactil".
+    const shouldShowDashboardButton = hardware !== "tactil";
 
     const getDefaultRoute = (): string => {
       if (rt.rol === "monitor") return "/monitor";
