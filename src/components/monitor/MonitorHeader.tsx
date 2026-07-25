@@ -15,7 +15,7 @@ interface MonitorHeaderProps {
 }
 
 export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProps) {
-  const { shouldShowNavigationButtons } = useDeviceConfig();
+  const { shouldShowNavigationButtons, shouldShowDashboardButton } = useDeviceConfig();
   const turnoActual = obtenerTurnoActual();
   const vigilantes = obtenerVigilantesActuales();
   const jefe = vigilantes.find(v => v.esJefe);
@@ -137,33 +137,43 @@ export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProp
           Terminales en modo kiosk (allí no se muestra ninguno).
         */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/50">
-          {shouldShowNavigationButtons && (
-            <>
-              {import.meta.env.DEV && (
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                >
-                  <Link to="/">
-                    <Key className="w-4 h-4" />
-                    Terminal Usuario
-                  </Link>
-                </Button>
-              )}
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                className="gap-2"
-              >
-                <Link to="/dashboard">
-                  <BarChart3 className="w-4 h-4" />
-                  Dashboard
-                </Link>
-              </Button>
-            </>
+          {shouldShowNavigationButtons && import.meta.env.DEV && (
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <Link to="/">
+                <Key className="w-4 h-4" />
+                Terminal Usuario
+              </Link>
+            </Button>
+          )}
+          {/*
+            v2.8 (piloto domingo 2026-07-26): el boton Dashboard usa su
+            propia flag `shouldShowDashboardButton` en vez de la general
+            `shouldShowNavigationButtons`. La diferencia importa cuando el
+            Monitor corre en una PC con touchscreen (hardware="tactil"):
+            en ese caso `shouldShowNavigationButtons` era FALSE y el
+            Dashboard desaparecia del header, obligando al jefe a
+            escribir la URL a mano. Con `shouldShowDashboardButton`
+            (isDevMode || isTradicional || hardware === undefined) el
+            boton reaparece en el Monitor y sigue oculto en las
+            Terminales de usuario (que no muestran este header).
+          */}
+          {shouldShowDashboardButton && (
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <Link to="/dashboard">
+                <BarChart3 className="w-4 h-4" />
+                Dashboard
+              </Link>
+            </Button>
           )}
           {children}
         </div>
