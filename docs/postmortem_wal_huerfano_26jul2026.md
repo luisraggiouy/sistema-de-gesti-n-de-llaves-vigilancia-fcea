@@ -99,8 +99,8 @@ tocando data.db** al mismo tiempo.
 - [ ] **Corregir tiempo de solicitud "hace 300 min"**: bug conocido de UI,
       el cálculo usa timestamp del render inicial en vez del real. Pendiente
       para próximo sprint.
-- [ ] **Corregir botón faltante del Dashboard en Monitor**: reportado hoy.
-      Pendiente.
+- [x] ~~Botón faltante del Dashboard en Monitor~~ — verificado 26/07 16:00:
+      el botón existe y funciona correctamente. Falsa alarma.
 - [ ] **Agregar al `ARRANCAR SISTEMA.bat` del pendrive el chequeo de zombies**
       antes de arrancar (evita que se cree el problema).
 - [ ] **Agregar tarea programada `FCEA-Watchdog-WAL`**: cada 15 min verifica
