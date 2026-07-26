@@ -447,14 +447,24 @@ echo   arranca PocketBase + frontend + Chrome con el monitor /
 echo   terminal segun el rol detectado ^(!FINAL_ROL!^).
 echo.
 
-REM Lanzar INICIAR.bat en una ventana NORMAL (no minimizada) la
-REM primera vez para que el usuario vea el progreso. El parametro
-REM "/auto" hace que se cierre solo a los 10 segundos.
-start "FCEA - Iniciando Sistema" cmd /c "%INSTALL_DIR%\scripts\install\INICIAR.bat /auto"
+REM ---- FIX 2026-07-26: dejar la ventana ABIERTA con cmd /k y SIN
+REM /auto. Antes usabamos "cmd /c ... /auto" que cerraba la ventana
+REM a los 10s. Cuando eso pasaba, si algun proceso hijo lanzado con
+REM start_detached.ps1 (WMI) no habia terminado de bindear su puerto,
+REM moria con la ventana padre. Sintoma en la Facultad: instalador
+REM termina "OK" pero Chrome muestra ERR_CONNECTION_REFUSED en 127.0.0.1.
+REM Con cmd /k la ventana queda abierta hasta que el usuario la cierre,
+REM lo que garantiza que PocketBase + frontend queden vivos y el
+REM watchdog interno de run_pocketbase.bat / run_frontend.bat los mantenga.
+start "FCEA - Sistema corriendo (NO CERRAR)" cmd /k "%INSTALL_DIR%\scripts\install\INICIAR.bat"
 
-REM Dar tiempo a que Chrome se levante visible al usuario
-echo   Esperando 10 segundos a que el sistema termine de arrancar...
-timeout /t 10 /nobreak >nul
+REM Dar tiempo a que PocketBase + frontend + Chrome arranquen.
+REM Aumentado a 30s (antes 10s) porque el arranque en frio de
+REM PocketBase en un disco lento puede tardar ~15s solo para abrir
+REM el puerto 8090, y Chrome necesita otros ~5s para renderizar.
+echo   Esperando 30 segundos a que el sistema termine de arrancar...
+timeout /t 30 /nobreak >nul
+
 
 REM ------------------------------------------------------------
 REM  PASO 8: CONFIGURAR INICIO AUTOMATICO (sin intervencion del usuario)
