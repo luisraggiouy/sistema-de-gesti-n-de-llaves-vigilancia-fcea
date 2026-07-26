@@ -68,10 +68,22 @@ export function useDeviceConfig(): DeviceConfig {
     const shouldShowNavigationButtons =
       isDevMode || (isProductionMode && isTradicional && isMonitorRole);
 
-    // Botón Dashboard: visible en cualquier escenario donde NO sea un kiosk
-    // táctil "puro". El kiosk táctil expone el Dashboard solo vía menú admin.
+    // Boton Dashboard: se decide por ROL, no por hardware.
+    //   - Monitor Vigilancia (rol="monitor") y PC de Dashboard dedicada
+    //     (rol="dashboard") SIEMPRE lo muestran, aunque su pantalla sea
+    //     tactil. Es la PC del jefe de vigilancia, que necesita ver
+    //     estadisticas y no es un usuario final anonimo.
+    //   - Terminales A/B (rol="terminal-a"/"terminal-b") NUNCA lo muestran
+    //     (kiosk para usuarios finales).
+    //   - Modo desarrollo (1 PC con todo): siempre visible.
+    //   - Fallback (rol/hardware sin configurar): visible tambien, para
+    //     no quedarnos sin acceso al Dashboard en una instalacion nueva.
+    const isMonitorOrDashboardRole = rt.rol === "monitor" || rt.rol === "dashboard";
     const shouldShowDashboardButton =
-      isDevMode || isTradicional || hardware === undefined;
+      isDevMode ||
+      isMonitorOrDashboardRole ||
+      isTradicional ||
+      hardware === undefined;
 
     const getDefaultRoute = (): string => {
       if (rt.rol === "monitor") return "/monitor";

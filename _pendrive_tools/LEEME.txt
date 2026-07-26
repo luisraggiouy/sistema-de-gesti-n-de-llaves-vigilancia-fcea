@@ -1,0 +1,56 @@
+================================================================
+  HERRAMIENTAS_RED - Sistema FCEA (pendrive de rescate)
+================================================================
+
+  LEE PRIMERO:  RESCATE_DE_EMERGENCIA.md
+  (guia paso a paso para los 3 problemas mas frecuentes)
+
+================================================================
+  PROBLEMAS Y SCRIPTS QUE LOS RESUELVEN
+================================================================
+
+  Problema                        | Script principal
+  --------------------------------|-------------------------------
+  Monitor no puede grabar         | CAZAR_POCKETBASE_ZOMBIE.bat
+  (Error al agregar vigilante,    | + ARRANCAR_POCKETBASE.bat
+   aceptar solicitud, etc.)       |
+  --------------------------------|-------------------------------
+  Terminal hace pedidos y no      | REPARAR_CONFIG.bat
+  llegan al Monitor               | (correr en la Terminal)
+  --------------------------------|-------------------------------
+  Monitor perdio la IP fija       | FIJAR_IP_MONITOR.bat
+  192.168.100.10                  | (correr en el Monitor)
+  --------------------------------|-------------------------------
+  Cualquier duda / diagnostico    | DIAGNOSTICAR_RED.bat
+  (no toca nada, solo informa)    |
+
+================================================================
+  TODOS LOS SCRIPTS SON SEGUROS
+================================================================
+
+  - Piden UAC automaticamente cuando lo necesitan
+  - Hacen backup de lo que van a modificar (.bak.<fecha>)
+  - Detectan si estan en Monitor o Terminal automaticamente
+  - Se niegan a correr donde no corresponde
+  - Los que arrancan procesos, verifican estado antes y despues
+
+================================================================
+  LISTA COMPLETA (por si necesitan buscar algo especifico)
+================================================================
+
+  RESCATE_DE_EMERGENCIA.md          Guia humana. LEELA PRIMERO.
+
+  DIAGNOSTICAR_RED.bat              Diagnostico general (read-only)
+  VERIFICAR_CONFIG_ACTUAL.bat       Muestra config.json actual
+
+  CAZAR_POCKETBASE_ZOMBIE.bat       Diagnostico completo de PB + test CREATE
+  MATAR_POCKETBASE_ZOMBIE.bat       Solo mata procesos zombie
+  ARRANCAR_POCKETBASE.bat           Arranca PB limpio + backup preventivo
+
+  REPARAR_CONFIG.bat                Auto-corrige config.json (Monitor o Terminal)
+  APUNTAR_TERMINAL_A_MONITOR.bat    Version manual del anterior (solo Terminal)
+  FIJAR_IP_MONITOR.bat              Fija IP estatica 192.168.100.10 en Monitor
+
+================================================================
+  Version: rescate-26jul2026
+================================================================

@@ -31,6 +31,9 @@
 | [`mantenimiento_resumen_ejecutivo.md`](./mantenimiento_resumen_ejecutivo.md) | Resumen técnico del esquema de mantenimiento (capas automática, auto-diagnóstico y recuperación) |
 | [`guia_mantenimiento_paso_a_paso.md`](./guia_mantenimiento_paso_a_paso.md)   | Procedimientos manuales detallados (referencia ante alertas) |
 | [`checklist_prueba_pendrives.md`](./checklist_prueba_pendrives.md)           | Plan de pruebas de los 3 pendrives + desinstalador |
+| [`INSTALAR_TERMINAL_B_PASO_A_PASO.md`](./INSTALAR_TERMINAL_B_PASO_A_PASO.md) | Guía humana paso a paso para instalar Terminal-B con el pendrive |
+| [`postmortem_wal_huerfano_26jul2026.md`](./postmortem_wal_huerfano_26jul2026.md) | Post-mortem del incidente de WAL huérfano del 26/07/2026 y herramientas creadas |
+| `_pendrive_tools/RESCATE_DE_EMERGENCIA.md` (en el pendrive)                  | Guía humana para los 3 problemas más frecuentes con solución paso a paso |
 
 ##  Otros
 

@@ -64,3 +64,27 @@ test_copia.ps1
 *.bak_uacfix
 
 scripts/pendrive/rename/
+
+# Scripts sueltos experimentales de la sesion de rescate 26/07/2026.
+# Los que sirven quedaron consolidados en _pendrive_tools/ y scripts/.
+# Estos .ps1 en la raiz son one-shot y no deben commitearse.
+/_buscar_node_portable.ps1
+/_copiar_node_a_pendrive.ps1
+/_validar_y_copiar.ps1
+/_ver_pendrives.ps1
+/_verificar_pendrive_final.ps1
+/agregar_al_pendrive_D.ps1
+/analizar_pendrive_viejo.ps1
+/chequear_progreso_D.ps1
+/GRABAR_KINGSTON_D.ps1
+/GRABAR_PENDRIVE_NUEVO.ps1
+/grabar_E_directo.ps1
+/lanzar_grabar_pendrive.ps1
+/levantar_dev.ps1
+/ver_pendrives.ps1
+/verificar_bundle.ps1
+/verificar_final.ps1
+/verificar_servicios.ps1
+/wait_and_check.ps1
+/wait_long.ps1
+/ARRANCAR SISTEMA.bat
