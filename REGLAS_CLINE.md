@@ -7,6 +7,8 @@ No accedas ni leas archivos dentro de la carpeta `node_modules/` ya que contiene
 ## Contexto del Sistema
 Este es un sistema de gestión de llaves para vigilancia de la FCEA (Facultad de Ciencias Económicas y de Administración). Incluye tres interfaces principales: Terminal de Usuario A, y B (para solicitar llaves), Monitor de Vigilancia (para gestionar entregas/devoluciones), y Dashboard Administrativo (para reportes y configuración). Utiliza React/TypeScript en el frontend, PocketBase como backend, y tiene un sistema robusto de instalación via pendrives, scripts de mantenimiento automatizado, manejo de objetos olvidados, sistema de autorizaciones, y funcionalidades de backup/recuperación. El sistema está diseñado para funcionar en modo kiosko en equipos dedicados.
 
+**Hardware:** Si bien los monitores son táctiles, tienen tecnología resistiva por lo tanto no van a ser utilizados como táctiles van a ser usados como monitores convencionales, cada pc va a tener su teclado y su mouse. Usar siempre modo "tradicional" en lugar de "tactil" para lanzamiento de navegadores.
+
 ## Workflow de Desarrollo
 Trabajemos de la siguiente manera: esta es la laptop de desarrollo siempre tiene internet, el sistema de 3 pc (una terminal de usuario A, una terminal de usuario B que están ubicadas fuera de la cabina de vigilancia y un monitor vigilancia que hace de servidor también que está dentro de la cabina) de facultad no tiene internet ni va a tener nunca, por lo tanto el pendrive es el "cable" entre la laptop de desarrollo y el sistema en producción de facultad. 
 
