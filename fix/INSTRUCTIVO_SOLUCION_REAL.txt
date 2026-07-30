@@ -1,0 +1,70 @@
+================================================================
+ INSTRUCTIVO: FIX TERMINAL B ERROR 404 - SOLUCION REAL
+================================================================
+ Fecha: 30/07/2026 12:13
+ Archivo: FIX_TERMINAL_B_ERROR_404_REAL.bat
+================================================================
+
+PROBLEMA REAL DESCUBIERTO:
+==========================
+Después de analizar el código fuente React, descubrí que:
+
+✗ TODAS LAS SOLUCIONES ANTERIORES ESTABAN MAL
+✗ El sistema NO lee parámetros ?id=A/B de la URL 
+✓ Terminal A y Terminal B van ambas a /terminal (mismo componente)
+✓ La diferenciación A/B se hace por config.json con "rol"
+✓ El error 404 significa que servidor de desarrollo no responde
+
+CAUSA REAL DEL ERROR 404:
+=========================
+1. Monitor vigilancia NO tiene servidor dev corriendo (npm run dev)
+2. O PocketBase no está corriendo en puerto 8090
+3. O config.json tiene configuración incorrecta
+4. O hay problema de red/firewall
+
+SOLUCION REAL:
+==============
+1. EJECUTAR: FIX_TERMINAL_B_ERROR_404_REAL.bat en Terminal B
+2. El script verificará:
+   - Si puerto 5173 (servidor dev) está corriendo
+   - Si puerto 8090 (PocketBase) está corriendo  
+   - Si config.json tiene "rol": "terminal-b"
+   - Creará/corregirá config.json si es necesario
+
+PASOS MANUALES SI EL SCRIPT NO RESUELVE:
+========================================
+
+A) EN EL MONITOR VIGILANCIA:
+   1. Abrir terminal/cmd
+   2. cd C:\sistema-de-gesti-n-de-llaves-vigilancia-fcea
+   3. npm run dev
+   4. Verificar que aparezca: "Local: http://localhost:5173/"
+   5. Iniciar PocketBase si no está corriendo
+
+B) EN TERMINAL B (después de A):
+   1. Verificar que config.json tiene "rol": "terminal-b"
+   2. Abrir: http://127.0.0.1:5173/terminal
+   3. Debe mostrar interface Terminal B (no error 404)
+
+DIFERENCIAS CON SOLUCIONES ANTERIORES:
+======================================
+- V1-V5: Intentaban arreglar config.json solamente (incorrecto)
+- REAL: Verifica servidor dev + PocketBase + config.json (correcto)
+
+ARQUITECTURA REAL DEL SISTEMA:
+==============================
+Monitor Vigilancia: Servidor dev (5173) + PocketBase (8090)
+Terminal A: Cliente → http://monitor:5173/terminal con config.json rol:"terminal-a" 
+Terminal B: Cliente → http://monitor:5173/terminal con config.json rol:"terminal-b"
+
+ERROR 404 = Servidor dev no responde, NO problema de configuración únicamente.
+
+VERIFICACION:
+=============
+1. Terminal A funciona = Servidor dev + PocketBase OK
+2. Terminal B error 404 = config.json o conectividad
+3. Después del fix: ambas deben funcionar igual
+
+================================================================
+ ESTA ES LA SOLUCION REAL BASADA EN ANALISIS DEL CODIGO FUENTE
+================================================================
