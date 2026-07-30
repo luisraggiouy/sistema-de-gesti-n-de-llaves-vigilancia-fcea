@@ -24,3 +24,6 @@ Los archivos más importantes que deben actualizarse SIEMPRE son:
 
 ## Regla de Oro
 Una mejora/upgrade o fix debe quedar grabada en todas partes, eso significa aquí en la laptop de desarrollo, en github, y en el pendrive también. Todo tiene que ser un proceso de mejora incremental y que vaya quedando comiteada y respaldada para que sirva de respaldo de rollback y **nunca olvidar hacer commit con timestamp y subir a github**.
+
+## Nueva Regla Fix Carpeta (30/07/2026)
+Cada vez que incluyas un nuevo archivo tratando de solucionar un problema en la carpeta fix, borra el anterior, debe quedar solo el archivo con el instructivo que funcione. Ahora tengo el script V1 V2 V3 V4 y ninguna funcionó y todas tienen su correspondiente instructivo, debe quedar solo el archivo con el instructivo que funcione.

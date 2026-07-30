@@ -1,0 +1,69 @@
+================================================================
+ INSTRUCTIVO: FIX TERMINAL B ERROR 404 - SOLUCION DEFINITIVA
+================================================================
+ Fecha: 30/07/2026 11:30
+ Archivo: FIX_TERMINAL_B_ERROR_404_DEFINITIVO.bat
+================================================================
+
+PROBLEMA IDENTIFICADO:
+======================
+- Terminal A funciona perfectamente
+- Terminal B muestra error 404 "Not Found"
+- El error ocurre porque public/config.json está configurado incorrectamente
+- Las versiones anteriores (v1, v2, v3, v4) fallaron porque eran scripts PowerShell
+  que se cerraban automáticamente al usar "Ejecutar con PowerShell"
+
+SOLUCION DEFINITIVA:
+===================
+Esta solución está basada en la configuración EXACTA de Terminal A que SÍ funciona.
+
+1. EJECUTAR EL SCRIPT:
+   - Ubicarse en: C:\sistema-de-gesti-n-de-llaves-vigilancia-fcea
+   - Doble clic en: fix\FIX_TERMINAL_B_ERROR_404_DEFINITIVO.bat
+   - El script es un archivo .bat que NO se cierra automáticamente
+
+2. QUE HACE EL SCRIPT:
+   - Verifica que existe la carpeta 'public'
+   - RECREA completamente public\config.json con configuración idéntica a Terminal A
+   - Solo cambia el rol de "terminal-a" a "terminal-b"
+   - Abre automáticamente el navegador en Terminal B
+   - Muestra el contenido del config.json creado
+   - Mantiene la ventana abierta para ver los resultados
+
+3. CONFIGURACION APLICADA:
+   {
+     "rol": "terminal-b",
+     "hardware": "tradicional", 
+     "pocketbase_url": "http://127.0.0.1:8090",
+     "red": {
+       "ip_servidor": "127.0.0.1",
+       "ip_terminal_a": "127.0.0.1",
+       "ip_terminal_b": "127.0.0.1"
+     }
+   }
+
+RESULTADO ESPERADO:
+==================
+- Terminal B debe mostrar la pantalla de solicitud de llaves
+- Mismo comportamiento que Terminal A
+- Sin error 404 "Not Found"
+- Comunicación exitosa con PocketBase en puerto 8090
+
+VERIFICACION:
+=============
+1. Abrir navegador en: http://127.0.0.1:5173/terminal?id=B
+2. Debe mostrar la interfaz de Terminal B (solicitar llave)
+3. Si aparece error 404, el problema NO es config.json sino algo más profundo
+
+VENTAJAS DE ESTA SOLUCION:
+==========================
+- Script .bat simple que no se cierra automáticamente
+- Configuración IDÉNTICA a Terminal A que funciona
+- Proceso completamente automatizado
+- Fácil de ejecutar y verificar
+- Mantiene ventana abierta para diagnóstico
+
+================================================================
+ IMPORTANTE: Solo queda este archivo de solución en la carpeta fix.
+ Las versiones v1, v2, v3, v4 fueron eliminadas según las reglas.
+================================================================
