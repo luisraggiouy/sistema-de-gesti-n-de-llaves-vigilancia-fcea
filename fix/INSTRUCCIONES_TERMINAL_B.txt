@@ -1,0 +1,46 @@
+================================================================
+ TERMINAL B ERROR 404 - SOLUCION DESDE PENDRIVE
+================================================================
+ Fecha: 30/07/2026 12:50
+ Archivo: FIX_TERMINAL_B_DESDE_PENDRIVE.bat
+================================================================
+
+PROBLEMA REAL VISTO EN LAS FOTOS:
+=================================
+✗ ERR_CONNECTION_REFUSED = servidor dev NO corriendo en Terminal B
+✗ PocketBase NO está corriendo en puerto 8090
+✗ Scripts anteriores fallaban por rutas relativas desde pendrive
+
+SOLUCION TERMINAL B:
+===================
+1. Ejecutar FIX_TERMINAL_B_DESDE_PENDRIVE.bat desde pendrive
+2. Script usa rutas absolutas y verifica si sistema está instalado
+3. Crea config.json correcto para Terminal B
+4. Da instrucciones para iniciar servicios
+
+PASOS EN TERMINAL B:
+===================
+1. Enchufar pendrive en Terminal B
+2. Ejecutar: D:\fix\FIX_TERMINAL_B_DESDE_PENDRIVE.bat
+3. Seguir instrucciones del script:
+   - Abrir CMD: cd C:\sistema-de-gesti-n-de-llaves-vigilancia-fcea\pocketbase
+   - Ejecutar: pocketbase.exe serve --http=127.0.0.1:8090
+   - Abrir otro CMD: cd C:\sistema-de-gesti-n-de-llaves-vigilancia-fcea  
+   - Ejecutar: npm run dev
+4. Navegar a: http://127.0.0.1:5173/terminal
+
+DIFERENCIA CON SCRIPTS ANTERIORES:
+=================================
+- Funciona desde pendrive (rutas absolutas)
+- Maneja el problema real: servicios no corriendo
+- Verifica si código fuente está instalado
+- Da instrucciones claras paso a paso
+
+SI TERMINAL B NO TIENE EL CODIGO FUENTE:
+========================================
+El script lo detectará y pedirá:
+1. Copiar TODO el directorio desde laptop desarrollo
+2. Instalar Node.js en Terminal B
+3. npm install
+
+================================================================
