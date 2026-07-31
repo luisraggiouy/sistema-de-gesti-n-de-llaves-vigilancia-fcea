@@ -14,6 +14,34 @@ const mapRecord = (r: any): UsuarioRegistrado => ({
   fechaRegistro: r.created,
 });
 
+// -------------------------------------------------------------------------
+// FIX 2026-07-31 — Duplicados en la busqueda por telefono (Terminal A).
+//
+// CAUSA RAIZ: la suscripcion en tiempo real (create/update) agregaba
+// registros a la lista SIN deduplicar por id. Como PocketBase le manda el
+// evento 'create' al MISMO cliente que ya lo agrego en registrarUsuario, el
+// mismo registro quedaba 2-3 veces en memoria, con el MISMO React key
+// (usuario.id) -> React renderizaba filas repetidas y "fantasma" (p.ej. un
+// usuario que NO coincidia con el filtro). En la base NO hay duplicados
+// (confirmado con DIAGNOSTICO_DUPLICADOS_USUARIOS_2026-07-31).
+//
+// SOLUCION: mantener SIEMPRE la lista deduplicada por id (upsert) y ordenada
+// por nombre. dedupeById conserva el ULTIMO valor visto (el mas fresco), asi
+// que agregar al final = upsert.
+// -------------------------------------------------------------------------
+const dedupeById = (lista: UsuarioRegistrado[]): UsuarioRegistrado[] => {
+  const map = new Map<string, UsuarioRegistrado>();
+  for (const u of lista) map.set(u.id, u);
+  return Array.from(map.values());
+};
+
+const ordenarPorNombre = (lista: UsuarioRegistrado[]): UsuarioRegistrado[] =>
+  [...lista].sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+const normalizarLista = (lista: UsuarioRegistrado[]): UsuarioRegistrado[] =>
+  ordenarPorNombre(dedupeById(lista));
+
+
 interface UsuariosRegistradosContextType {
   usuarios: UsuarioRegistrado[];
   registrarUsuario: (datos: {
@@ -42,9 +70,10 @@ export function UsuariosRegistradosProvider({ children }: { children: React.Reac
   const cargar = useCallback(async () => {
     try {
       const records = await pb.collection('usuarios_registrados').getFullList({ sort: 'nombre' });
-      const lista = records.map(mapRecord);
+      const lista = normalizarLista(records.map(mapRecord));
       setUsuarios(lista);
       usuariosRef.current = lista;
+
     } catch (e) {
       console.error('Error cargando usuarios:', e);
     }
@@ -67,19 +96,22 @@ export function UsuariosRegistradosProvider({ children }: { children: React.Reac
             usuariosRef.current = updated;
             console.log('[Usuarios] Usuario eliminado de la agenda, actualizado en terminal:', e.record.id);
           } else if (e.action === 'create') {
-            // Agregar el nuevo usuario
+            // Agregar el nuevo usuario. dedupeById evita que quede repetido si
+            // este mismo cliente ya lo agrego en registrarUsuario (o si el
+            // evento llega mas de una vez tras una reconexion).
             const nuevo = mapRecord(e.record);
-            const updated = [...usuariosRef.current, nuevo].sort((a, b) => a.nombre.localeCompare(b.nombre));
+            const updated = normalizarLista([...usuariosRef.current, nuevo]);
             setUsuarios(updated);
             usuariosRef.current = updated;
           } else if (e.action === 'update') {
-            // Actualizar el usuario modificado
-            const updated = usuariosRef.current
-              .map(u => u.id === e.record.id ? mapRecord(e.record) : u)
-              .sort((a, b) => a.nombre.localeCompare(b.nombre));
+            // Actualizar el usuario modificado (upsert: reemplaza si existe,
+            // agrega si no; siempre sin duplicar por id).
+            const nuevo = mapRecord(e.record);
+            const updated = normalizarLista([...usuariosRef.current, nuevo]);
             setUsuarios(updated);
             usuariosRef.current = updated;
           }
+
         }) as unknown as () => void;
       } catch (e) {
         console.warn('[Usuarios] No se pudo suscribir a cambios en tiempo real:', e);
@@ -125,10 +157,11 @@ export function UsuariosRegistradosProvider({ children }: { children: React.Reac
         nombre_empresa: datos.nombreEmpresa ?? '',
       });
       const nuevo = mapRecord(record);
-      const updated = [...usuariosRef.current, nuevo].sort((a, b) => a.nombre.localeCompare(b.nombre));
+      const updated = normalizarLista([...usuariosRef.current, nuevo]);
       setUsuarios(updated);
       usuariosRef.current = updated;
       return nuevo;
+
     } catch (e) {
       console.error('Error registrando usuario:', e);
       throw e;
@@ -152,14 +185,21 @@ export function UsuariosRegistradosProvider({ children }: { children: React.Reac
     // La busqueda por nombre esta deshabilitada para evitar suplantacion de identidad.
 
     // Busqueda por celular: si el texto contiene solo digitos (y posibles espacios/guiones)
+    // FIX 2026-07-31: coincidencia ESTRICTA por prefijo (startsWith) en vez de
+    // subcadena (includes). Asi, al tipear "099098765" solo matchean numeros que
+    // EMPIEZAN con esos digitos, no que los contengan en el medio. Se deduplica
+    // por id como red de seguridad extra.
     if (/^[\d\s\-\+\(\)]+$/.test(texto.trim()) && celularBusqueda.length >= 2) {
-      return currentUsuarios.filter(u => u.celular && u.celular.replace(/\D/g, '').includes(celularBusqueda));
+      return dedupeById(
+        currentUsuarios.filter(u => u.celular && u.celular.replace(/\D/g, '').startsWith(celularBusqueda))
+      );
     }
 
     // Busqueda por email: si el texto contiene @
     if (texto.includes('@')) {
-      return currentUsuarios.filter(u => u.email && norm(u.email).includes(textoNorm));
+      return dedupeById(currentUsuarios.filter(u => u.email && norm(u.email).includes(textoNorm)));
     }
+
 
     // Si el texto no es celular ni email, no devolver resultados
     // (evita busqueda por nombre que permitiria suplantacion de identidad)
