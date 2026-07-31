@@ -21,7 +21,6 @@ REM    es SOLO-API (PocketBase) y devuelve {"code":404,"message":
 REM    "Not Found."} para rutas SPA como /terminal?id=B. Los DATOS
 REM    ya viajan al Monitor por dentro de la app (pocketbase_url).
 REM    El navegador debe cargar SIEMPRE el frontend LOCAL 5173.
-REM    Probado con exito en Terminal B (2026-07-31).
 REM ============================================================
 
 setlocal EnableDelayedExpansion
