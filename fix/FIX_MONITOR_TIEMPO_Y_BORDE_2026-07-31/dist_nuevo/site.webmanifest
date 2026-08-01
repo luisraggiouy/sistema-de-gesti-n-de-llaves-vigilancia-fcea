@@ -1,0 +1,8 @@
+{
+  "name": "Sistema de Gestión de Llaves FCEA",
+  "short_name": "Llaves FCEA",
+  "icons": [],
+  "theme_color": "#1a365d",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}

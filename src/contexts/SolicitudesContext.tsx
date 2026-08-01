@@ -181,6 +181,16 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
         },
         terminal: r.terminal ?? 'terminal',
         horaSolicitud: r.hora_solicitud ? new Date(r.hora_solicitud) : new Date(),
+        // `created` lo genera PocketBase (server = Monitor) al insertar. Es el
+        // ancla confiable para el contador "cuanto hace que llego el pedido"
+        // porque comparte reloj con el Date.now() del Monitor. PocketBase lo
+        // devuelve como "YYYY-MM-DD HH:MM:SS.mmmZ" (con espacio): normalizamos
+        // el espacio a "T" para que new Date() lo parsee como UTC en todos los
+        // navegadores.
+        horaCreacionServidor: r.created
+          ? new Date(String(r.created).replace(' ', 'T'))
+          : undefined,
+
         horaEntrega: r.hora_entrega ? new Date(r.hora_entrega) : undefined,
         horaDevolucion: r.hora_devolucion ? new Date(r.hora_devolucion) : undefined,
         entregadoPor: r.entregado_por || undefined,

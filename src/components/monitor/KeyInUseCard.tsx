@@ -8,6 +8,8 @@ import { Vigilante } from '@/data/fceaData';
 import { formatearUbicacion, getColorTipoLugar } from '@/data/fceaData';
 import { Key, MapPin, Clock, Undo2, ArrowRightLeft, StickyNote, Check, Copy, MessageCircle } from 'lucide-react';
 import { KeyExchangeModal } from './KeyExchangeModal';
+import { formatearDuracion, VENTANA_AHORA_SEG } from '@/utils/tiempoEspera';
+
 
 interface KeyInUseCardProps {
   solicitud: SolicitudLlave;
@@ -84,11 +86,16 @@ export function KeyInUseCard({
   }, [solicitud.id]); // Usar solicitud.id como dependencia, más estable
 
   const formatTiempoUndo = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
-  const formatTiempoEnUso = (s: number) => {
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    return h > 0 ? `${h}h ${m}m` : `${m}m`;
-  };
+
+  // Texto de "tiempo en uso" con el MISMO criterio que las solicitudes pendientes
+  // (helper compartido `tiempoEspera.ts`):
+  //   < 10 s  -> "Recién entregada"
+  //   < 1 min -> "En uso hace menos de 1 minuto"
+  //   < 1 h   -> "En uso hace X minutos"
+  //   >= 1 h  -> "En uso hace HH:MM:SS"
+  const textoEnUso = tiempoEnUso < VENTANA_AHORA_SEG
+    ? 'Recién entregada'
+    : `En uso hace ${formatearDuracion(tiempoEnUso)}`;
 
   const tiempoEnUsoMinutos = tiempoEnUso / 60;
   const tiposConAlerta = ['Salón', 'Salón Híbrido'];
@@ -219,7 +226,7 @@ export function KeyInUseCard({
           <Clock className={`w-4 h-4 ${estaEnAlerta ? 'text-destructive' : 'text-muted-foreground'}`} />
           <div>
             <p className={`text-sm font-medium ${estaEnAlerta ? 'text-destructive' : ''}`}>
-              En uso hace {formatTiempoEnUso(tiempoEnUso)}
+              {textoEnUso}
             </p>
             {estaEnAlerta && <p className="text-xs text-destructive">Tiempo excedido</p>}
           </div>

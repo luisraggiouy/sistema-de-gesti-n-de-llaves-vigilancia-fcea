@@ -14,6 +14,12 @@ export interface SolicitudLlave {
   };
   terminal: string;
   horaSolicitud: Date;
+  // Timestamp que genera PocketBase (campo `created`) al insertar el registro.
+  // Como PocketBase corre EN el Monitor, este timestamp usa el MISMO reloj que
+  // el Monitor usa para pintar el contador -> elimina cualquier desfase de
+  // zona horaria / reloj entre la Terminal y el Monitor. Es el ancla preferida
+  // para calcular "cuanto hace que llego el pedido".
+  horaCreacionServidor?: Date;
   horaEntrega?: Date;
   horaDevolucion?: Date;
   entregadoPor?: string;
