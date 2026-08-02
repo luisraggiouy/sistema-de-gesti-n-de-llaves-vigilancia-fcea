@@ -169,6 +169,7 @@ echo  ============================================================
 echo   [7/9] Verificando datos productivos previos
 echo  ============================================================
 call :VERIFICAR_O_SEMBRAR
+call :ASEGURAR_PERMISOS_DATADB
 echo.
 
 REM ==========================================================
@@ -457,6 +458,22 @@ if exist "%PROGDATA_DIR%\pb_data\data.db" (
   echo   [WARN] La semilla no se copio correctamente.
   call :LOG "WARN: semilla no copiada"
 )
+exit /b 0
+
+REM ------------------------------------------------------------
+:ASEGURAR_PERMISOS_DATADB
+REM  FIX RAIZ readonly 2026-08-02: garantiza permiso de ESCRITURA
+REM  (Modify) para Usuarios sobre pb_data, para que el usuario estandar
+REM  'vigilancia' que corre PocketBase pueda escribir data.db. Sin esto
+REM  SQLite abre la base solo-lectura y fallan create/update de solicitudes.
+set "LIB_PERM=%PENDRIVE_ROOT%\sistema-llaves-fcea\scripts\lib\asegurar_permisos_datadb.ps1"
+if not exist "%LIB_PERM%" set "LIB_PERM=%INSTALL_DIR%\scripts\lib\asegurar_permisos_datadb.ps1"
+if not exist "%LIB_PERM%" (
+  call :LOG "asegurar_permisos_datadb.ps1 no encontrado - se omite ajuste de permisos"
+  exit /b 0
+)
+call :LOG "Asegurando permisos de escritura de pb_data (data.db)"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%LIB_PERM%" >>"%LOG_FILE%" 2>&1
 exit /b 0
 
 REM ------------------------------------------------------------

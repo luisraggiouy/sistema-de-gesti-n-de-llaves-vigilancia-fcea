@@ -197,6 +197,7 @@ call :PERSISTIR_INSTALL_CONFIG "desarrollo" "%HW_TIPO%"
 call :INSTALAR_DEPENDENCIAS
 call :CONFIGURAR_SERVIDOR_LOCAL
 call :RESTAURAR_DATOS_PENDRIVE
+call :ASEGURAR_PERMISOS_DATADB
 call :CONFIGURAR_INICIO_AUTO
 echo.
 echo  Modo desarrollo instalado.
@@ -400,6 +401,7 @@ if /i "%ROL%"=="S" (
   call :INSTALAR_DEPENDENCIAS
   call :CONFIGURAR_SERVIDOR_LOCAL
   call :RESTAURAR_DATOS_PENDRIVE
+  call :ASEGURAR_PERMISOS_DATADB
   call :CONFIGURAR_MANTENIMIENTO_AUTO
   call :CONFIGURAR_INICIO_AUTO
   call :APLICAR_FIX_TACTIL "!HW_TIPO!"
@@ -794,6 +796,25 @@ echo   [OK] DATOS RESTAURADOS EN %PERSIST_PBDATA%
 echo   PocketBase usa esta ruta persistente (--dir absoluto).
 echo   Sobrevive a futuras reinstalaciones y desinstalaciones.
 echo  ============================================================
+goto :eof
+
+REM ============================================================
+REM  ASEGURAR_PERMISOS_DATADB  (FIX RAIZ readonly 2026-08-02)
+REM  Otorga permiso de ESCRITURA (Modify) a Usuarios sobre pb_data
+REM  para que el usuario estandar 'vigilancia' que corre PocketBase
+REM  pueda escribir data.db. Sin esto SQLite abre la base en modo
+REM  SOLO LECTURA y fallan las escrituras ("Failed to update/create
+REM  record (400)" al crear solicitudes; "Failed to write log").
+REM ============================================================
+:ASEGURAR_PERMISOS_DATADB
+echo.
+echo Asegurando permisos de escritura de la base de datos ^(data.db^)...
+set "LIB_PERM=%REPO_ROOT%\scripts\lib\asegurar_permisos_datadb.ps1"
+if not exist "%LIB_PERM%" (
+  echo [AVISO] No se encontro %LIB_PERM%. Omito ajuste de permisos.
+  goto :eof
+)
+powershell -NoProfile -ExecutionPolicy Bypass -File "%LIB_PERM%"
 goto :eof
 
 REM ============================================================
