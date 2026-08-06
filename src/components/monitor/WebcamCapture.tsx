@@ -85,7 +85,7 @@ export function WebcamCapture({ label, required = false, onCapture, capturedImag
           </Button>
         </div>
         <div className="rounded-lg overflow-hidden border border-border">
-          <img src={capturedImage} alt={label} className="w-full h-40 object-cover" />
+          <img src={capturedImage} alt={label} className="w-full aspect-square object-cover" />
         </div>
       </div>
     );
@@ -98,7 +98,7 @@ export function WebcamCapture({ label, required = false, onCapture, capturedImag
       </span>
       {streaming ? (
         <div className="rounded-lg overflow-hidden border border-primary relative">
-          <video ref={videoRef} className="w-full h-40 object-cover" autoPlay playsInline muted />
+          <video ref={videoRef} className="w-full aspect-square object-cover" autoPlay playsInline muted />
           <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
             <Button size="sm" onClick={takePhoto} className="gap-1">
               <Camera className="w-4 h-4" />
@@ -112,7 +112,7 @@ export function WebcamCapture({ label, required = false, onCapture, capturedImag
       ) : (
         <div
           ref={cardRef}
-          className="h-40 flex flex-col items-center justify-center cursor-pointer border-dashed border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          className="w-full aspect-square flex flex-col items-center justify-center cursor-pointer border-dashed border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
         >
           {error ? (
             <p className="text-red-500 text-sm text-center px-4">{error}</p>

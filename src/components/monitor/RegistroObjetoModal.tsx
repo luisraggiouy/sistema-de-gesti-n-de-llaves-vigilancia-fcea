@@ -29,7 +29,7 @@ export function RegistroObjetoModal({ open, onOpenChange, vigilantes, onRegistra
   const [fotoAdicional, setFotoAdicional] = useState('');
   const [sinFotos, setSinFotos] = useState(false);
 
-  const isValid = descripcion.trim() && vigilante && (sinFotos || (fotoGeneral && fotoMarca));
+  const isValid = descripcion.trim() && vigilante && (sinFotos || fotoGeneral);
 
   const handleRegistrar = () => {
     if (!isValid) return;
@@ -136,7 +136,7 @@ export function RegistroObjetoModal({ open, onOpenChange, vigilantes, onRegistra
             {!sinFotos && (
               <>
                 <WebcamCapture label="Foto general" required capturedImage={fotoGeneral} onCapture={setFotoGeneral} onClear={() => setFotoGeneral('')} />
-                <WebcamCapture label="Foto de la marca" required capturedImage={fotoMarca} onCapture={setFotoMarca} onClear={() => setFotoMarca('')} />
+                <WebcamCapture label="Foto de la marca (opcional)" capturedImage={fotoMarca} onCapture={setFotoMarca} onClear={() => setFotoMarca('')} />
                 <WebcamCapture label="Foto adicional (característica)" capturedImage={fotoAdicional} onCapture={setFotoAdicional} onClear={() => setFotoAdicional('')} />
               </>
             )}
