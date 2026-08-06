@@ -1,0 +1,21 @@
+{ 
+    "$schema":  "./config.schema.json", 
+    "version":  "2.1.0", 
+    "modo":  "produccion", 
+    "rol":  "terminal-b", 
+    "hardware":  "tradicional", 
+    "pocketbase_url":  "http://127.0.0.1:8090", 
+    "red":  { 
+                "ip_servidor":  "127.0.0.1", 
+                "ip_terminal_a":  "127.0.0.1", 
+                "ip_terminal_b":  "127.0.0.1" 
+            }, 
+    "ui":  { 
+               "teclado_virtual_forzado":  false, 
+               "tema":  "claro" 
+           }, 
+    "_notas":  [ 
+                   "CREADO POR FIX DEFINITIVO - Terminal B configurada igual que Terminal A", 
+                   "pero con rol=terminal-b. Si Terminal A funciona, esta tambien debe funcionar." 
+               ] 
+} 

@@ -1,0 +1,16 @@
+﻿{
+    "timestamp": "2026-06-07T16:00:00",
+    "metrics": {
+        "lastBackupDaysAgo": 0,
+        "diskSpaceFreeGB": 0,
+        "lastAnnualMaintenanceDaysAgo": 0,
+        "windowsUpdateDaysAgo": 0,
+        "pendriveDaysOutdated": 0,
+        "lastMaintenanceDaysAgo": 0,
+        "diskSpacePercent": 100,
+        "databaseSizeMB": 0,
+        "installAgeDays": 0
+    },
+    "overallStatus": "healthy",
+    "alerts": []
+}
