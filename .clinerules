@@ -1,11 +1,11 @@
 # REGLAS CLINE - LEE ESTO PRIMERO EN CADA NUEVA TAREA
-**Creado: 28/07/2026 16:56 · última modificación: 03/08/2026 16:55**
+**ultima modificación: 03/08/2026 16:55**
 
 ## Restricciones Técnicas
 No accedas ni leas archivos dentro de la carpeta `node_modules/` ya que contiene dependencias de terceros que están pre-auditadas y funcionando correctamente. Leer estos archivos consume tokens innecesarios, aumenta el contexto sin aportar valor al desarrollo, y puede causar errores de límite de contexto. Las dependencias de JavaScript/TypeScript en node_modules son estables y no requieren modificación ni revisión.
 
 ## Contexto del Sistema
-Este es un sistema de gestión de llaves para vigilancia de la FCEA (Facultad de Ciencias Económicas y de Administración). Incluye tres interfaces principales: TERMINAL A, TERMINAL B (para solicitar llaves), MONITOR DE VIGILANCIA para gestionar entregas/devoluciones además tiene pestañas con módulos; Dashboard, objetos, agenda/autorizaciones, historial, configuración, vigilantes, llaves, un monitor de salud del sistema, un monitor de conexión. Utiliza React/TypeScript en el frontend, PocketBase como backend, y tiene un sistema robusto de instalación via pendrives, scripts de mantenimiento automatizado, manejo de objetos olvidados, sistema de autorizaciones, y funcionalidades de backup/recuperación. El sistema está diseñado para funcionar en modo kiosko en equipos dedicados. El navegador que está usando es Edge pero debe funcionar bien con cualquier navegador moderno.
+Este es un sistema de gestión de llaves para vigilancia de la FCEA (Facultad de Ciencias Económicas y de Administración). Incluye tres interfaces principales: TERMINAL A, TERMINAL B (para solicitar llaves), MONITOR DE VIGILANCIA para gestionar entregas/devolucionesademás tiene pestañas con módulos; Dashboard, objetos, agenda/autorizaciones, historial, configuración, vigilantes, llaves, un monitor de salud del sistema, un monitor de conexión. Utiliza React/TypeScript en el frontend, PocketBase como backend, y tiene un sistema robusto de instalación via pendrives, scripts de mantenimiento automatizado, manejo de objetos olvidados, sistema de autorizaciones, y funcionalidades de backup/recuperación. El sistema está diseñado para funcionar en modo kiosko en equipos dedicados. El navegador que está usando es Edge pero debe funcionar bien con cualquier navegador moderno.
 
 **Hardware:** Si bien los monitores de las terminales son táctiles, tienen tecnología resistiva antigua inutilizable por lo tanto no van a ser utilizados como táctiles, van a ser usados como monitores convencionales, cada pc va a tener su teclado y su mouse. Usar siempre modo "tradicional" en lugar de "tactil" para lanzamiento de navegadores para que no de conflictos.
 
@@ -36,8 +36,27 @@ Flujo obligatorio de cada intento:
 
 Recordatorio: la letra de unidad del pendrive puede variar; preguntar/confirmar cuál es antes de grabar (históricamente `D:`).
 
-## Nueva Regla Fix Carpeta (30/07/2026)
-Cada vez que crees un nuevo archivo tratando de solucionar un problema en la carpeta fix o en la carpeta upgrade, borra el anterior, debe quedar solo el archivo que funcione con el instructivo de este. No puede quedar el script V1 V2 V3 V4 si ninguna funcionó y además todas tienen su correspondiente instructivo lo que llena de archivos basura QUE NO SIRVEN DE NADA, debe quedar solo el archivo con el instructivo que funcione ADEMÁS DE LA INTEGRACIÓN DE ESTE A LOS SCRIPTS CRÍTICOS, Cómo sabes que funcionó? Porque te lo voy a decir aquí en la laptop de desarrollo. Por ejemplo "acabo de probar el archivo para poder conectar el terminal B y funcionó!" ahí recién comiteas e integras
+## Nueva Regla Fix Carpeta (30/07/2026) 
+Cada vez que crees un nuevo archivo tratando de solucionar un problema en la carpeta fix o en la carpeta upgrade, borra el anterior, debe quedar solo el archivo que funcione con el instructivo de este. No puede quedar el script V1 V2 V3 V4 si ninguna funcionó y además todas tienen su correspondiente instructivo lo que llena de archivos basura QUE NO SIRVEN DE NADA, debe quedar solo el archivo con el instructivo que funcione ADEMÁS DE LA INTEGRACIÓN DE ESTE A LOS SCRIPTS CRÍTICOS, Cómo sabes que funcionó? Porque te lo voy a decir aquí en la laptop de desarrollo. Por ejemplo “acabo de probar el archivo para poder conectar el terminal B y funcionó!” ahí recién comiteas e integras
+Los scripts de diagnóstico (solo lectura, no modifican el sistema) pueden generarse libremente durante la investigación. Solo se aplica la regla de limpieza a los scripts que intentan modificar/reparar el sistema.
+
+## Carpeta HERRAMIENTAS_RED (Caja de Herramientas Permanente)
+La carpeta `HERRAMIENTAS_RED` (ubicada en el pendrive, FUERA de las carpetas FIX/upgrades) es una caja de herramientas de diagnóstico y reparación **PERMANENTE y reutilizable** entre las tres terminales (Terminal A, Terminal B, Monitor Vigilancia). 
+
+**IMPORTANTE:** A esta carpeta **NO se le aplica** la regla de limpieza de "Nueva Regla Fix Carpeta". Aquí SÍ se pueden acumular herramientas con nombres descriptivos, por ejemplo:
+- `DIAGNOSTICAR_RED`
+- `VERIFICAR_CONFIG_ACTUAL`
+- `CAZAR_POCKETBASE_ZOMBIE`
+- `ARRANCAR_POCKETBASE`
+- `MATAR_POCKETBASE_ZOMBIE`
+- `REPARAR_CONFIG`
+
+Cada herramienta nueva relevante debe sumarse ahí, **NO en FIX/upgrades**, y debe seguir la convención existente de par lanzador `.bat` + script `.ps1` (por ejemplo: `DIAGNOSTICAR_RED.bat` que lanza `DIAGNOSTICAR_RED.ps1`).
+
+## Regla de Límite de Diagnóstico
+Ante un bug, se permite generar diagnósticos de solo lectura libremente. Pero **después de reunir evidencia suficiente** (o si ya existen herramientas de diagnóstico previas en `HERRAMIENTAS_RED` que cubran el caso), el modelo debe **comprometerse con una hipótesis principal y proponer un fix concreto**, en vez de seguir generando rondas de diagnóstico.
+
+Si la certeza es menor al 80%, debe decir explícitamente **qué información puntual falta**, sin repetir diagnósticos ya cubiertos.
 
 ## Regla de Logs de Diagnóstico al Pendrive (agregada 03/08/2026)
 Todo script de diagnóstico o prueba que le hago correr a Luis **debe escribir su salida (output) a un archivo `.log` en el pendrive**, con un nombre descriptivo que incluya el tema, la PC y la fecha/hora (ej.: `LOG_ARRANQUE_LENTO_MONITOR_2026-08-03_1830.log`). El log se guarda al lado del script (o en una subcarpeta `_RESULTADOS`), **no** en el escritorio de la PC de producción.
@@ -49,3 +68,6 @@ Todo script de diagnóstico o prueba que le hago correr a Luis **debe escribir s
 - Encabezar el log con: fecha/hora, nombre de la PC (`$env:COMPUTERNAME`) y qué se está diagnosticando.
 - Al terminar, mostrar en pantalla la ruta exacta del `.log` generado para que Luis sepa qué traer.
 - Los diagnósticos siguen siendo **solo lectura** (no modifican el sistema).
+
+## Bitácora
+- **Modelo de trabajo desde 30/07/2026:** anthropic/claude-opus-4.8 (antes: Sonnet 4)

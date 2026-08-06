@@ -4,13 +4,15 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Search, CalendarDays, Clock, UserCheck, Mail, X, History, RotateCcw, Trash2, AlertTriangle } from 'lucide-react';
+import { Search, CalendarDays, Clock, UserCheck, Mail, X, History, RotateCcw, Trash2, AlertTriangle, Users } from 'lucide-react';
 import {
   buscarHistorialAutorizaciones,
   getHistorialAutorizaciones,
   restablecerAutorizacion,
+  getPersonasAutorizadas,
   type AutorizacionHistorial
 } from '@/data/fceaData';
+
 import { DateInput } from '@/components/ui/date-input';
 import { useToast } from '@/hooks/use-toast';
 
@@ -140,13 +142,25 @@ function HistorialCard({
   onRestablecer: (a: AutorizacionHistorial) => void;
 }) {
   const esEliminada = auth.motivoBaja === 'eliminada';
+  // Upgrade 2026-08-06: mostrar TODAS las personas autorizadas.
+  const personas = getPersonasAutorizadas(auth);
 
   return (
     <div className={`p-3 rounded-lg border bg-card/50 space-y-1.5 ${esEliminada ? 'border-destructive/20' : 'border-warning/20'}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="font-medium truncate">{auth.personaNombre}</p>
+          {personas.length > 1 && (
+            <Badge variant="outline" className="mb-1 gap-1 bg-primary/10 text-primary border-primary/30">
+              <Users className="w-3 h-3" />{personas.length} personas
+            </Badge>
+          )}
+          {personas.map((p, i) => (
+            <p key={i} className="font-medium truncate">
+              {p.nombre}{p.ci ? ` — CI: ${p.ci}` : ''}
+            </p>
+          ))}
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+
             <Badge variant="outline" className="bg-muted text-muted-foreground border-border">
               {auth.lugarAutorizado}
             </Badge>

@@ -5,15 +5,21 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { Search, Plus, Pencil, Trash2, X, Check, ShieldCheck, ShieldX, Mail, Clock, CalendarDays, UserCheck, AlertTriangle } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, X, Check, ShieldCheck, ShieldX, Mail, Clock, CalendarDays, UserCheck, AlertTriangle, Users } from 'lucide-react';
 import {
   Autorizacion, getAutorizaciones, guardarAutorizacion,
   actualizarAutorizacion, eliminarAutorizacion, buscarAutorizacionEnVivo,
-  purgarAutorizacionesVencidas, normalizarTexto
+  purgarAutorizacionesVencidas, getPersonasAutorizadas
 } from '@/data/fceaData';
 import { useToast } from '@/hooks/use-toast';
 import { DateInput } from '@/components/ui/date-input';
 import { ConfirmarAccionSensible } from '@/components/ConfirmarAccionSensible';
+
+// Fila de persona en el formulario (upgrade multi-persona 2026-08-06).
+interface PersonaForm {
+  nombre: string;
+  ci: string;
+}
 
 export function AutorizacionesTab() {
   const { toast } = useToast();
@@ -32,9 +38,12 @@ export function AutorizacionesTab() {
   const [busqLugar, setBusqLugar] = useState('');
 
   // Form nueva/editar
+  // Upgrade 2026-08-06: `personas` es una lista (una o varias personas
+  // pueden quedar autorizadas en la misma autorizacion).
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
-    personaNombre: '', personaCI: '', lugarAutorizado: '', autorizadoPor: '',
+    personas: [{ nombre: '', ci: '' }] as PersonaForm[],
+    lugarAutorizado: '', autorizadoPor: '',
     fechaAutorizacion: '', fechaDesde: '', fechaHasta: '',
     horario: '', emailReferencia: '', observaciones: ''
   });
@@ -60,15 +69,35 @@ export function AutorizacionesTab() {
   const todasLasAutorizaciones = useMemo(() => getAutorizaciones(), [refreshKey]);
 
   const resetForm = () => {
-    setForm({ personaNombre: '', personaCI: '', lugarAutorizado: '', autorizadoPor: '', fechaAutorizacion: '', fechaDesde: '', fechaHasta: '', horario: '', emailReferencia: '', observaciones: '' });
+    setForm({ personas: [{ nombre: '', ci: '' }], lugarAutorizado: '', autorizadoPor: '', fechaAutorizacion: '', fechaDesde: '', fechaHasta: '', horario: '', emailReferencia: '', observaciones: '' });
     setEditingId(null);
+  };
+
+  // ---- Helpers de la lista de personas ----
+  const updatePersona = (idx: number, campo: keyof PersonaForm, valor: string) => {
+    setForm(f => ({
+      ...f,
+      personas: f.personas.map((p, i) => i === idx ? { ...p, [campo]: valor } : p),
+    }));
+  };
+
+  const agregarPersona = () => {
+    setForm(f => ({ ...f, personas: [...f.personas, { nombre: '', ci: '' }] }));
+  };
+
+  const quitarPersona = (idx: number) => {
+    setForm(f => ({
+      ...f,
+      // Siempre queda al menos una fila.
+      personas: f.personas.length > 1 ? f.personas.filter((_, i) => i !== idx) : f.personas,
+    }));
   };
 
   const startEdit = (a: Autorizacion) => {
     setEditingId(a.id);
+    const personas = getPersonasAutorizadas(a).map(p => ({ nombre: p.nombre, ci: p.ci || '' }));
     setForm({
-      personaNombre: a.personaNombre,
-      personaCI: a.personaCI || '',
+      personas: personas.length > 0 ? personas : [{ nombre: '', ci: '' }],
       lugarAutorizado: a.lugarAutorizado,
       autorizadoPor: a.autorizadoPor,
       fechaAutorizacion: a.fechaAutorizacion?.split('T')[0] || '',
@@ -85,22 +114,32 @@ export function AutorizacionesTab() {
   // para poder pasar por el modal `ConfirmarAccionSensible` cuando se
   // trata de una EDICION (`editingId` presente). Crear nueva no exige
   // confirmacion (no es destructivo: siempre se puede borrar despues).
-  const buildAutorizacionData = () => ({
-    personaNombre: form.personaNombre.trim(),
-    personaCI: form.personaCI.trim() || undefined,
-    lugarAutorizado: form.lugarAutorizado.trim(),
-    autorizadoPor: form.autorizadoPor.trim(),
-    fechaAutorizacion: form.fechaAutorizacion || new Date().toISOString().split('T')[0],
-    fechaDesde: form.fechaDesde || undefined,
-    fechaHasta: form.fechaHasta || undefined,
-    horario: form.horario.trim() || undefined,
-    emailReferencia: form.emailReferencia.trim() || undefined,
-    observaciones: form.observaciones.trim() || undefined,
-  });
+  const buildAutorizacionData = () => {
+    // Limpiar y descartar filas vacias. Upgrade multi-persona 2026-08-06.
+    const personasLimpias = form.personas
+      .map(p => ({ nombre: p.nombre.trim(), ci: p.ci.trim() || undefined }))
+      .filter(p => p.nombre.length > 0);
+    return {
+      // Campos legacy = primera persona (compat busqueda/historial/export).
+      personaNombre: personasLimpias[0]?.nombre || '',
+      personaCI: personasLimpias[0]?.ci,
+      personas: personasLimpias,
+      lugarAutorizado: form.lugarAutorizado.trim(),
+      autorizadoPor: form.autorizadoPor.trim(),
+      fechaAutorizacion: form.fechaAutorizacion || new Date().toISOString().split('T')[0],
+      fechaDesde: form.fechaDesde || undefined,
+      fechaHasta: form.fechaHasta || undefined,
+      horario: form.horario.trim() || undefined,
+      emailReferencia: form.emailReferencia.trim() || undefined,
+      observaciones: form.observaciones.trim() || undefined,
+    };
+  };
+
+  const hayAlgunaPersona = form.personas.some(p => p.nombre.trim().length > 0);
 
   const handleGuardar = () => {
-    if (!form.personaNombre.trim() || !form.lugarAutorizado.trim() || !form.autorizadoPor.trim()) {
-      toast({ title: 'Campos requeridos', description: 'Nombre, lugar y autorizado por son obligatorios', variant: 'destructive' });
+    if (!hayAlgunaPersona || !form.lugarAutorizado.trim() || !form.autorizadoPor.trim()) {
+      toast({ title: 'Campos requeridos', description: 'Al menos una persona (nombre), lugar y autorizado por son obligatorios', variant: 'destructive' });
       return;
     }
 
@@ -113,7 +152,8 @@ export function AutorizacionesTab() {
 
     const data = buildAutorizacionData();
     guardarAutorizacion(data);
-    toast({ title: 'Autorización registrada', description: `${data.personaNombre} — ${data.lugarAutorizado}` });
+    const extra = data.personas.length > 1 ? ` (+${data.personas.length - 1} más)` : '';
+    toast({ title: 'Autorización registrada', description: `${data.personaNombre}${extra} — ${data.lugarAutorizado}` });
     resetForm();
     setModo('buscar');
     refresh();
@@ -123,7 +163,8 @@ export function AutorizacionesTab() {
     if (!editingId) return;
     const data = buildAutorizacionData();
     actualizarAutorizacion(editingId, data);
-    toast({ title: 'Autorización actualizada', description: `${data.personaNombre} — ${data.lugarAutorizado}` });
+    const extra = data.personas.length > 1 ? ` (+${data.personas.length - 1} más)` : '';
+    toast({ title: 'Autorización actualizada', description: `${data.personaNombre}${extra} — ${data.lugarAutorizado}` });
     resetForm();
     setModo('buscar');
     refresh();
@@ -243,24 +284,56 @@ export function AutorizacionesTab() {
         /* Formulario nueva/editar */
         <ScrollArea className="flex-1 min-h-0 -mx-1 px-1">
           <div className="space-y-3 pr-2">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs">Nombre de la persona *</Label>
-                <Input value={form.personaNombre} onChange={e => setForm(f => ({ ...f, personaNombre: e.target.value }))} placeholder="Ej: María López" className="h-9" />
+            {/* Lista de personas autorizadas (una o varias) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5" />
+                  Personas autorizadas *
+                </Label>
+                {form.personas.length > 1 && (
+                  <span className="text-[10px] text-muted-foreground">{form.personas.length} personas</span>
+                )}
               </div>
-              <div className="space-y-1">
-                <Label className="text-xs">CI (opcional)</Label>
-                <div className="relative">
-                  <Input 
-                    value={form.personaCI} 
-                    onChange={e => setForm(f => ({ ...f, personaCI: e.target.value }))} 
-                    placeholder="Ej: 12345678" 
-                    className="h-9" 
-                  />
-                  <p className="text-[10px] text-muted-foreground absolute -bottom-4 left-0">Sin puntos ni guiones</p>
+
+              {form.personas.map((persona, idx) => (
+                <div key={idx} className="flex gap-2 items-start">
+                  <div className="flex-1 grid grid-cols-2 gap-2">
+                    <Input
+                      value={persona.nombre}
+                      onChange={e => updatePersona(idx, 'nombre', e.target.value)}
+                      placeholder={idx === 0 ? 'Nombre (ej: María López)' : 'Otra persona...'}
+                      className="h-9"
+                    />
+                    <Input
+                      value={persona.ci}
+                      onChange={e => updatePersona(idx, 'ci', e.target.value)}
+                      placeholder="CI (opcional)"
+                      className="h-9"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 shrink-0 text-destructive hover:text-destructive disabled:opacity-30"
+                    onClick={() => quitarPersona(idx)}
+                    disabled={form.personas.length === 1}
+                    title="Quitar persona"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
+              ))}
+
+              <div className="flex items-center justify-between">
+                <Button type="button" variant="outline" size="sm" onClick={agregarPersona} className="h-8 gap-1.5">
+                  <Plus className="w-3.5 h-3.5" />Agregar otra persona
+                </Button>
+                <p className="text-[10px] text-muted-foreground">CI: sin puntos ni guiones</p>
               </div>
             </div>
+
             <div className="space-y-1">
               <Label className="text-xs">Llave / Lugar autorizado *</Label>
               <Input value={form.lugarAutorizado} onChange={e => setForm(f => ({ ...f, lugarAutorizado: e.target.value }))} placeholder="Ej: Sala 21-C, Oficina Concursos" className="h-9" />
@@ -332,7 +405,7 @@ export function AutorizacionesTab() {
         onOpenChange={(v) => { if (!v) setConfirmGuardarEdit(false); }}
         tipoAccion="editar"
         entidad="autorizacion"
-        detalle={form.personaNombre ? `${form.personaNombre} — ${form.lugarAutorizado}` : undefined}
+        detalle={hayAlgunaPersona ? `${form.personas.find(p => p.nombre.trim())?.nombre || ''} — ${form.lugarAutorizado}` : undefined}
         descripcionExtra={
           "Vas a modificar los datos de una autorizacion existente. Los cambios reemplazan a los datos anteriores en el momento; verifica bien nombre, CI, lugar, vigencia y autorizante antes de guardar."
         }
@@ -348,20 +421,31 @@ export function AutorizacionesTab() {
 function AutorizacionCard({ auth, onEdit, onDelete }: { auth: Autorizacion; onEdit: (a: Autorizacion) => void; onDelete: (a: Autorizacion) => void }) {
   const hoy = new Date().toISOString().split('T')[0];
   const proximaAVencer = auth.fechaHasta && auth.fechaHasta >= hoy && auth.fechaHasta <= new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
+  // Upgrade 2026-08-06: mostrar TODAS las personas autorizadas.
+  const personas = getPersonasAutorizadas(auth);
 
   return (
     <div className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors space-y-1.5">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="font-medium truncate">{auth.personaNombre}</p>
-            {auth.personaCI && (
-              <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30">
-                CI: {auth.personaCI}
-              </Badge>
-            )}
+          {personas.length > 1 && (
+            <Badge variant="outline" className="mb-1 gap-1 bg-primary/10 text-primary border-primary/30">
+              <Users className="w-3 h-3" />{personas.length} personas autorizadas
+            </Badge>
+          )}
+          <div className="space-y-1">
+            {personas.map((p, i) => (
+              <div key={i} className="flex items-center gap-2 flex-wrap">
+                <p className="font-medium truncate">{p.nombre}</p>
+                {p.ci && (
+                  <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30">
+                    CI: {p.ci}
+                  </Badge>
+                )}
+              </div>
+            ))}
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground mt-1">
             <Badge variant="outline" className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30 mr-1.5">
               {auth.lugarAutorizado}
             </Badge>

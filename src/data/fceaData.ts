@@ -435,11 +435,24 @@ export function getColorTipoLugar(tipo: TipoLugar): string {
 }
 
 // ============= AUTORIZACIONES =============
+// Upgrade 2026-08-06: una autorizacion puede habilitar a VARIAS personas
+// (ej: mail con lista de 6 personas para dar apoyo en inscripciones).
+export interface PersonaAutorizada {
+  nombre: string;
+  ci?: string;
+}
+
 export interface Autorizacion {
   id: string;
+  // Campos legacy (compat con autorizaciones creadas antes del upgrade y
+  // con busqueda/historial/export existentes): siempre reflejan la PRIMERA
+  // persona de la lista.
   personaNombre: string;
   personaCI?: string;
+  // Nuevo: lista completa de personas autorizadas (una o varias).
+  personas?: PersonaAutorizada[];
   lugarAutorizado: string;
+
   autorizadoPor: string;
   fechaAutorizacion: string;
   fechaDesde?: string;
@@ -483,6 +496,18 @@ function _saveHistorialAutorizaciones(list: AutorizacionHistorial[]): void {
 export function getAutorizaciones(): Autorizacion[] {
   return _loadAutorizaciones();
 }
+
+/**
+ * Devuelve SIEMPRE la lista de personas de una autorizacion, sin importar si
+ * fue creada antes o despues del upgrade multi-persona (2026-08-06).
+ * - Autorizaciones nuevas: usan `a.personas`.
+ * - Autorizaciones viejas (sin `personas`): se arma desde `personaNombre`/`personaCI`.
+ */
+export function getPersonasAutorizadas(a: Autorizacion): PersonaAutorizada[] {
+  if (a.personas && a.personas.length > 0) return a.personas;
+  return [{ nombre: a.personaNombre, ci: a.personaCI }];
+}
+
 
 export function getHistorialAutorizaciones(): AutorizacionHistorial[] {
   return _loadHistorialAutorizaciones();
@@ -531,13 +556,17 @@ export function buscarAutorizacionEnVivo(persona: string, lugar: string): Autori
   const np = normalizarTexto(persona.trim());
   const nl = normalizarTexto(lugar.trim());
   return list.filter(a => {
-    const matchPersona = !np ||
-      normalizarTexto(a.personaNombre).includes(np) ||
-      (a.personaCI && normalizarTexto(a.personaCI).includes(np));
+    // Buscar en TODAS las personas de la autorizacion (nombre o CI),
+    // no solo la primera. Ver upgrade multi-persona 2026-08-06.
+    const matchPersona = !np || getPersonasAutorizadas(a).some(p =>
+      normalizarTexto(p.nombre).includes(np) ||
+      (p.ci && normalizarTexto(p.ci).includes(np))
+    );
     const matchLugar = !nl || normalizarTexto(a.lugarAutorizado).includes(nl);
     return matchPersona && matchLugar;
   });
 }
+
 
 export function buscarHistorialAutorizaciones(
   lugar: string,
