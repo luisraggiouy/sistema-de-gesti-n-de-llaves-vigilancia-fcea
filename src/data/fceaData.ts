@@ -340,7 +340,8 @@ export const lugares: Lugar[] = [
   { id: 'l178', nombre: 'Depósito de máquinas', tipo: 'Depósito', edificio: 'Central', tablero: 'Tablero Principal', ubicacion: { zona: 'Fondo', fila: 6 }, disponible: true, esHibrido: false },
 ];
 
-export const edificios = ['Central', 'EIP'];  // Already alphabetical
+export const edificios = ['Central', 'EIP', 'Aulario'];
+
 
 export const tiposLugar: TipoLugar[] = [
   'Acceso', 'Área Común', 'Baño', 'Biblioteca', 'Depósito',
