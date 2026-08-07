@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { ConfiguracionSistema, CONFIGURACION_DEFAULT } from '@/types/configuracion';
 import { Clock, MessageCircle, RefreshCw, Settings, Plus, Minus } from 'lucide-react';
+import { ConfirmarAccionSensible } from '@/components/ConfirmarAccionSensible';
 
 interface ConfigurationModalProps {
   open: boolean;
@@ -52,6 +53,11 @@ export function ConfigurationModal({ open, onOpenChange, configuracion, onGuarda
   const [mensaje, setMensaje] = useState('');
   const [transicion, setTransicion] = useState(30);
   const inicializadoRef = useRef(false);
+  // Que accion sensible se esta confirmando: null = ninguna.
+  // Requerido por jefaturas: cualquier cambio en Configuracion debe
+  // pasar por el cartel de advertencia de accion sensible.
+  const [accionSensible, setAccionSensible] = useState<null | 'guardar' | 'restaurar'>(null);
+
 
   // Solo inicializar cuando se abre el modal, no en cada recarga de configuracion
   useEffect(() => {
@@ -75,6 +81,23 @@ export function ConfigurationModal({ open, onOpenChange, configuracion, onGuarda
     });
     onOpenChange(false);
   };
+
+  const handleRestaurar = () => {
+    // Actualizar estado local del modal inmediatamente
+    setTiempoAlertaHoras(Math.floor(CONFIGURACION_DEFAULT.tiempoAlertaMinutos / 60));
+    setTiempoAlertaMinutos(CONFIGURACION_DEFAULT.tiempoAlertaMinutos % 60);
+    setMensaje(CONFIGURACION_DEFAULT.mensajeWhatsApp);
+    setTransicion(CONFIGURACION_DEFAULT.transicionTurnoMinutos);
+    // Persistir en PocketBase
+    onResetear();
+  };
+
+  // Texto exacto requerido por jefaturas para toda accion sensible en
+  // la pestana Configuracion (guardar o restaurar).
+  const TEXTO_ADVERTENCIA =
+    'Atención! acción sensible, usted quiere modificar datos en el sistema ' +
+    'que requieren permisos de jefaturas, de continuar con esta acción ' +
+    'quedará registro de los cambios que realiza.';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -136,23 +159,34 @@ export function ConfigurationModal({ open, onOpenChange, configuracion, onGuarda
         <DialogFooter className="flex-col sm:flex-row gap-2">
           <Button
             variant="outline"
-            onClick={() => {
-              // Actualizar estado local del modal inmediatamente
-              setTiempoAlertaHoras(Math.floor(CONFIGURACION_DEFAULT.tiempoAlertaMinutos / 60));
-              setTiempoAlertaMinutos(CONFIGURACION_DEFAULT.tiempoAlertaMinutos % 60);
-              setMensaje(CONFIGURACION_DEFAULT.mensajeWhatsApp);
-              setTransicion(CONFIGURACION_DEFAULT.transicionTurnoMinutos);
-              // Persistir en PocketBase
-              onResetear();
-            }}
+            onClick={() => setAccionSensible('restaurar')}
             className="gap-2"
           >
             <RefreshCw className="w-4 h-4" />
             Restaurar valores
           </Button>
-          <Button onClick={handleGuardar}>Guardar cambios</Button>
+          <Button onClick={() => setAccionSensible('guardar')}>Guardar cambios</Button>
         </DialogFooter>
       </DialogContent>
+
+      {/*
+        Cartel de advertencia de accion sensible. Se muestra al confirmar
+        CUALQUIER cambio de la pestana Configuracion (guardar o restaurar).
+        Texto exacto exigido por jefaturas -> se pasa via descripcionExtra.
+      */}
+      <ConfirmarAccionSensible
+        open={accionSensible !== null}
+        onOpenChange={(v) => { if (!v) setAccionSensible(null); }}
+        tipoAccion="editar"
+        entidad="otro"
+        detalle="Configuración del Sistema"
+        descripcionExtra={TEXTO_ADVERTENCIA}
+        onConfirmar={() => {
+          if (accionSensible === 'guardar') handleGuardar();
+          else if (accionSensible === 'restaurar') handleRestaurar();
+          setAccionSensible(null);
+        }}
+      />
     </Dialog>
   );
 }
