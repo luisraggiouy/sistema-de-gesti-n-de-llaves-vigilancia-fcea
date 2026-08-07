@@ -1,8 +1,20 @@
 # REGLAS CLINE - LEE ESTO PRIMERO EN CADA NUEVA TAREA
-**ultima modificación: 03/08/2026 16:55**
+**ultima modificación: 07/08/2026 13:45**
 
 ## Restricciones Técnicas
 No accedas ni leas archivos dentro de la carpeta `node_modules/` ya que contiene dependencias de terceros que están pre-auditadas y funcionando correctamente. Leer estos archivos consume tokens innecesarios, aumenta el contexto sin aportar valor al desarrollo, y puede causar errores de límite de contexto. Las dependencias de JavaScript/TypeScript en node_modules son estables y no requieren modificación ni revisión.
+
+## Regla de Oro de los Upgrades: NUNCA pisar config.json (agregada 07/08/2026)
+Todo script que copie el `dist` a la instalación de producción (`C:\sistema-llaves-fcea\dist`) DEBE excluir SIEMPRE `config.json` y `system_health.json`. Es decir, el `robocopy` del `dist` nuevo tiene que llevar OBLIGATORIAMENTE:
+
+```
+robocopy $DIST_SRC $DIST_DEST /MIR /XF config.json system_health.json /NFL /NDL /NJH /NJS /NP
+```
+
+**Por qué:** `config.json` guarda la configuración de red propia de cada PC (a qué IP de PocketBase apunta). Si un upgrade copia el `dist` con `/MIR` SIN este `/XF`, PISA el `config.json` de producción con el de desarrollo (que apunta a `127.0.0.1`) y deja las 3 PCs sin datos (terminales sin usuarios ni llaves). Esto ya pasó el 07/08/2026 y costó una sesión entera de diagnóstico.
+
+**Regla práctica:** al crear cualquier upgrade nuevo, usá como plantilla el `APLICAR_UPGRADE.ps1` de `UPGRADE_NOTAS_HISTORIAL_LLAVES_2026-08-07` (o cualquiera de los 5 ya corregidos ese día), que ya trae el `/XF`. Antes de grabar un upgrade al pendrive, VERIFICAR que su `robocopy` de `dist` incluya `/XF config.json system_health.json`. Con esto, el problema no puede repetirse.
+
 
 ## Contexto del Sistema
 Este es un sistema de gestión de llaves para vigilancia de la FCEA (Facultad de Ciencias Económicas y de Administración). Incluye tres interfaces principales: TERMINAL A, TERMINAL B (para solicitar llaves), MONITOR DE VIGILANCIA para gestionar entregas/devolucionesademás tiene pestañas con módulos; Dashboard, objetos, agenda/autorizaciones, historial, configuración, vigilantes, llaves, un monitor de salud del sistema, un monitor de conexión. Utiliza React/TypeScript en el frontend, PocketBase como backend, y tiene un sistema robusto de instalación via pendrives, scripts de mantenimiento automatizado, manejo de objetos olvidados, sistema de autorizaciones, y funcionalidades de backup/recuperación. El sistema está diseñado para funcionar en modo kiosko en equipos dedicados. El navegador que está usando es Edge pero debe funcionar bien con cualquier navegador moderno.
