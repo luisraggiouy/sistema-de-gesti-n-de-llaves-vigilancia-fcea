@@ -86,10 +86,14 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
   return (
     <div ref={containerRef} className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-          <User className="w-5 h-5 text-primary" />
-          Identificarse
+        <h3 className="text-lg font-semibold text-foreground flex items-baseline gap-2">
+          <User className="w-5 h-5 text-primary self-center" />
+          <span>Identificarse</span>
+          <span className="text-base font-normal text-muted-foreground">
+            con su número de celular o e-mail
+          </span>
         </h3>
+
         <Button variant="outline" size="sm" onClick={onRegisterClick} className="gap-2">
           <UserPlus className="w-4 h-4" />
           Primera vez? Registrarse
