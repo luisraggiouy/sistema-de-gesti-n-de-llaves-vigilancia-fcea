@@ -14,7 +14,9 @@ export interface HistorialLlaveItem {
   tiempoUso?: string;
   tiempoUsoMinutos?: number;
   turno: string;
+  notas?: string;
 }
+
 
 interface FiltrosHistorial {
   busqueda: string;
@@ -64,7 +66,9 @@ export function useBusquedaHistorial() {
           tiempoUso,
           tiempoUsoMinutos,
           turno: s.turno ?? '',
+          notas: s.notas?.trim() ? s.notas.trim() : undefined,
         };
+
       })
       .sort((a, b) => b.horaEntrega.getTime() - a.horaEntrega.getTime());
   }, [solicitudes]);

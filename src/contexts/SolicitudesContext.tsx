@@ -176,6 +176,7 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
     
     try {
       const records = await pb.collection('lugares').getFullList();
+
       const lista: Lugar[] = records.map(mapLugarRecord);
       lista.sort((a, b) => ordenNatural(a.nombre, b.nombre));
       // Solo actualizar el estado si la lista cambio de verdad. Asi el polling
@@ -210,7 +211,9 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
     
     try {
       const records = await pb.collection('solicitudes').getFullList({ sort: '-created' });
+
       const lista: SolicitudLlave[] = records.map((r: any) => {
+
         // Look up the actual lugar from loaded lugares to get full location data
         // Try by ID first, then by name as fallback (IDs may change after re-sync)
         const lugarReal = lugaresRef.current.find(l => l.id === r.lugar_id) 
@@ -276,8 +279,10 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
       }
     }
   }, [isConnected, checkConnection, toast]);
+
   
   // Function to refresh all data (manual refresh)
+
   const refrescarDatos = useCallback(async () => {
     if (isLoading) return; // Prevent multiple simultaneous refreshes
     

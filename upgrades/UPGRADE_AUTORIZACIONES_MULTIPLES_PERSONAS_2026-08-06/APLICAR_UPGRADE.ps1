@@ -60,9 +60,14 @@ if (Test-Path $DIST_DEST) {
 }
 
 # 3) Copiar dist nuevo (mirror para eliminar assets viejos con hash distinto)
-Write-Host "  [2/2] Copiando frontend nuevo ->" -ForegroundColor Cyan
+#    IMPORTANTE: se EXCLUYEN config.json y system_health.json para NO pisar
+#    la configuracion de red / runtime que ya tiene esta PC en produccion.
+#    (Blindaje 2026-08-07: sin este /XF, el upgrade pisaba config.json y
+#     dejaba las 3 PCs apuntando a 127.0.0.1 -> terminales sin datos.)
+Write-Host "  [2/2] Copiando frontend nuevo (preservando config.json) ->" -ForegroundColor Cyan
 Write-Host "        $DIST_DEST" -ForegroundColor Gray
-robocopy $DIST_SRC $DIST_DEST /MIR /NFL /NDL /NJH /NJS /NP | Out-Null
+robocopy $DIST_SRC $DIST_DEST /MIR /XF config.json system_health.json /NFL /NDL /NJH /NJS /NP | Out-Null
+
 $rc = $LASTEXITCODE
 if ($rc -ge 8) {
     Write-Host "        [ERROR] robocopy devolvio codigo $rc. Reviso permisos." -ForegroundColor Red

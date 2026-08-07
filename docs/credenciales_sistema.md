@@ -11,8 +11,9 @@ DOCUMENTO CONFIDENCIAL — Guardar en lugar seguro. No compartir con personal no
 | Descripcion | Acceso al panel de administracion de PocketBase (base de datos del sistema). Permite ver/editar todos los registros directamente. |
 | URL | http://localhost:8090/_/ |
 | Email | vigilancia@llaves.local |
-| Contrasena | vigilanciamvd2026 |
+| Contrasena | vigilanciamvp2026 |
 | Uso | Solo para mantenimiento tecnico y scripts de administracion del sistema. |
+
 
 ---
 

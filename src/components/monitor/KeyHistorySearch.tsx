@@ -1,4 +1,5 @@
-import { Search, Calendar, X, Clock, User, Key, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Search, Calendar, X, Clock, User, Key, CheckCircle2, AlertCircle, StickyNote } from 'lucide-react';
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -198,6 +199,19 @@ function HistorialCard({ item }: { item: HistorialLlaveItem }) {
           </div>
         )}
       </div>
+
+      {item.notas && (
+        <div className="mt-3 pt-3 border-t">
+          <div className="flex items-start gap-2 text-sm">
+            <StickyNote className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+            <div>
+              <span className="text-muted-foreground">Notas: </span>
+              <span className="text-foreground whitespace-pre-wrap break-words">{item.notas}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </Card>
+
   );
 }
