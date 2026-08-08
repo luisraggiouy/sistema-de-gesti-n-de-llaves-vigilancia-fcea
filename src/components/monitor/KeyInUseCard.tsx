@@ -149,8 +149,8 @@ export function KeyInUseCard({
               <h3 className="font-semibold text-lg">{solicitud.lugar.nombre}</h3>
               <Badge className="bg-success text-success-foreground text-xs">En uso</Badge>
               {solicitud.esIntercambio && (
-                <Badge variant="outline" className="text-xs border-primary/30 text-primary">
-                  <ArrowRightLeft className="w-3 h-3 mr-1" />Intercambio
+                <Badge className="bg-amber-500 text-white hover:bg-amber-500 text-xs">
+                  <ArrowRightLeft className="w-3 h-3 mr-1" />Intercambio de llave
                 </Badge>
               )}
               {estaEnAlerta && (
