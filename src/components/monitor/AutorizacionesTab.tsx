@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
+import { ClearableInput, ClearableTextarea } from '@/components/ui/clearable-input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -214,19 +215,21 @@ export function AutorizacionesTab() {
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <Label className="text-xs">Nombre o CI de la persona</Label>
-              <Input
+              <ClearableInput
                 placeholder="Ej: María López o 12345678"
                 value={busqPersona}
                 onChange={e => setBusqPersona(e.target.value)}
+                onClear={() => setBusqPersona('')}
                 className="h-9"
               />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Llave / Lugar</Label>
-              <Input
+              <ClearableInput
                 placeholder="Ej: Sala 21-C"
                 value={busqLugar}
                 onChange={e => setBusqLugar(e.target.value)}
+                onClear={() => setBusqLugar('')}
                 className="h-9"
               />
             </div>
@@ -336,11 +339,11 @@ export function AutorizacionesTab() {
 
             <div className="space-y-1">
               <Label className="text-xs">Llave / Lugar autorizado *</Label>
-              <Input value={form.lugarAutorizado} onChange={e => setForm(f => ({ ...f, lugarAutorizado: e.target.value }))} placeholder="Ej: Sala 21-C, Oficina Concursos" className="h-9" />
+              <ClearableInput value={form.lugarAutorizado} onChange={e => setForm(f => ({ ...f, lugarAutorizado: e.target.value }))} onClear={() => setForm(f => ({ ...f, lugarAutorizado: '' }))} placeholder="Ej: Sala 21-C, Oficina Concursos" className="h-9" />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Autorizado por *</Label>
-              <Input value={form.autorizadoPor} onChange={e => setForm(f => ({ ...f, autorizadoPor: e.target.value }))} placeholder="Ej: Director del IESTA Juan González" className="h-9" />
+              <ClearableInput value={form.autorizadoPor} onChange={e => setForm(f => ({ ...f, autorizadoPor: e.target.value }))} onClear={() => setForm(f => ({ ...f, autorizadoPor: '' }))} placeholder="Ej: Director del IESTA Juan González" className="h-9" />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
@@ -349,7 +352,7 @@ export function AutorizacionesTab() {
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Email de referencia</Label>
-                <Input value={form.emailReferencia} onChange={e => setForm(f => ({ ...f, emailReferencia: e.target.value }))} placeholder="correo@fcea.edu.uy" className="h-9" />
+                <ClearableInput value={form.emailReferencia} onChange={e => setForm(f => ({ ...f, emailReferencia: e.target.value }))} onClear={() => setForm(f => ({ ...f, emailReferencia: '' }))} placeholder="correo@fcea.edu.uy" className="h-9" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -364,11 +367,11 @@ export function AutorizacionesTab() {
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Horario autorizado</Label>
-              <Input value={form.horario} onChange={e => setForm(f => ({ ...f, horario: e.target.value }))} placeholder="Ej: Lunes a Viernes de 9 a 18" className="h-9" />
+              <ClearableInput value={form.horario} onChange={e => setForm(f => ({ ...f, horario: e.target.value }))} onClear={() => setForm(f => ({ ...f, horario: '' }))} placeholder="Ej: Lunes a Viernes de 9 a 18" className="h-9" />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Observaciones</Label>
-              <Textarea value={form.observaciones} onChange={e => setForm(f => ({ ...f, observaciones: e.target.value }))} placeholder="Notas adicionales..." rows={2} className="text-sm" />
+              <ClearableTextarea value={form.observaciones} onChange={e => setForm(f => ({ ...f, observaciones: e.target.value }))} onClear={() => setForm(f => ({ ...f, observaciones: '' }))} placeholder="Notas adicionales..." rows={2} className="text-sm" />
             </div>
             <div className="flex gap-2 justify-end pt-1">
               <Button variant="ghost" size="sm" onClick={() => { resetForm(); setModo('buscar'); }} className="h-8 gap-1">

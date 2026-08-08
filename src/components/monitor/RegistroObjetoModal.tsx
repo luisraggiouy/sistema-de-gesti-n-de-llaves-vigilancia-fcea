@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ClearableInput } from '@/components/ui/clearable-input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { WebcamCapture } from './WebcamCapture';
@@ -94,7 +95,7 @@ export function RegistroObjetoModal({ open, onOpenChange, vigilantes, onRegistra
         <div className="p-6 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="descripcion">Descripción breve <span className="text-red-500">*</span></Label>
-            <Input id="descripcion" placeholder="Ej: jarra térmica azul" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} maxLength={80} />
+            <ClearableInput id="descripcion" placeholder="Ej: jarra térmica azul" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} onClear={() => setDescripcion('')} maxLength={80} />
             <p className="text-xs text-gray-500">{descripcion.length}/80 caracteres</p>
           </div>
 
@@ -103,7 +104,7 @@ export function RegistroObjetoModal({ open, onOpenChange, vigilantes, onRegistra
               <MapPin className="w-3 h-3" />
               Lugar donde se encontró (opcional)
             </Label>
-            <Input id="lugar" placeholder="Ej: Salón 101, Pasillo 2do piso" value={lugar} onChange={(e) => setLugar(e.target.value)} maxLength={60} />
+            <ClearableInput id="lugar" placeholder="Ej: Salón 101, Pasillo 2do piso" value={lugar} onChange={(e) => setLugar(e.target.value)} onClear={() => setLugar('')} maxLength={60} />
           </div>
 
           <div className="space-y-2">

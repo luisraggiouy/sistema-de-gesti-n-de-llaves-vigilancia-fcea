@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
+import { ClearableInput } from '@/components/ui/clearable-input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -61,10 +62,11 @@ export function HistorialAutorizacionesTab() {
       <div className="space-y-2">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
+          <ClearableInput
             placeholder="Buscar por lugar o persona..."
             value={busqLugar}
             onChange={e => setBusqLugar(e.target.value)}
+            onClear={() => setBusqLugar('')}
             className="pl-10 h-9"
           />
         </div>

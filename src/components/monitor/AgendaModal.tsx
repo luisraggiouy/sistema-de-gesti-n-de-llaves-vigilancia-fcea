@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { ClearableInput } from '@/components/ui/clearable-input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -178,10 +179,11 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
           <TabsContent value="contactos" className="data-[state=active]:flex flex-col flex-1 min-h-0 space-y-3 mt-3">
             <div className="relative flex-shrink-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
+              <ClearableInput
                 placeholder="Buscar por nombre, teléfono, email o función..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
+                onClear={() => setBusqueda('')}
                 className="pl-10"
               />
             </div>
@@ -201,16 +203,16 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
                         <div className="space-y-3">
                           <div className="space-y-1">
                             <Label className="text-xs">Nombre</Label>
-                            <Input value={editData.nombre || ''} onChange={e => setEditData(d => ({ ...d, nombre: e.target.value }))} className="h-9" />
+                            <ClearableInput value={editData.nombre || ''} onChange={e => setEditData(d => ({ ...d, nombre: e.target.value }))} onClear={() => setEditData(d => ({ ...d, nombre: '' }))} className="h-9" />
                           </div>
                           <div className="grid grid-cols-2 gap-2">
                             <div className="space-y-1">
                               <Label className="text-xs">Celular</Label>
-                              <Input value={editData.celular || ''} onChange={e => setEditData(d => ({ ...d, celular: e.target.value }))} className="h-9" />
+                              <ClearableInput value={editData.celular || ''} onChange={e => setEditData(d => ({ ...d, celular: e.target.value }))} onClear={() => setEditData(d => ({ ...d, celular: '' }))} className="h-9" />
                             </div>
                             <div className="space-y-1">
                               <Label className="text-xs">Email</Label>
-                              <Input value={editData.email || ''} onChange={e => setEditData(d => ({ ...d, email: e.target.value }))} className="h-9" />
+                              <ClearableInput value={editData.email || ''} onChange={e => setEditData(d => ({ ...d, email: e.target.value }))} onClear={() => setEditData(d => ({ ...d, email: '' }))} className="h-9" />
                             </div>
                           </div>
                           <div className="space-y-1">
@@ -236,7 +238,7 @@ export function AgendaModal({ open, onOpenChange }: AgendaModalProps) {
                           {editData.tipo === 'Empresa' && (
                             <div className="space-y-1">
                               <Label className="text-xs">Empresa</Label>
-                              <Input value={editData.nombreEmpresa || ''} onChange={e => setEditData(d => ({ ...d, nombreEmpresa: e.target.value }))} className="h-9" placeholder="Nombre de la empresa" />
+                              <ClearableInput value={editData.nombreEmpresa || ''} onChange={e => setEditData(d => ({ ...d, nombreEmpresa: e.target.value }))} onClear={() => setEditData(d => ({ ...d, nombreEmpresa: '' }))} className="h-9" placeholder="Nombre de la empresa" />
                             </div>
                           )}
                           <div className="flex gap-2 justify-end">

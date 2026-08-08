@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { ClearableTextarea } from '@/components/ui/clearable-input';
 import { SolicitudLlave, AccionUndo } from '@/types/solicitud';
 import { Vigilante } from '@/data/fceaData';
 import { formatearUbicacion, getColorTipoLugar } from '@/data/fceaData';
@@ -319,12 +320,13 @@ export function KeyInUseCard({
           <StickyNote className="w-3.5 h-3.5 text-muted-foreground" />
           <span className="text-xs font-medium text-muted-foreground">Notas</span>
         </div>
-        <Textarea
+        <ClearableTextarea
           placeholder="Anotar particularidades..."
           value={notasLocal}
           onChange={(e) => { setNotasFocused(true); setNotasLocal(e.target.value); }}
           onFocus={() => setNotasFocused(true)}
           onBlur={() => { setNotasFocused(false); onNotasChange(notasLocal); }}
+          onClear={() => { setNotasLocal(''); onNotasChange(''); }}
           className="min-h-[40px] h-10 text-sm resize-none bg-white/50"
           rows={1}
         />

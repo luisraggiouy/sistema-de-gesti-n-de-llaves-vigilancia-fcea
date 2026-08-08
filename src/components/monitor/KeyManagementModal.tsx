@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ClearableInput } from '@/components/ui/clearable-input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -295,11 +296,12 @@ export function KeyManagementModal({
             {/* Nombre de la llave */}
             <div className="space-y-2">
               <Label htmlFor="nombre">Nombre de la llave *</Label>
-              <Input
+              <ClearableInput
                 id="nombre"
                 placeholder="Ej: Salón 301, Oficina Contaduría..."
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
+                onClear={() => setNombre('')}
               />
             </div>
 
@@ -386,12 +388,13 @@ export function KeyManagementModal({
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="columna">Columna (letra)</Label>
-                    <Input
+                    <ClearableInput
                       id="columna"
                       placeholder="Ej: A, B, C..."
                       maxLength={2}
                       value={columna}
                       onChange={(e) => setColumna(e.target.value.toUpperCase())}
+                      onClear={() => setColumna('')}
                     />
                   </div>
                 </div>
@@ -484,9 +487,10 @@ export function KeyManagementModal({
 
                 <div className="space-y-2">
                   <Label>Nombre de la llave *</Label>
-                  <Input
+                  <ClearableInput
                     value={editNombre}
                     onChange={(e) => setEditNombre(e.target.value)}
+                    onClear={() => setEditNombre('')}
                   />
                 </div>
 
@@ -570,11 +574,12 @@ export function KeyManagementModal({
                       </div>
                       <div className="space-y-2">
                         <Label>Columna (letra)</Label>
-                        <Input
+                        <ClearableInput
                           placeholder="Ej: A, B, C..."
                           maxLength={2}
                           value={editColumna}
                           onChange={(e) => setEditColumna(e.target.value.toUpperCase())}
+                          onClear={() => setEditColumna('')}
                         />
                       </div>
                     </div>

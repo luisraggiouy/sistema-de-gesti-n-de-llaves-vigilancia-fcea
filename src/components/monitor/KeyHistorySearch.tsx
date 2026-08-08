@@ -3,6 +3,7 @@ import { Search, Calendar, X, Clock, User, Key, CheckCircle2, AlertCircle, Stick
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ClearableInput } from '@/components/ui/clearable-input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -41,10 +42,11 @@ export function KeyHistorySearch({ open, onOpenChange }: KeyHistorySearchProps) 
         <div className="space-y-4 pb-4 border-b flex-shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
+            <ClearableInput
               placeholder="Buscar por nombre de llave, usuario o vigilante..."
               value={filtros.busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
+              onClear={() => setBusqueda('')}
               className="pl-10"
             />
           </div>

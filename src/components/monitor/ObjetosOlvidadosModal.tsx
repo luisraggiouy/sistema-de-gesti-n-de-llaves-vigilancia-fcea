@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ClearableInput } from '@/components/ui/clearable-input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -134,11 +135,11 @@ function ObjetoCard({ objeto, vigilantes, onDevolver, showDevolucion = true }: {
           </div>
           <div className="space-y-2">
             <Label className="text-xs flex items-center gap-1"><User className="w-3 h-3" />Nombre del receptor</Label>
-            <Input className="h-9" placeholder="Nombre completo" value={nombre} onChange={e => setNombre(e.target.value)} maxLength={100} />
+            <ClearableInput className="h-9" placeholder="Nombre completo" value={nombre} onChange={e => setNombre(e.target.value)} onClear={() => setNombre('')} maxLength={100} />
           </div>
           <div className="space-y-2">
             <Label className="text-xs flex items-center gap-1"><CreditCard className="w-3 h-3" />Cédula del receptor</Label>
-            <Input className="h-9" placeholder="Ej: 1.234.567-8" value={cedula} onChange={e => setCedula(e.target.value)} maxLength={20} />
+            <ClearableInput className="h-9" placeholder="Ej: 1.234.567-8" value={cedula} onChange={e => setCedula(e.target.value)} onClear={() => setCedula('')} maxLength={20} />
           </div>
           <div className="flex gap-2">
             <Button size="sm" onClick={handleDevolver} disabled={!vigilante || !nombre.trim() || !cedula.trim()}>Confirmar devolución</Button>
@@ -230,8 +231,8 @@ export function ObjetosOlvidadosModal({
               {/* v2.6 (P5): grilla 4 col en desktop, inputs h-11 (mismo tamaño
                   que el resto del sistema — antes h-9 se veian raquiticos). */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div><Label className="text-sm">Descripción</Label><Input placeholder="Ej: jarra térmica" value={busqueda} onChange={e => setBusqueda(e.target.value)} className="h-11" /></div>
-                <div><Label className="text-sm">Lugar</Label><Input placeholder="Ej: Salón 101" value={busquedaLugar} onChange={e => setBusquedaLugar(e.target.value)} className="h-11" /></div>
+                <div><Label className="text-sm">Descripción</Label><ClearableInput placeholder="Ej: jarra térmica" value={busqueda} onChange={e => setBusqueda(e.target.value)} onClear={() => setBusqueda('')} className="h-11" /></div>
+                <div><Label className="text-sm">Lugar</Label><ClearableInput placeholder="Ej: Salón 101" value={busquedaLugar} onChange={e => setBusquedaLugar(e.target.value)} onClear={() => setBusquedaLugar('')} className="h-11" /></div>
                 <div><Label className="text-sm">Desde</Label><DateInput value={fechaDesde} onChange={v => setFechaDesde(v)} className="h-11" /></div>
                 <div><Label className="text-sm">Hasta</Label><DateInput value={fechaHasta} onChange={v => setFechaHasta(v)} className="h-11" /></div>
               </div>
