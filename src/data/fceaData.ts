@@ -355,6 +355,23 @@ export const zonasTablero: ZonaTablero[] = [
   'Fondo', 'Lateral derecho', 'Lateral izquierdo', 'Puerta derecha', 'Puerta izquierda'
 ];
 
+// Upgrade 2026-08-08: etiquetas descriptivas para el <select> de "Zona del
+// tablero". El VALOR guardado sigue siendo el `ZonaTablero` original (no se
+// toca la data), solo cambia el texto que ve el usuario. Los laterales son
+// espacios pequenos del tablero que NO usan numero de fila ni letra de
+// columna, por eso se aclara explicitamente para evitar confusiones.
+export function etiquetaZonaTablero(zona: ZonaTablero): string {
+  switch (zona) {
+    case 'Lateral izquierdo':
+      return 'Lateral izquierdo (espacio pequeño; no tiene número de fila, ni letra de columna)';
+    case 'Lateral derecho':
+      return 'Lateral derecho (espacio pequeño; no tiene número de fila, ni letra de columna)';
+    default:
+      return zona;
+  }
+}
+
+
 export function formatearUbicacion(ubicacion: Lugar['ubicacion']): string {
   const zonaCorta = ubicacion.zona
     .replace('Puerta derecha', 'Puerta der.')

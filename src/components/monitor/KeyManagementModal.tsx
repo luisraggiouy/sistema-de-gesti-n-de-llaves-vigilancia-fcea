@@ -29,8 +29,10 @@ import {
   tiposLugar, 
   tiposTablero,
   zonasTablero, 
+  etiquetaZonaTablero,
   edificios,
   formatearUbicacion,
+
   normalizarTexto,
   ordenNatural 
 } from '@/data/fceaData';
@@ -361,10 +363,11 @@ export function KeyManagementModal({
                   </SelectTrigger>
                   <SelectContent className="max-h-60 overflow-y-auto">
                     {zonasTablero.map((z) => (
-                      <SelectItem key={z} value={z}>{z}</SelectItem>
+                      <SelectItem key={z} value={z}>{etiquetaZonaTablero(z)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+
               </div>
 
               {zonaRequiereCoords && (
@@ -545,10 +548,11 @@ export function KeyManagementModal({
                       </SelectTrigger>
                       <SelectContent className="max-h-60 overflow-y-auto">
                         {zonasTablero.map((z) => (
-                          <SelectItem key={z} value={z}>{z}</SelectItem>
+                          <SelectItem key={z} value={z}>{etiquetaZonaTablero(z)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+
                   </div>
 
                   {editZonaPuedeCoords && (
