@@ -15,6 +15,8 @@
 param(
   [string]$PbHost    = '127.0.0.1',
   [int]   $PbPort    = 8090,
+  [int]   $FrontPort = 5173,   # frontend (kiosk); esperamos a AMBOS para tapar el CMD negro
+  [int]   $EstimatedSeconds = 480,  # ~8 min: base para estimar el % de la barra de avance
   [int]   $MaxSeconds = 900    # 15 min de tope de seguridad
 )
 
@@ -42,7 +44,7 @@ $form.Cursor          = [System.Windows.Forms.Cursors]::WaitCursor
 
 # --- Titulo ---
 $lblTitulo = New-Object System.Windows.Forms.Label
-$lblTitulo.Text      = "Sistema de Gestion de Llaves - FCEA"
+$lblTitulo.Text      = "Sistema de Gesti" + [char]0x00F3 + "n de Llaves - FCEA"
 $lblTitulo.ForeColor = $cSub
 $lblTitulo.Font      = New-Object System.Drawing.Font("Segoe UI", 20, [System.Drawing.FontStyle]::Regular)
 $lblTitulo.AutoSize  = $false
@@ -68,17 +70,22 @@ $form.Controls.Add($lblMsg)
 
 # --- Submensaje tranquilizador ---
 $lblSub = New-Object System.Windows.Forms.Label
-$lblSub.Text      = "Puede tardar 1 o 2 minutos.  POR FAVOR NO REINICIE, aguarde."
+$lblSub.Text      = "Puede tardar unos minutos.  POR FAVOR NO REINICIE, aguarde."
 $lblSub.ForeColor = $cSub
 $lblSub.Font      = New-Object System.Drawing.Font("Segoe UI", 18, [System.Drawing.FontStyle]::Regular)
 $lblSub.AutoSize  = $false
 $lblSub.TextAlign = 'MiddleCenter'
 $form.Controls.Add($lblSub)
 
-# --- Barra de progreso (marquee = movimiento continuo) ---
+# --- Barra de avance ESTIMADO que dibujamos nosotros (NO 'Marquee').
+#     El marquee del SO se congela bajo la carga del arranque y parecia
+#     "que no avanzaba y se llenaba de golpe". Ahora se llena segun el
+#     tiempo transcurrido contra EstimatedSeconds (tope 95% hasta LISTO). ---
 $bar = New-Object System.Windows.Forms.ProgressBar
-$bar.Style        = 'Marquee'
-$bar.MarqueeAnimationSpeed = 30
+$bar.Style        = 'Continuous'
+$bar.Minimum      = 0
+$bar.Maximum      = 100
+$bar.Value        = 0
 $bar.Height       = 26
 $form.Controls.Add($bar)
 
@@ -93,7 +100,7 @@ $form.Controls.Add($lblSeg)
 
 # --- Pie con ayuda discreta ---
 $lblPie = New-Object System.Windows.Forms.Label
-$lblPie.Text      = "(Si fuera necesario, un tecnico puede cerrar esta pantalla con la tecla ESC)"
+$lblPie.Text      = "(Si fuera necesario, un t" + [char]0x00E9 + "cnico puede cerrar esta pantalla con la tecla ESC)"
 $lblPie.ForeColor = [System.Drawing.Color]::FromArgb(71, 85, 105)
 $lblPie.Font      = New-Object System.Drawing.Font("Segoe UI", 11, [System.Drawing.FontStyle]::Regular)
 $lblPie.AutoSize  = $false
@@ -117,7 +124,10 @@ $form.Add_Shown({ & $reposicionar; $form.Activate() })
 $form.Add_Resize({ & $reposicionar })
 
 # --- Estado compartido ---
-$script:inicio   = Get-Date
+# Cronometro MONOTONICO (Stopwatch): inmune a los ajustes del reloj de
+# Windows durante el arranque. Antes usabamos Get-Date y el contador
+# saltaba hacia adelante o RETROCEDIA cuando Windows sincronizaba la hora.
+$script:sw       = [System.Diagnostics.Stopwatch]::StartNew()
 $script:angulo   = 0
 $script:listo    = $false
 $script:cerrando = $false
@@ -147,10 +157,13 @@ $anim.Add_Tick({
   $pic.Image = $bmp
   if ($old) { $old.Dispose() }
 
-  $seg = [int]((Get-Date) - $script:inicio).TotalSeconds
+  $seg = [int]$script:sw.Elapsed.TotalSeconds
   if (-not $script:listo) {
     $m = [int]($seg/60); $s = $seg % 60
     $lblSeg.Text = ("Iniciando...  {0:00}:{1:00}" -f $m, $s)
+    $pct = [int][Math]::Min(95, ($seg / [Math]::Max(1, $EstimatedSeconds)) * 100)
+    if ($pct -lt 0) { $pct = 0 }
+    $bar.Value = $pct
   }
   if ($seg -ge $MaxSeconds -and -not $script:cerrando) {
     $script:cerrando = $true
@@ -163,13 +176,23 @@ $salud = New-Object System.Windows.Forms.Timer
 $salud.Interval = 1000
 $salud.Add_Tick({
   if ($script:listo -or $script:cerrando) { return }
-  $ok = $false
+  # Esperamos a que respondan AMBOS puertos: PocketBase (8090) Y el frontend
+  # (5173). Asi el cartel no se cierra antes de tiempo dejando ver el CMD negro.
+  $okPb = $false
   try {
-    $client = New-Object System.Net.Sockets.TcpClient
-    $iar = $client.BeginConnect($PbHost, $PbPort, $null, $null)
-    if ($iar.AsyncWaitHandle.WaitOne(200, $false) -and $client.Connected) { $ok = $true }
-    $client.Close()
-  } catch { $ok = $false }
+    $c1 = New-Object System.Net.Sockets.TcpClient
+    $i1 = $c1.BeginConnect($PbHost, $PbPort, $null, $null)
+    if ($i1.AsyncWaitHandle.WaitOne(200, $false) -and $c1.Connected) { $okPb = $true }
+    $c1.Close()
+  } catch { $okPb = $false }
+  $okFront = $false
+  try {
+    $c2 = New-Object System.Net.Sockets.TcpClient
+    $i2 = $c2.BeginConnect($PbHost, $FrontPort, $null, $null)
+    if ($i2.AsyncWaitHandle.WaitOne(200, $false) -and $c2.Connected) { $okFront = $true }
+    $c2.Close()
+  } catch { $okFront = $false }
+  $ok = ($okPb -and $okFront)
 
   if ($ok) {
     $script:listo = $true
@@ -177,10 +200,9 @@ $salud.Add_Tick({
     $lblMsg.ForeColor = $cOk
     $lblSub.Text      = ""
     $lblSeg.ForeColor = $cOk
-    $seg = [int]((Get-Date) - $script:inicio).TotalSeconds
+    $seg = [int]$script:sw.Elapsed.TotalSeconds
     $m = [int]($seg/60); $s = $seg % 60
     $lblSeg.Text = ("Listo en {0:00}:{1:00}" -f $m, $s)
-    $bar.Style = 'Continuous'
     $bar.Value = 100
     # Cerrar solo tras un instante para que se vea el "Listo!"
     $cerrar = New-Object System.Windows.Forms.Timer

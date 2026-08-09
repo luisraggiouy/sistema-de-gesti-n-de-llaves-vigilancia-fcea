@@ -98,7 +98,18 @@ export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest, tipoUs
     return filtrados;
   }, [busqueda, filtroTipo, filtroEdificio, lugaresDisponibles, esDocente]);
 
+  // Opción B (UX): el listado de llaves solo se despliega cuando el usuario
+  // escribe algo en el buscador o elige un filtro de tipo/edificio. Mientras
+  // no busque ni filtre, la lista permanece oculta para reducir el scroll
+  // vertical (los usuarios frecuentes usan "Llaves frecuentes" y no necesitan
+  // recorrer toda la lista). Es un cambio puramente de presentación.
+  const busquedaActiva =
+    busqueda.trim().length > 0 ||
+    filtroTipo !== 'todos' ||
+    filtroEdificio !== 'todos';
+
   const isSelected = (lugarId: string) => selectedKeys.some(k => k.id === lugarId);
+
 
   const getTipoColor = (tipo: TipoLugar): string => {
     const colores: Partial<Record<TipoLugar, string>> = {
@@ -172,10 +183,19 @@ export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest, tipoUs
       </div>
 
       {/*
-        Lista de llaves. Altura fija max-h-80 (~320px) para que quepan
-        siempre los botones inferiores en la pantalla. La ScrollableList
-        maneja el overflow-y-auto interno con scrollbar nativa.
+        Lista de llaves (Opción B). Solo se renderiza cuando hay búsqueda o
+        filtro activo. Mientras no se busca/filtra, se muestra un texto de
+        ayuda discreto para reducir el scroll vertical. Altura fija max-h-80
+        (~320px) para que quepan siempre los botones inferiores en pantalla.
+        La ScrollableList maneja el overflow-y-auto interno con scrollbar nativa.
       */}
+      {!busquedaActiva ? (
+        <div className="rounded-lg border border-dashed bg-muted/30 py-6 px-4 text-center">
+          <p className="text-sm text-muted-foreground">
+            Escribí el nombre de una llave o usá los filtros para ver el listado.
+          </p>
+        </div>
+      ) : (
       <ScrollableList className="space-y-2 pr-1 max-h-80">
 
         {lugaresFiltrados.length === 0 ? (
@@ -184,6 +204,7 @@ export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest, tipoUs
             No se encontraron llaves con esos criterios
           </p>
         ) : (
+
           lugaresFiltrados.map((lugar) => {
             const selected = isSelected(lugar.id);
             const solicitudEnUso = solicitudesEntregadas.find(s => s.lugar.id === lugar.id) || null;
@@ -283,11 +304,15 @@ export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest, tipoUs
           })
         )}
       </ScrollableList>
+      )}
 
-      <p className="text-sm text-muted-foreground text-center">
-        Mostrando {lugaresFiltrados.length} de {lugaresDisponibles.length} llaves
-      </p>
+      {busquedaActiva && (
+        <p className="text-sm text-muted-foreground text-center">
+          Mostrando {lugaresFiltrados.length} de {lugaresDisponibles.length} llaves
+        </p>
+      )}
 
     </div>
+
   );
 }
