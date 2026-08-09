@@ -2,7 +2,7 @@
     "$schema":  "./config.schema.json", 
     "version":  "2.1.0", 
     "modo":  "produccion", 
-    "rol":  "terminal-b", 
+    "rol":  "", 
     "hardware":  "tradicional", 
     "pocketbase_url":  "http://127.0.0.1:8090", 
     "red":  { 
@@ -15,7 +15,10 @@
                "tema":  "claro" 
            }, 
     "_notas":  [ 
-                   "CREADO POR FIX DEFINITIVO - Terminal B configurada igual que Terminal A", 
-                   "pero con rol=terminal-b. Si Terminal A funciona, esta tambien debe funcionar." 
+                   "PLANTILLA NEUTRA (2026-08-09): rol y hardware van VACIOS a proposito.", 
+                   "El instalador/recuperador escribe el rol correcto por PC (monitor / terminal-a / terminal-b).", 
+                   "NO cocinar 'terminal-b' aca: el dist se buildea desde este archivo y, si queda un rol fijo,", 
+                   "un upgrade que copie el dist puede pisar el rol de las 3 PCs (paso el 09/08/2026).", 
+                   "Si sospechas rol equivocado en produccion, usar HERRAMIENTAS_RED/REPARAR_ROL_CONFIG." 
                ] 
 } 
