@@ -85,6 +85,15 @@ REM     rompe el flujo en ese caso.
 REM ------------------------------------------------------------
 if /i "%ROL%"=="monitor" (
   echo [1/3] Arrancando servidor PocketBase...
+REM ------------------------------------------------------------
+REM  [1.0] DUENO UNICO SANEADOR DE WAL (fix de raiz anti-readonly) 2026-08-02
+REM  Unico autorizado a arrancar PocketBase. Sanea el WAL y garantiza UNA
+REM  sola instancia limpia que ESCRIBE. El chequeo tasklist de abajo vera
+REM  PocketBase ya corriendo y no lanzara una segunda instancia.
+REM ------------------------------------------------------------
+  if exist "scripts\lib\iniciar_pocketbase.ps1" (
+    powershell -NoProfile -ExecutionPolicy Bypass -File "scripts\lib\iniciar_pocketbase.ps1"
+  )
   tasklist /FI "IMAGENAME eq pocketbase.exe" | find /I "pocketbase.exe" >nul
   if errorlevel 1 (
     REM Lanzar PocketBase con el wrapper auto-relanzador run_pocketbase.bat
