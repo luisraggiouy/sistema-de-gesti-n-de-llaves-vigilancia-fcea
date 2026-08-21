@@ -29,6 +29,12 @@ dist-ssr
 *.sw?
 
 # --- PocketBase (datos volatiles, no commitear) ---
+# data.db es la base LOCAL de desarrollo de esta laptop; NO son los datos reales.
+# Los datos reales de produccion viven solo en el Monitor Vigilancia y viajan al
+# pendrive de RESCATE corriendo "ACTUALIZAR DATOS" (backup en vivo por HTTP), no
+# desde este archivo. PocketBase regenera data.db solo al arrancar, por eso se
+# ignora (evita ruido de "modified: data.db" en cada sesion de desarrollo).
+pocketbase/pb_data/data.db
 pocketbase/pb_data/*.db-shm
 pocketbase/pb_data/*.db-wal
 pocketbase/pb_data/logs.db
