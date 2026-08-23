@@ -21,6 +21,7 @@ import { useSonidos } from '@/hooks/useSonidos';
 import { SoundControls } from '@/components/monitor/SoundControls';
 import { useObjetosOlvidados } from '@/hooks/useObjetosOlvidados';
 import { DiagnosticoModal } from '@/components/DiagnosticoModal';
+import { esHorarioRestringido, BOTONES_BLOQUEADOS_DE_NOCHE } from '@/utils/horarioRestringido';
 
 export default function MonitorVigilancia() {
   const { toast } = useToast();
@@ -63,6 +64,17 @@ export default function MonitorVigilancia() {
   // Ctrl+Shift+D (sigue funcionando). Ahora ademas hay un boton
   // discreto en el header — ver <Button ... onClick={setDiagnosticoOpen}>.
   const [diagnosticoOpen, setDiagnosticoOpen] = useState(false);
+
+  // Upgrade 2026-08-20: bloqueo nocturno (22:00-06:00) de botones que modifican
+  // datos. Se recalcula cada minuto para que a las 22:00 y 06:00 cambie solo,
+  // sin necesidad de recargar la pantalla.
+  const [restringido, setRestringido] = useState(esHorarioRestringido());
+  useEffect(() => {
+    const id = setInterval(() => setRestringido(esHorarioRestringido()), 60000);
+    return () => clearInterval(id);
+  }, []);
+  const bloqueado = (boton: string) => restringido && BOTONES_BLOQUEADOS_DE_NOCHE.includes(boton as never);
+  const TITULO_BLOQUEADO = 'funcionalidad no disponible';
 
   const { objetos, objetosEnCustodia, objetosDevueltos, registrarObjeto, devolverObjeto, buscarObjetos } = useObjetosOlvidados();
 
@@ -113,12 +125,12 @@ export default function MonitorVigilancia() {
     <div className="min-h-screen bg-background">
       <MonitorHeader pendientes={solicitudesPendientes.length} enUso={solicitudesEntregadas.length}>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setObjetosOpen(true)} className="gap-2" size="sm">
+          <Button variant="outline" onClick={() => setObjetosOpen(true)} className="gap-2" size="sm" disabled={bloqueado('objetos')} title={bloqueado('objetos') ? TITULO_BLOQUEADO : undefined}>
             <Package className="w-4 h-4" />
             <span className="hidden md:inline">Objetos</span>
             {objetosEnCustodia.length > 0 && <Badge variant="secondary" className="ml-1">{objetosEnCustodia.length}</Badge>}
           </Button>
-          <Button variant="outline" onClick={() => setAgendaOpen(true)} className="gap-2" size="sm">
+          <Button variant="outline" onClick={() => setAgendaOpen(true)} className="gap-2" size="sm" disabled={bloqueado('agenda')} title={bloqueado('agenda') ? TITULO_BLOQUEADO : undefined}>
             <BookUser className="w-4 h-4" />
             <span className="hidden md:inline">Agenda / Autorizaciones</span>
           </Button>
@@ -126,15 +138,15 @@ export default function MonitorVigilancia() {
             <History className="w-4 h-4" />
             <span className="hidden md:inline">Historial</span>
           </Button>
-          <Button variant="outline" onClick={() => setConfigModalOpen(true)} className="gap-2" size="sm">
+          <Button variant="outline" onClick={() => setConfigModalOpen(true)} className="gap-2" size="sm" disabled={bloqueado('configuracion')} title={bloqueado('configuracion') ? TITULO_BLOQUEADO : undefined}>
             <Settings className="w-4 h-4" />
             <span className="hidden md:inline">Configuración</span>
           </Button>
-          <Button variant="outline" onClick={() => setGuardModalOpen(true)} className="gap-2" size="sm">
+          <Button variant="outline" onClick={() => setGuardModalOpen(true)} className="gap-2" size="sm" disabled={bloqueado('vigilantes')} title={bloqueado('vigilantes') ? TITULO_BLOQUEADO : undefined}>
             <Users className="w-4 h-4" />
             <span className="hidden md:inline">Vigilantes</span>
           </Button>
-          <Button variant="outline" onClick={() => setKeyModalOpen(true)} className="gap-2" size="sm">
+          <Button variant="outline" onClick={() => setKeyModalOpen(true)} className="gap-2" size="sm" disabled={bloqueado('llaves')} title={bloqueado('llaves') ? TITULO_BLOQUEADO : undefined}>
             <Settings2 className="w-4 h-4" />
             <span className="hidden md:inline">Llaves</span>
           </Button>

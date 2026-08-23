@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useDeviceConfig } from '@/hooks/useDeviceConfig';
 import { obtenerTurnoActual, obtenerVigilantesActuales } from '@/data/fceaData';
 import { SystemHealthIndicator } from './SystemHealthIndicator';
+import { esHorarioRestringido, BOTONES_BLOQUEADOS_DE_NOCHE } from '@/utils/horarioRestringido';
 
 interface MonitorHeaderProps {
   pendientes: number;
@@ -44,6 +45,10 @@ export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProp
   };
 
   const turnoInfo = getTurnoInfo();
+
+  // Upgrade 2026-08-20: de noche (22:00-06:00) el boton Dashboard se deshabilita.
+  const dashboardBloqueado =
+    esHorarioRestringido() && BOTONES_BLOQUEADOS_DE_NOCHE.includes('dashboard');
 
   return (
     <header className="bg-card border-b py-4 px-6 shadow-sm">
@@ -158,6 +163,12 @@ export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProp
             solo se oculta en kiosks tactiles puros de las Terminales.
           */}
           {shouldShowDashboardButton && (
+            dashboardBloqueado ? (
+              <Button variant="outline" size="sm" className="gap-2" disabled title="funcionalidad no disponible">
+                <BarChart3 className="w-4 h-4" />
+                Dashboard
+              </Button>
+            ) : (
             <Button
               asChild
               variant="outline"
@@ -169,6 +180,7 @@ export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProp
                 Dashboard
               </Link>
             </Button>
+            )
           )}
           {children}
         </div>
