@@ -238,7 +238,11 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
           nombreEmpresa: r.nombre_empresa || undefined,
         },
         terminal: r.terminal ?? 'terminal',
-        horaSolicitud: r.hora_solicitud ? new Date(r.hora_solicitud) : new Date(),
+        // Fix 2026-08-28: normalizar el espacio a "T" (igual que `created`) para
+        // que new Date() parsee la fecha como UTC en todos los navegadores. Sin
+        // esto, Edge/Chromium interpretaba "YYYY-MM-DD HH:MM:SSZ" como hora LOCAL
+        // y aparecia un desfase de zona horaria (ej. "5 horas" en un intercambio).
+        horaSolicitud: r.hora_solicitud ? new Date(String(r.hora_solicitud).replace(' ', 'T')) : new Date(),
         // `created` lo genera PocketBase (server = Monitor) al insertar. Es el
         // ancla confiable para el contador "cuanto hace que llego el pedido"
         // porque comparte reloj con el Date.now() del Monitor. PocketBase lo
@@ -249,8 +253,8 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
           ? new Date(String(r.created).replace(' ', 'T'))
           : undefined,
 
-        horaEntrega: r.hora_entrega ? new Date(r.hora_entrega) : undefined,
-        horaDevolucion: r.hora_devolucion ? new Date(r.hora_devolucion) : undefined,
+        horaEntrega: r.hora_entrega ? new Date(String(r.hora_entrega).replace(' ', 'T')) : undefined,
+        horaDevolucion: r.hora_devolucion ? new Date(String(r.hora_devolucion).replace(' ', 'T')) : undefined,
         entregadoPor: r.entregado_por || undefined,
         recibidoPor: r.recibido_por || undefined,
         estado: r.estado ?? 'pendiente',
@@ -508,8 +512,14 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
     try {
       const update: any = {};
       if (datos.estado !== undefined) update.estado = datos.estado;
-      if (datos.horaEntrega !== undefined) update.hora_entrega = datos.horaEntrega;
-      if (datos.horaDevolucion !== undefined) update.hora_devolucion = datos.horaDevolucion;
+      // Fix 2026-08-28: guardar SIEMPRE como ISO string. El campo es TEXT en
+      // PocketBase; si se manda un objeto Date crudo, se serializa en un formato
+      // ambiguo/local y al releerlo aparecia un desfase de zona horaria (ej. el
+      // contador mostraba "5 horas" tras un F5 luego de un intercambio).
+      if (datos.horaEntrega !== undefined)
+        update.hora_entrega = datos.horaEntrega instanceof Date ? datos.horaEntrega.toISOString() : datos.horaEntrega;
+      if (datos.horaDevolucion !== undefined)
+        update.hora_devolucion = datos.horaDevolucion instanceof Date ? datos.horaDevolucion.toISOString() : datos.horaDevolucion;
       if (datos.entregadoPor !== undefined) update.entregado_por = datos.entregadoPor;
       if (datos.recibidoPor !== undefined) update.recibido_por = datos.recibidoPor;
       if (datos.turno !== undefined) update.turno = datos.turno;
@@ -660,7 +670,8 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
         tipo_usuario: nuevoUsuario.tipo,
         departamento: nuevoUsuario.departamento || '',
         nombre_empresa: nuevoUsuario.nombreEmpresa || '',
-        hora_entrega: new Date(),
+        // Fix 2026-08-28: guardar como ISO string (campo TEXT en PocketBase).
+        hora_entrega: new Date().toISOString(),
       });
     } catch (e) {
       console.error('Error updating exchange info in PocketBase:', e);

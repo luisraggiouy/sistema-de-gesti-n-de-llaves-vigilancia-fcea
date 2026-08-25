@@ -62,13 +62,13 @@ export function KeyInUseCard({
   }, [undoAction]);
 
   // Timer para tiempo en uso — usa string de fecha directamente para evitar problemas de referencia
-  useEffect(() => {
-    const horaEntregaStr = solicitud.horaEntrega
-      ? (solicitud.horaEntrega instanceof Date
-          ? solicitud.horaEntrega.toISOString()
-          : String(solicitud.horaEntrega))
-      : null;
+  const horaEntregaStr = solicitud.horaEntrega
+    ? (solicitud.horaEntrega instanceof Date
+        ? solicitud.horaEntrega.toISOString()
+        : String(solicitud.horaEntrega))
+    : null;
 
+  useEffect(() => {
     if (!horaEntregaStr) {
       setTiempoEnUso(0);
       return;
@@ -84,7 +84,11 @@ export function KeyInUseCard({
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
-  }, [solicitud.id]); // Usar solicitud.id como dependencia, más estable
+    // Fix 2026-08-28: agregar `horaEntregaStr` como dependencia. Antes solo
+    // dependia de `solicitud.id`, que NO cambia en un intercambio (misma llave),
+    // por lo que el contador seguia con la hora de entrega ORIGINAL. Ahora, al
+    // cambiar horaEntrega (intercambio), el timer se reinicia desde la hora nueva.
+  }, [solicitud.id, horaEntregaStr]);
 
   const formatTiempoUndo = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
