@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { Clock, Users, Key, BarChart3 } from 'lucide-react';
 import fceaLogo from '@/assets/fcea-logo.png';
 import { Link } from 'react-router-dom';
@@ -47,8 +47,24 @@ export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProp
   const turnoInfo = getTurnoInfo();
 
   // Upgrade 2026-08-20: de noche (22:00-06:00) el boton Dashboard se deshabilita.
+  // Upgrade 2026-08-24 (fix): se recalcula solo, alineado al reloj (segundo :00
+  // de cada minuto), para que a las 06:00 se reactive sin recargar la pantalla.
+  const [restringido, setRestringido] = useState(esHorarioRestringido());
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const programarProximoChequeo = () => {
+      const n = new Date();
+      const msHastaProximoMinuto = (60 - n.getSeconds()) * 1000 - n.getMilliseconds() + 50;
+      timeoutId = setTimeout(() => {
+        setRestringido(esHorarioRestringido());
+        programarProximoChequeo();
+      }, msHastaProximoMinuto);
+    };
+    programarProximoChequeo();
+    return () => clearTimeout(timeoutId);
+  }, []);
   const dashboardBloqueado =
-    esHorarioRestringido() && BOTONES_BLOQUEADOS_DE_NOCHE.includes('dashboard');
+    restringido && BOTONES_BLOQUEADOS_DE_NOCHE.includes('dashboard');
 
   return (
     <header className="bg-card border-b py-4 px-6 shadow-sm">
@@ -164,10 +180,14 @@ export function MonitorHeader({ pendientes, enUso, children }: MonitorHeaderProp
           */}
           {shouldShowDashboardButton && (
             dashboardBloqueado ? (
-              <Button variant="outline" size="sm" className="gap-2" disabled title="funcionalidad no disponible">
-                <BarChart3 className="w-4 h-4" />
-                Dashboard
-              </Button>
+              /* Upgrade 2026-08-24: el title va en el <span> contenedor para que
+                 el tooltip se vea aun con el boton disabled. */
+              <span title="funcionalidad no disponible" className="cursor-not-allowed">
+                <Button variant="outline" size="sm" className="gap-2" disabled>
+                  <BarChart3 className="w-4 h-4" />
+                  Dashboard
+                </Button>
+              </span>
             ) : (
             <Button
               asChild

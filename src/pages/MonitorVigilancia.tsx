@@ -70,8 +70,19 @@ export default function MonitorVigilancia() {
   // sin necesidad de recargar la pantalla.
   const [restringido, setRestringido] = useState(esHorarioRestringido());
   useEffect(() => {
-    const id = setInterval(() => setRestringido(esHorarioRestringido()), 60000);
-    return () => clearInterval(id);
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const programarProximoChequeo = () => {
+      const ahora = new Date();
+      // ms hasta el proximo minuto en punto (+50ms de colchon) para alinear al reloj
+      const msHastaProximoMinuto =
+        (60 - ahora.getSeconds()) * 1000 - ahora.getMilliseconds() + 50;
+      timeoutId = setTimeout(() => {
+        setRestringido(esHorarioRestringido());
+        programarProximoChequeo();
+      }, msHastaProximoMinuto);
+    };
+    programarProximoChequeo();
+    return () => clearTimeout(timeoutId);
   }, []);
   const bloqueado = (boton: string) => restringido && BOTONES_BLOQUEADOS_DE_NOCHE.includes(boton as never);
   const TITULO_BLOQUEADO = 'funcionalidad no disponible';
@@ -125,31 +136,44 @@ export default function MonitorVigilancia() {
     <div className="min-h-screen bg-background">
       <MonitorHeader pendientes={solicitudesPendientes.length} enUso={solicitudesEntregadas.length}>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setObjetosOpen(true)} className="gap-2" size="sm" disabled={bloqueado('objetos')} title={bloqueado('objetos') ? TITULO_BLOQUEADO : undefined}>
-            <Package className="w-4 h-4" />
-            <span className="hidden md:inline">Objetos</span>
-            {objetosEnCustodia.length > 0 && <Badge variant="secondary" className="ml-1">{objetosEnCustodia.length}</Badge>}
-          </Button>
-          <Button variant="outline" onClick={() => setAgendaOpen(true)} className="gap-2" size="sm" disabled={bloqueado('agenda')} title={bloqueado('agenda') ? TITULO_BLOQUEADO : undefined}>
-            <BookUser className="w-4 h-4" />
-            <span className="hidden md:inline">Agenda / Autorizaciones</span>
-          </Button>
+          {/* Upgrade 2026-08-24: el <span> contenedor lleva el title para que
+              el tooltip "funcionalidad no disponible" se vea aun con el boton
+              disabled (un boton disabled no dispara eventos de mouse). */}
+          <span title={bloqueado('objetos') ? TITULO_BLOQUEADO : undefined} className={bloqueado('objetos') ? 'cursor-not-allowed' : undefined}>
+            <Button variant="outline" onClick={() => setObjetosOpen(true)} className="gap-2" size="sm" disabled={bloqueado('objetos')}>
+              <Package className="w-4 h-4" />
+              <span className="hidden md:inline">Objetos</span>
+              {objetosEnCustodia.length > 0 && <Badge variant="secondary" className="ml-1">{objetosEnCustodia.length}</Badge>}
+            </Button>
+          </span>
+          <span title={bloqueado('agenda') ? TITULO_BLOQUEADO : undefined} className={bloqueado('agenda') ? 'cursor-not-allowed' : undefined}>
+            <Button variant="outline" onClick={() => setAgendaOpen(true)} className="gap-2" size="sm" disabled={bloqueado('agenda')}>
+              <BookUser className="w-4 h-4" />
+              <span className="hidden md:inline">Agenda / Autorizaciones</span>
+            </Button>
+          </span>
           <Button variant="outline" onClick={() => setHistorySearchOpen(true)} className="gap-2" size="sm">
             <History className="w-4 h-4" />
             <span className="hidden md:inline">Historial</span>
           </Button>
-          <Button variant="outline" onClick={() => setConfigModalOpen(true)} className="gap-2" size="sm" disabled={bloqueado('configuracion')} title={bloqueado('configuracion') ? TITULO_BLOQUEADO : undefined}>
-            <Settings className="w-4 h-4" />
-            <span className="hidden md:inline">Configuración</span>
-          </Button>
-          <Button variant="outline" onClick={() => setGuardModalOpen(true)} className="gap-2" size="sm" disabled={bloqueado('vigilantes')} title={bloqueado('vigilantes') ? TITULO_BLOQUEADO : undefined}>
-            <Users className="w-4 h-4" />
-            <span className="hidden md:inline">Vigilantes</span>
-          </Button>
-          <Button variant="outline" onClick={() => setKeyModalOpen(true)} className="gap-2" size="sm" disabled={bloqueado('llaves')} title={bloqueado('llaves') ? TITULO_BLOQUEADO : undefined}>
-            <Settings2 className="w-4 h-4" />
-            <span className="hidden md:inline">Llaves</span>
-          </Button>
+          <span title={bloqueado('configuracion') ? TITULO_BLOQUEADO : undefined} className={bloqueado('configuracion') ? 'cursor-not-allowed' : undefined}>
+            <Button variant="outline" onClick={() => setConfigModalOpen(true)} className="gap-2" size="sm" disabled={bloqueado('configuracion')}>
+              <Settings className="w-4 h-4" />
+              <span className="hidden md:inline">Configuración</span>
+            </Button>
+          </span>
+          <span title={bloqueado('vigilantes') ? TITULO_BLOQUEADO : undefined} className={bloqueado('vigilantes') ? 'cursor-not-allowed' : undefined}>
+            <Button variant="outline" onClick={() => setGuardModalOpen(true)} className="gap-2" size="sm" disabled={bloqueado('vigilantes')}>
+              <Users className="w-4 h-4" />
+              <span className="hidden md:inline">Vigilantes</span>
+            </Button>
+          </span>
+          <span title={bloqueado('llaves') ? TITULO_BLOQUEADO : undefined} className={bloqueado('llaves') ? 'cursor-not-allowed' : undefined}>
+            <Button variant="outline" onClick={() => setKeyModalOpen(true)} className="gap-2" size="sm" disabled={bloqueado('llaves')}>
+              <Settings2 className="w-4 h-4" />
+              <span className="hidden md:inline">Llaves</span>
+            </Button>
+          </span>
           {/*
             Boton discreto de diagnostico. Reemplaza al gesto "5 toques
             rapidos" (v2.6). Icono solo (sin label en pantallas chicas)
