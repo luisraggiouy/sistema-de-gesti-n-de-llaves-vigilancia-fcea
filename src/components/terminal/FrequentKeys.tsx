@@ -1,13 +1,20 @@
 import { Lugar, TipoLugar } from '@/data/fceaData';
+import { SolicitudLlave } from '@/types/solicitud';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Star, Building2, Check, Lock, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Star, Building2, Check, Lock, AlertTriangle, User, ArrowRightLeft, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FrequentKeysProps {
   llavesFrecuentes: Lugar[];
   selectedKeys: Lugar[];
   onToggleKey: (lugar: Lugar) => void;
+  // Fix 2026-08-28: para que las frecuentes reflejen el estado real (igual que
+  // el buscador) y eviten pedidos duplicados / permitan intercambio.
+  solicitudesPendientes?: SolicitudLlave[];
+  solicitudesEntregadas?: SolicitudLlave[];
+  onExchangeRequest?: (lugar: Lugar, usuarioConLlave: { nombre: string; celular: string; tipo: string }) => void;
 }
 
 const getTipoColor = (tipo: TipoLugar): string => {
@@ -25,7 +32,14 @@ const getTipoColor = (tipo: TipoLugar): string => {
   return colores[tipo] || 'bg-muted text-muted-foreground';
 };
 
-export function FrequentKeys({ llavesFrecuentes, selectedKeys, onToggleKey }: FrequentKeysProps) {
+export function FrequentKeys({
+  llavesFrecuentes,
+  selectedKeys,
+  onToggleKey,
+  solicitudesPendientes = [],
+  solicitudesEntregadas = [],
+  onExchangeRequest,
+}: FrequentKeysProps) {
   if (llavesFrecuentes.length === 0) return null;
 
   const isSelected = (lugarId: string) => selectedKeys.some(k => k.id === lugarId);
@@ -41,17 +55,27 @@ export function FrequentKeys({ llavesFrecuentes, selectedKeys, onToggleKey }: Fr
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {llavesFrecuentes.map((lugar) => {
           const selected = isSelected(lugar.id);
+          // Estado REAL derivado de las solicitudes (no del flag disponible):
+          //  - en uso     -> hay una solicitud 'entregada' para este lugar
+          //  - pendiente  -> hay una solicitud 'pendiente' (ya pedida, sin entregar)
+          //  - disponible -> ninguna de las anteriores
+          const solicitudEnUso = solicitudesEntregadas.find(s => s.lugar.id === lugar.id) || null;
+          const solicitudPendiente = solicitudesPendientes.find(s => s.lugar.id === lugar.id) || null;
+          const estaEnUso = !!solicitudEnUso;
+          const estaPendiente = !estaEnUso && !!solicitudPendiente;
+          const seleccionable = !estaEnUso && !estaPendiente;
           return (
-            <button
+            <div
               key={lugar.id}
-              onClick={() => onToggleKey(lugar)}
-              disabled={!lugar.disponible}
+              onClick={() => { if (seleccionable) onToggleKey(lugar); }}
               className={cn(
                 "p-3 rounded-lg text-left transition-all duration-200 border",
-                !lugar.disponible && "opacity-50 cursor-not-allowed bg-muted",
-                lugar.disponible && selected 
-                  ? "bg-primary/10 border-primary ring-1 ring-primary" 
-                  : "bg-background hover:bg-muted/50 border-border hover:border-primary/50"
+                !seleccionable && "bg-muted/40",
+                seleccionable && selected
+                  ? "bg-primary/10 border-primary ring-1 ring-primary cursor-pointer"
+                  : seleccionable
+                    ? "bg-background hover:bg-muted/50 border-border hover:border-primary/50 cursor-pointer"
+                    : "border-border"
               )}
             >
               <div className="flex items-start justify-between gap-2">
@@ -59,6 +83,7 @@ export function FrequentKeys({ llavesFrecuentes, selectedKeys, onToggleKey }: Fr
                   {/* Checkbox visual */}
                   <div className={cn(
                     "flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors",
+                    !seleccionable && "opacity-30",
                     selected 
                       ? "bg-primary border-primary text-primary-foreground" 
                       : "border-muted-foreground/30"
@@ -87,20 +112,56 @@ export function FrequentKeys({ llavesFrecuentes, selectedKeys, onToggleKey }: Fr
                   </div>
                 </div>
                 
-                {!lugar.disponible && (
-                  <Badge variant="secondary" className="text-xs bg-muted">
+                {estaEnUso && (
+                  <Badge variant="secondary" className="text-xs bg-rose-100 text-rose-800 border-rose-200">
                     En uso
                   </Badge>
                 )}
+                {estaPendiente && (
+                  <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800 border-amber-200">
+                    Ya solicitada
+                  </Badge>
+                )}
               </div>
-              
-              {lugar.esHibrido && lugar.disponible && (
+
+              {/* Caso EN USO: mostrar quién la tiene y ofrecer intercambio */}
+              {estaEnUso && solicitudEnUso && onExchangeRequest && (
+                <div className="mt-2 flex items-center justify-between gap-2 p-2 bg-rose-50 rounded-md border border-rose-200">
+                  <div className="flex items-center gap-1.5 text-xs min-w-0">
+                    <User className="w-3.5 h-3.5 text-rose-600 flex-shrink-0" />
+                    <span className="text-muted-foreground">En poder de:</span>
+                    <span className="font-medium text-rose-800 truncate">{solicitudEnUso.usuario.nombre}</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1 border-primary/30 text-primary hover:bg-primary/10 h-8 flex-shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onExchangeRequest(lugar, solicitudEnUso.usuario);
+                    }}
+                  >
+                    <ArrowRightLeft className="w-3.5 h-3.5" />
+                    Intercambiar
+                  </Button>
+                </div>
+              )}
+
+              {/* Caso PENDIENTE: avisar que ya fue solicitada (evita duplicado) */}
+              {estaPendiente && (
+                <div className="mt-2 flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 rounded-md px-2 py-1.5 border border-amber-200">
+                  <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                  Ya solicitada, esperando entrega del vigilante
+                </div>
+              )}
+
+              {lugar.esHibrido && seleccionable && (
                 <div className="mt-2 ml-6 flex items-center gap-1 text-xs text-warning">
                   <AlertTriangle className="w-3 h-3" />
                   Solo clases programadas
                 </div>
               )}
-            </button>
+            </div>
           );
         })}
       </div>

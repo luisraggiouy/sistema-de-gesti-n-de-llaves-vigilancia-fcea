@@ -14,7 +14,7 @@ import {
   ordenNatural
 } from '@/data/fceaData';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
-import { Search, Building2, Check, AlertTriangle, Lock, CheckSquare, ArrowRightLeft, User } from 'lucide-react';
+import { Search, Building2, Check, AlertTriangle, Lock, CheckSquare, ArrowRightLeft, User, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 
@@ -37,7 +37,7 @@ interface KeySearchProps {
  *   monitor capacitivo.
  */
 export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest, tipoUsuario }: KeySearchProps) {
-  const { lugaresDisponibles, solicitudesEntregadas } = useSolicitudesContext();
+  const { lugaresDisponibles, solicitudesEntregadas, solicitudesPendientes } = useSolicitudesContext();
   const [busqueda, setBusqueda] = useState('');
   const [filtroTipo, setFiltroTipo] = useState<TipoLugar | 'todos'>('todos');
   const [filtroEdificio, setFiltroEdificio] = useState<string>('todos');
@@ -209,19 +209,24 @@ export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest, tipoUs
             const selected = isSelected(lugar.id);
             const solicitudEnUso = solicitudesEntregadas.find(s => s.lugar.id === lugar.id) || null;
             const estaEnUso = !!solicitudEnUso;
+            // Fix 2026-08-28: si la llave ya fue solicitada por otro (pendiente,
+            // aun sin entregar) NO se puede volver a pedir -> evita duplicados.
+            const solicitudPendiente = solicitudesPendientes.find(s => s.lugar.id === lugar.id) || null;
+            const estaPendiente = !estaEnUso && !!solicitudPendiente;
+            const bloqueada = estaEnUso || estaPendiente;
 
             return (
               <Card
                 key={lugar.id}
-                onClick={() => !estaEnUso && onToggleKey(lugar)}
+                onClick={() => !bloqueada && onToggleKey(lugar)}
                 className={cn(
                   "p-4 transition-all duration-200",
-                  !estaEnUso && "cursor-pointer",
-                  estaEnUso && !onExchangeRequest && "opacity-60 cursor-not-allowed",
+                  !bloqueada && "cursor-pointer",
+                  bloqueada && !(estaEnUso && onExchangeRequest) && "opacity-60 cursor-not-allowed",
                   estaEnUso && onExchangeRequest && "cursor-default",
                   selected
                     ? "ring-2 ring-primary bg-primary/5 border-primary"
-                    : !estaEnUso ? "hover:bg-muted/50 hover:border-primary/50" : ""
+                    : !bloqueada ? "hover:bg-muted/50 hover:border-primary/50" : ""
                 )}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -259,17 +264,29 @@ export function KeySearch({ selectedKeys, onToggleKey, onExchangeRequest, tipoUs
                   </div>
 
                   <div className="flex-shrink-0">
-                    {!estaEnUso ? (
-                      <Badge className="bg-success text-success-foreground">
-                        Disponible
-                      </Badge>
-                    ) : (
+                    {estaEnUso ? (
                       <Badge variant="secondary" className="bg-rose-100 text-rose-800 border-rose-200">
                         En uso
+                      </Badge>
+                    ) : estaPendiente ? (
+                      <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-200">
+                        Ya solicitada
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-success text-success-foreground">
+                        Disponible
                       </Badge>
                     )}
                   </div>
                 </div>
+
+                {/* Fix 2026-08-28: aviso de que ya fue solicitada (evita duplicado) */}
+                {estaPendiente && (
+                  <div className="mt-3 ml-8 flex items-center gap-2 p-3 bg-amber-50 rounded-lg border border-amber-200 text-sm text-amber-700">
+                    <Clock className="w-4 h-4 flex-shrink-0" />
+                    Esta llave ya fue solicitada y está esperando que el vigilante la entregue.
+                  </div>
+                )}
 
                 {estaEnUso && solicitudEnUso && onExchangeRequest && (
                   <div className="mt-3 ml-8 flex items-center justify-between gap-3 p-3 bg-rose-50 rounded-lg border border-rose-200">

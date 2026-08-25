@@ -26,6 +26,9 @@ export default function TerminalUsuario() {
     agregarSolicitudes, 
     intercambiarPorLugar, 
     lugaresDisponibles,
+    lugares,
+    solicitudesPendientes,
+    solicitudesEntregadas,
     isLoading, 
     isConnected, 
     lastUpdated,
@@ -38,7 +41,10 @@ export default function TerminalUsuario() {
   const [showRegistration, setShowRegistration] = useState(false);
   const [exchangeTarget, setExchangeTarget] = useState<{ lugar: Lugar; usuario: { nombre: string; celular: string; tipo: string } } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { llavesFrecuentes, registrarUso } = useHistorialLlaves(currentUser?.id ?? null, lugaresDisponibles);
+  // Fix 2026-08-28: usar TODAS las llaves (no solo las disponibles) como base de
+  // las frecuentes, para que una llave frecuente que este en uso o ya solicitada
+  // siga apareciendo (permite ofrecer intercambio y avisar 'ya solicitada').
+  const { llavesFrecuentes, registrarUso } = useHistorialLlaves(currentUser?.id ?? null, lugares);
   const isFormValid = currentUser && selectedKeys.length > 0;
   
   // La carga inicial ya se hace en SolicitudesContext (polling cada 3s)
@@ -225,7 +231,14 @@ export default function TerminalUsuario() {
         {currentUser && (
           <div className="mb-6">
             {llavesFrecuentes.length > 0 ? (
-              <FrequentKeys llavesFrecuentes={llavesFrecuentes} selectedKeys={selectedKeys} onToggleKey={handleToggleKey} />
+              <FrequentKeys
+                llavesFrecuentes={llavesFrecuentes}
+                selectedKeys={selectedKeys}
+                onToggleKey={handleToggleKey}
+                solicitudesPendientes={solicitudesPendientes}
+                solicitudesEntregadas={solicitudesEntregadas}
+                onExchangeRequest={currentUser ? handleExchangeRequest : undefined}
+              />
             ) : (
               <Card className="p-4 bg-primary/5 border-primary/20">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
