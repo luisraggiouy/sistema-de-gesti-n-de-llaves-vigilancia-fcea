@@ -9,6 +9,7 @@ import { RequestConfirmation } from '@/components/terminal/RequestConfirmation';
 import { RequestSuccess } from '@/components/terminal/RequestSuccess';
 import { RegistrationModal } from '@/components/terminal/RegistrationModal';
 import { ExchangeConfirmation } from '@/components/terminal/ExchangeConfirmation';
+import { ExchangeSuccess } from '@/components/terminal/ExchangeSuccess';
 import { TerminalScreensaver } from '@/components/terminal/TerminalScreensaver';
 
 import { Lugar, UsuarioRegistrado } from '@/data/fceaData';
@@ -18,7 +19,7 @@ import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
 import { useToast } from '@/hooks/use-toast';
 import { RefreshCw, WifiOff, Loader2, Star } from 'lucide-react';
 
-type TerminalStep = 'main' | 'success';
+type TerminalStep = 'main' | 'success' | 'exchange-success';
 
 export default function TerminalUsuario() {
   const { toast } = useToast();
@@ -40,6 +41,9 @@ export default function TerminalUsuario() {
   const [selectedKeys, setSelectedKeys] = useState<Lugar[]>([]);
   const [showRegistration, setShowRegistration] = useState(false);
   const [exchangeTarget, setExchangeTarget] = useState<{ lugar: Lugar; usuario: { nombre: string; celular: string; tipo: string } } | null>(null);
+  // Fix 2026-08-25: datos del intercambio confirmado para la pantalla de exito
+  // que cierra la sesion y limpia la Terminal para el proximo usuario.
+  const [exchangeDone, setExchangeDone] = useState<{ lugar: Lugar; saliente: string; entrante: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Fix 2026-08-28: usar TODAS las llaves (no solo las disponibles) como base de
   // las frecuentes, para que una llave frecuente que este en uso o ya solicitada
@@ -156,11 +160,45 @@ export default function TerminalUsuario() {
     } as any);
     if (success) {
       toast({ title: "Intercambio confirmado", description: `${exchangeTarget.lugar.nombre}: ${exchangeTarget.usuario.nombre} → ${currentUser.nombre}.` });
+      // Fix 2026-08-25: pasar a la pantalla de exito del intercambio para
+      // cerrar luego la sesion del usuario y dejar la Terminal limpia.
+      setExchangeDone({
+        lugar: exchangeTarget.lugar,
+        saliente: exchangeTarget.usuario.nombre,
+        entrante: currentUser.nombre,
+      });
+      setStep('exchange-success');
     } else {
       toast({ title: "Error", description: "No se pudo realizar el intercambio", variant: "destructive" });
     }
     setExchangeTarget(null);
   };
+
+  // Fix 2026-08-25: al finalizar el intercambio, cerrar la sesion del usuario,
+  // limpiar las llaves seleccionadas y volver al inicio (esto tambien desmonta
+  // KeySearch, por lo que la lista de llaves queda replegada/limpia sin F5).
+  const handleExchangeFinish = () => {
+    setExchangeDone(null);
+    setCurrentUser(null);
+    setSelectedKeys([]);
+    setStep('main');
+  };
+
+  if (step === 'exchange-success' && exchangeDone) {
+    return (
+      <div className="min-h-screen bg-background">
+        <TerminalHeader />
+        <main className="container max-w-4xl mx-auto py-8 px-4">
+          <ExchangeSuccess
+            lugar={exchangeDone.lugar}
+            usuarioSaliente={exchangeDone.saliente}
+            usuarioEntrante={exchangeDone.entrante}
+            onFinish={handleExchangeFinish}
+          />
+        </main>
+      </div>
+    );
+  }
 
   if (step === 'success' && selectedKeys.length > 0 && currentUser) {
   return (
