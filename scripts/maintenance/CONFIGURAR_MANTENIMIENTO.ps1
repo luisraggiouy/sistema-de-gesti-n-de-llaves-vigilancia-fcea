@@ -23,6 +23,12 @@ $watchdog     = Join-Path $PSScriptRoot "watchdog.ps1"
 $backup       = Join-Path $PSScriptRoot "backup_automatico.ps1"
 $healthCheck  = Join-Path $repoRoot  "pocketbase\maintenance\check_system_health.ps1"
 
+# Wrapper para lanzar los scripts SIN mostrar ventana (evita la consola
+# negra de ~2 seg que aparecia en el Monitor cada vez que corrian las
+# tareas). wscript.exe + run_hidden.vbs corre powershell en ventana oculta.
+$runHidden = Join-Path $repoRoot "scripts\lib\run_hidden.vbs"
+$wscript   = Join-Path $env:WINDIR "System32\wscript.exe"
+
 if (Test-Path $configPath) {
   $cfg = Get-Content $configPath -Raw | ConvertFrom-Json
   if ($cfg.rol -ne "monitor") {
@@ -43,8 +49,8 @@ Get-ScheduledTask -TaskName $nombreWD -ErrorAction SilentlyContinue | ForEach-Ob
 
 $triggerWD = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 $actionWD  = New-ScheduledTaskAction `
-  -Execute "powershell.exe" `
-  -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$watchdog`"" `
+  -Execute $wscript `
+  -Argument "`"$runHidden`" `"$watchdog`"" `
   -WorkingDirectory $repoRoot
 $settingsWD = New-ScheduledTaskSettingsSet `
   -AllowStartIfOnBatteries `
@@ -71,8 +77,8 @@ Get-ScheduledTask -TaskName $nombreBK -ErrorAction SilentlyContinue | ForEach-Ob
 
 $triggerBK = New-ScheduledTaskTrigger -Daily -At "03:00"
 $actionBK  = New-ScheduledTaskAction `
-  -Execute "powershell.exe" `
-  -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$backup`"" `
+  -Execute $wscript `
+  -Argument "`"$runHidden`" `"$backup`"" `
   -WorkingDirectory $repoRoot
 $settingsBK = New-ScheduledTaskSettingsSet `
   -AllowStartIfOnBatteries `
@@ -104,8 +110,8 @@ if (Test-Path $healthCheck) {
     -RepetitionDuration ([TimeSpan]::FromDays(365 * 10))
 
   $actionHL  = New-ScheduledTaskAction `
-    -Execute "powershell.exe" `
-    -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$healthCheck`"" `
+    -Execute $wscript `
+    -Argument "`"$runHidden`" `"$healthCheck`"" `
     -WorkingDirectory $repoRoot
   $settingsHL = New-ScheduledTaskSettingsSet `
     -AllowStartIfOnBatteries `
