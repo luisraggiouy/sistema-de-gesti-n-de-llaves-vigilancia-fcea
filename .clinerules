@@ -1,5 +1,5 @@
 # REGLAS CLINE - LEE ESTO PRIMERO EN CADA NUEVA TAREA
-**ultima modificación: 07/08/2026 13:45**
+**ultima modificación: 30/08/2026**
 
 ## Restricciones Técnicas
 No accedas ni leas archivos dentro de la carpeta `node_modules/` ya que contiene dependencias de terceros que están pre-auditadas y funcionando correctamente. Leer estos archivos consume tokens innecesarios, aumenta el contexto sin aportar valor al desarrollo, y puede causar errores de límite de contexto. Las dependencias de JavaScript/TypeScript en node_modules son estables y no requieren modificación ni revisión.
@@ -14,6 +14,15 @@ robocopy $DIST_SRC $DIST_DEST /MIR /XF config.json system_health.json /NFL /NDL 
 **Por qué:** `config.json` guarda la configuración de red propia de cada PC (a qué IP de PocketBase apunta). Si un upgrade copia el `dist` con `/MIR` SIN este `/XF`, PISA el `config.json` de producción con el de desarrollo (que apunta a `127.0.0.1`) y deja las 3 PCs sin datos (terminales sin usuarios ni llaves). Esto ya pasó el 07/08/2026 y costó una sesión entera de diagnóstico.
 
 **Regla práctica:** al crear cualquier upgrade nuevo, usá como plantilla el `APLICAR_UPGRADE.ps1` de `UPGRADE_NOTAS_HISTORIAL_LLAVES_2026-08-07` (o cualquiera de los 5 ya corregidos ese día), que ya trae el `/XF`. Antes de grabar un upgrade al pendrive, VERIFICAR que su `robocopy` de `dist` incluya `/XF config.json system_health.json`. Con esto, el problema no puede repetirse.
+
+## Regla de Oro de los Upgrades: TODO upgrade de `dist` se aplica en LAS 3 PC (agregada 30/08/2026)
+Cualquier upgrade o fix que reemplace el **frontend compilado (`dist`)** DEBE aplicarse en **las 3 PC** (Monitor de Vigilancia, Terminal A y Terminal B), NO solo en el Monitor.
+
+**Por qué:** el frontend NO se sirve centralizado. Cada PC corre su propio `vite preview` en `127.0.0.1:5173` y sirve el `dist` de **su propio disco** (`C:\sistema-llaves-fcea\dist`) — ver `abrir_llaves_kiosk.bat` y `scripts/lib/run_frontend.bat`. Lo único que viaja por red al Monitor es la **API de datos de PocketBase (puerto 8090)**; el `8090` NO sirve el HTML/JS (devuelve 404 para rutas SPA). Por eso, si un upgrade de `dist` se aplica solo en el Monitor, las Terminales A y B siguen cargando el JavaScript viejo y el cambio "no aparece".
+
+Esto pasó el 30/08/2026 con `UPGRADE_TERMINAL_INTERCAMBIO_CIERRA_SESION_2026-08-25`: el instructivo decía "aplicar solo en el Monitor" y por eso la Terminal seguía quedando logueada tras el intercambio (el fix nunca llegó a A/B).
+
+**Regla práctica:** en todo instructivo y en los mensajes de `APLICAR_UPGRADE.ps1` de un upgrade que toque `dist`, indicar SIEMPRE "Aplicar en LAS 3 PC (Monitor, Terminal A y Terminal B); ejecutar el mismo script una vez en cada una y reabrir el kiosko". Solo los upgrades que tocan exclusivamente PocketBase/datos (no `dist`) van únicamente en el Monitor.
 
 
 ## Contexto del Sistema
