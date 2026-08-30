@@ -22,12 +22,14 @@ import { SoundControls } from '@/components/monitor/SoundControls';
 import { useObjetosOlvidados } from '@/hooks/useObjetosOlvidados';
 import { DiagnosticoModal } from '@/components/DiagnosticoModal';
 import { esHorarioRestringido, BOTONES_BLOQUEADOS_DE_NOCHE } from '@/utils/horarioRestringido';
+import { ConfirmarAccionSensible } from '@/components/ConfirmarAccionSensible';
+import type { SolicitudLlave } from '@/types/solicitud';
 
 export default function MonitorVigilancia() {
   const { toast } = useToast();
   const {
     solicitudesPendientes, solicitudesEntregadas, solicitudesDevueltas,
-    lugaresDisponibles, entregarLlave, devolverLlave, intercambiarLlave,
+    lugaresDisponibles, entregarLlave, devolverLlave, intercambiarLlave, eliminarSolicitud,
     deshacerAccion, getUndoParaSolicitud, agregarLlave, quitarLlave, modificarLlave, actualizarNotas,
     isLoading, isConnected, lastUpdated, refrescarDatos
   } = useSolicitudesContext();
@@ -103,7 +105,7 @@ export default function MonitorVigilancia() {
     if (!solicitud) return;
     entregarLlave(solicitudId, vigilante);
     sonarEntrega(vigilante);
-    toast({ title: "Llave entregada", description: `${solicitud.lugar.nombre} entregada por ${vigilante}. Tienes 2 minutos para deshacer.` });
+    toast({ title: "Llave entregada", description: `${solicitud.lugar.nombre} entregada por ${vigilante}. Tienes 1 minuto para deshacer.` });
   };
 
   const handleDevolver = (solicitudId: string, vigilante: string) => {
@@ -119,6 +121,21 @@ export default function MonitorVigilancia() {
     if (!solicitud) return;
     intercambiarLlave(solicitudId, vigilante, nuevoUsuario);
     toast({ title: "Llave intercambiada", description: `${solicitud.lugar.nombre}: ${solicitud.usuario.nombre} → ${nuevoUsuario.nombre}` });
+  };
+
+  // Cambio 2026-08-30: eliminar por completo una solicitud PENDIENTE. Reemplaza
+  // el flujo anterior donde el usuario "cancelaba" desde la terminal (que no
+  // borraba nada) o el vigilante "deshacía" (que devolvía la solicitud al limbo
+  // de pendientes). Ahora, si el pedido fue un error, el vigilante lo elimina y
+  // la persona puede volver a solicitar la llave correcta desde la terminal.
+  const [confirmEliminarPendiente, setConfirmEliminarPendiente] = useState<SolicitudLlave | null>(null);
+
+  const handleEliminarPendiente = () => {
+    if (!confirmEliminarPendiente) return;
+    const sol = confirmEliminarPendiente;
+    eliminarSolicitud(sol.id);
+    toast({ title: "Solicitud eliminada", description: `${sol.lugar.nombre} — ${sol.usuario.nombre}. El usuario puede volver a solicitar la llave.` });
+    setConfirmEliminarPendiente(null);
   };
 
   const handleUndo = (solicitudId: string) => {
@@ -293,7 +310,7 @@ export default function MonitorVigilancia() {
           ) : (
             <div className="space-y-4">
               {solicitudesPendientes.map(solicitud => (
-                <PendingRequestCard key={solicitud.id} solicitud={solicitud} vigilantes={vigilantesActuales} vigilantesAnteriores={vigilantesAnteriores} onEntregar={(v) => handleEntregar(solicitud.id, v)} />
+                <PendingRequestCard key={solicitud.id} solicitud={solicitud} vigilantes={vigilantesActuales} vigilantesAnteriores={vigilantesAnteriores} onEntregar={(v) => handleEntregar(solicitud.id, v)} onEliminar={() => setConfirmEliminarPendiente(solicitud)} />
               ))}
             </div>
           )}
@@ -390,6 +407,20 @@ export default function MonitorVigilancia() {
       <footer className="py-4 text-center text-sm text-muted-foreground border-t mt-8">
         <p>Monitor de Vigilancia • FCEA UdelaR • Sistema de Gestión de Llaves v4.3</p>
       </footer>
+
+      {/* Cambio 2026-08-30: confirmación para eliminar por completo una
+          solicitud pendiente (pedido equivocado). */}
+      <ConfirmarAccionSensible
+        open={!!confirmEliminarPendiente}
+        onOpenChange={(v) => { if (!v) setConfirmEliminarPendiente(null); }}
+        tipoAccion="borrar"
+        entidad="otro"
+        detalle={confirmEliminarPendiente ? `${confirmEliminarPendiente.lugar.nombre} — ${confirmEliminarPendiente.usuario.nombre}` : undefined}
+        descripcionExtra={
+          "Vas a eliminar por completo esta solicitud pendiente. Se usa cuando el usuario pidio la llave por error. La solicitud desaparece del listado y el usuario puede volver a solicitar la llave correcta desde la terminal. Esta accion NO se puede deshacer."
+        }
+        onConfirmar={handleEliminarPendiente}
+      />
     </div>
   );
 }

@@ -43,7 +43,7 @@ interface SolicitudesContextType {
   actualizarNotas: (solicitudId: string, notas: string) => void;
 }
 
-const UNDO_TIMEOUT_MS = 2 * 60 * 1000;
+const UNDO_TIMEOUT_MS = 1 * 60 * 1000; // 1 minuto (bajado de 2 min el 2026-08-30)
 const SolicitudesContext = createContext<SolicitudesContextType | undefined>(undefined);
 
 // Mapea un record de la coleccion 'lugares' de PocketBase al tipo Lugar.

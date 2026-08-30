@@ -344,9 +344,9 @@ const SRSDocument = () => {
             <div className="border rounded-lg overflow-hidden">
               <div className="bg-blue-900 text-white px-4 py-2 font-semibold">RF-005: Funcion Deshacer</div>
               <div className="p-4 text-gray-700">
-                <p><strong>Descripcion:</strong> Permitir revertir una entrega o devolucion dentro de los 2 minutos siguientes.</p>
+                <p><strong>Descripcion:</strong> Permitir revertir una entrega o devolucion dentro del 1 minuto siguiente.</p>
                 <p><strong>Prioridad:</strong> Media</p>
-                <p><strong>Restricciones:</strong> Solo disponible dentro de ventana de 2 minutos</p>
+                <p><strong>Restricciones:</strong> Solo disponible dentro de ventana de 1 minuto</p>
               </div>
             </div>
 
@@ -1480,7 +1480,7 @@ const SRSDocument = () => {
             <tbody>
               <tr><td>Cola de Solicitudes</td><td>Lista ordenada de peticiones de llaves pendientes de atencion</td></tr>
               <tr><td>Dashboard</td><td>Panel de control con visualizaciones estadisticas por turno y por vigilante</td></tr>
-              <tr><td>Deshacer</td><td>Funcion para revertir una entrega o devolucion dentro de los 2 minutos siguientes</td></tr>
+              <tr><td>Deshacer</td><td>Funcion para revertir una entrega o devolucion dentro del 1 minuto siguiente</td></tr>
               <tr><td>Intercambio</td><td>Transferencia directa de una llave entre usuarios sin devolucion al mostrador, con aceptacion de responsabilidad</td></tr>
               <tr><td>Jefe de Turno</td><td>Vigilante designado como responsable durante un turno especifico, indicado visualmente</td></tr>
               <tr><td>Llaves Frecuentes</td><td>Sugerencias personalizadas basadas en el historial de uso de cada usuario registrado</td></tr>

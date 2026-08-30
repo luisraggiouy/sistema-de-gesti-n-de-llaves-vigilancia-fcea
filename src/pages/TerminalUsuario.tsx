@@ -6,7 +6,6 @@ import { UserSearchInput } from '@/components/terminal/UserSearchInput';
 import { KeySearch } from '@/components/terminal/KeySearch';
 import { FrequentKeys } from '@/components/terminal/FrequentKeys';
 import { RequestConfirmation } from '@/components/terminal/RequestConfirmation';
-import { RequestSuccess } from '@/components/terminal/RequestSuccess';
 import { RegistrationModal } from '@/components/terminal/RegistrationModal';
 import { ExchangeConfirmation } from '@/components/terminal/ExchangeConfirmation';
 import { ExchangeSuccess } from '@/components/terminal/ExchangeSuccess';
@@ -19,7 +18,7 @@ import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
 import { useToast } from '@/hooks/use-toast';
 import { RefreshCw, WifiOff, Loader2, Star } from 'lucide-react';
 
-type TerminalStep = 'main' | 'success' | 'exchange-success';
+type TerminalStep = 'main' | 'exchange-success';
 
 export default function TerminalUsuario() {
   const { toast } = useToast();
@@ -116,17 +115,17 @@ export default function TerminalUsuario() {
       nombreEmpresa: currentUser.nombreEmpresa,
     });
     await new Promise(resolve => setTimeout(resolve, 500));
-    toast({ title: "Solicitud enviada", description: `${selectedKeys.length} llave(s) solicitada(s).` });
+    toast({ title: "¡Solicitud enviada!", description: `${selectedKeys.length} llave(s) solicitada(s). Ya le entregan la llave, gracias.` });
     setIsSubmitting(false);
-    setStep('success');
+    // Cambio 2026-08-30: se eliminó la pantalla de éxito con cuenta regresiva de
+    // 5s (su botón "Cancelar Pedido" no borraba realmente la solicitud, solo
+    // limpiaba la terminal y confundía). Ahora, tras enviar, la terminal vuelve
+    // INMEDIATAMENTE al inicio limpio para que se loguee el próximo usuario. Si
+    // hubo un error en el pedido, el vigilante lo elimina desde el Monitor.
+    handleNewRequest();
   };
 
   const handleNewRequest = () => { setCurrentUser(null); setSelectedKeys([]); setStep('main'); };
-
-  const handleCancelRequest = () => {
-    toast({ title: "Pedido cancelado", description: "Su solicitud ha sido cancelada", variant: "destructive" });
-    setCurrentUser(null); setSelectedKeys([]); setStep('main');
-  };
 
   const handleCancelConfirmation = () => setSelectedKeys([]);
 
@@ -195,50 +194,6 @@ export default function TerminalUsuario() {
             usuarioEntrante={exchangeDone.entrante}
             onFinish={handleExchangeFinish}
           />
-        </main>
-      </div>
-    );
-  }
-
-  if (step === 'success' && selectedKeys.length > 0 && currentUser) {
-  return (
-    <div className="min-h-screen bg-background">
-      <TerminalHeader />
-      
-      {/* Connection status and refresh button */}
-      <div className="bg-card border-b px-4 py-2">
-        <div className="container max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {!isConnected ? (
-              <>
-                <WifiOff className="w-4 h-4 text-destructive" />
-                <span className="text-sm text-destructive">Sin conexión</span>
-              </>
-            ) : lastUpdated ? (
-              <span className="text-xs text-muted-foreground">
-                Actualizado: {lastUpdated.toLocaleTimeString()}
-              </span>
-            ) : null}
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="gap-2"
-            onClick={() => refrescarDatos()}
-            disabled={isLoading || !isConnected}
-          >
-            {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <RefreshCw className="w-4 h-4" />
-            )}
-            <span>Actualizar datos</span>
-          </Button>
-        </div>
-      </div>
-      
-      <main className="container max-w-4xl mx-auto py-8 px-4">
-          <RequestSuccess selectedKeys={selectedKeys} onNewRequest={handleNewRequest} onCancelRequest={handleCancelRequest} />
         </main>
       </div>
     );

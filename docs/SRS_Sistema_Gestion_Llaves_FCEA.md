@@ -153,7 +153,7 @@ Las funciones principales del sistema son:
 2. **Control de Entregas y Devoluciones**
    - Registro de entrega con identificacion del vigilante responsable
    - Registro de devolucion con calculo automatico de tiempo de uso
-   - Funcion de deshacer operaciones (ventana de 2 minutos)
+   - Funcion de deshacer operaciones (ventana de 1 minuto)
    - Intercambio de llave entre usuarios
 
 3. **Sistema de Alertas**
@@ -283,11 +283,11 @@ El sistema contempla tres tipos de usuarios con diferentes perfiles:
 |-------|-------------|
 | ID | RF-005 |
 | Nombre | Funcion Deshacer |
-| Descripcion | Permitir revertir una entrega o devolucion dentro de los 2 minutos siguientes |
+| Descripcion | Permitir revertir una entrega o devolucion dentro del 1 minuto siguiente |
 | Prioridad | Media |
 | Entrada | Accion de deshacer |
 | Salida | Reversion del estado anterior |
-| Restricciones | Solo disponible dentro de ventana de 2 minutos |
+| Restricciones | Solo disponible dentro de ventana de 1 minuto |
 
 #### RF-006: Alerta por Tiempo Excedido
 | Campo | Descripcion |
@@ -767,9 +767,9 @@ type Tablero = 'Tablero Principal' | 'Tablero Híbrido' | 'Tablero Externo';
 | **Nombre** | Deshacer Operacion |
 | **Actor Principal** | Vigilante |
 | **Descripcion** | Revertir una entrega o devolucion erronea |
-| **Precondiciones** | Operacion realizada hace menos de 2 minutos |
-| **Flujo Principal** | 1. El vigilante identifica el error<br>2. El vigilante presiona el boton "Deshacer" (visible durante 2 minutos)<br>3. El sistema revierte la operacion al estado anterior |
-| **Flujo Alternativo** | 2a. Si pasaron mas de 2 minutos, el boton no esta disponible |
+| **Precondiciones** | Operacion realizada hace menos de 1 minuto |
+| **Flujo Principal** | 1. El vigilante identifica el error<br>2. El vigilante presiona el boton "Deshacer" (visible durante 1 minuto)<br>3. El sistema revierte la operacion al estado anterior |
+| **Flujo Alternativo** | 2a. Si paso mas de 1 minuto, el boton no esta disponible |
 | **Postcondiciones** | El estado de la solicitud vuelve al anterior |
 
 #### CU-006: Gestionar Vigilantes
@@ -964,7 +964,7 @@ type Tablero = 'Tablero Principal' | 'Tablero Híbrido' | 'Tablero Externo';
                           v
               +-----------------+
               | Opcion Deshacer |
-              | disponible 2min |
+              | disponible 1min |
               +-----------------+
                           |
                           v

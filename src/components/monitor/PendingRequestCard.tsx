@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { SolicitudLlave } from '@/types/solicitud';
 import { Vigilante } from '@/data/fceaData';
 import { formatearUbicacion, getColorTipoLugar } from '@/data/fceaData';
-import { Key, MapPin, User, Phone, Clock, CheckCircle, Building2 } from 'lucide-react';
+import { Key, MapPin, User, Phone, Clock, CheckCircle, Building2, Trash2 } from 'lucide-react';
 import { formatearDuracion, VENTANA_AHORA_SEG } from '@/utils/tiempoEspera';
 
 
@@ -59,9 +59,11 @@ interface PendingRequestCardProps {
   vigilantes: Vigilante[];
   vigilantesAnteriores?: Vigilante[];
   onEntregar: (vigilante: string) => void;
+  /** Cambio 2026-08-30: eliminar por completo la solicitud (pedido equivocado). */
+  onEliminar?: () => void;
 }
 
-export function PendingRequestCard({ solicitud, vigilantes, vigilantesAnteriores = [], onEntregar }: PendingRequestCardProps) {
+export function PendingRequestCard({ solicitud, vigilantes, vigilantesAnteriores = [], onEntregar, onEliminar }: PendingRequestCardProps) {
   const colorTipo = getColorTipoLugar(solicitud.lugar.tipo);
 
   // Ancla del contador: preferimos `horaCreacionServidor` (campo `created` de
@@ -143,7 +145,21 @@ export function PendingRequestCard({ solicitud, vigilantes, vigilantesAnteriores
 
       {/* Botones de vigilantes */}
       <div className="mt-4 pt-4 border-t">
-        <p className="text-sm font-medium text-muted-foreground mb-2">Entregar llave:</p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm font-medium text-muted-foreground">Entregar llave:</p>
+          {onEliminar && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1 text-destructive hover:text-destructive hover:bg-destructive/10 h-8"
+              onClick={onEliminar}
+              title="Eliminar esta solicitud (pedido equivocado)"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Eliminar solicitud</span>
+            </Button>
+          )}
+        </div>
         <div className="flex flex-wrap gap-2">
           {vigilantes.map(v => (
             <Button key={v.id} variant={v.esJefe ? 'default' : 'outline'} size="sm" className="gap-2" onClick={() => onEntregar(v.nombre)}>

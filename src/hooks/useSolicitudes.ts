@@ -48,7 +48,7 @@ const generarSolicitudesDemo = (): SolicitudLlave[] => {
   ];
 };
 
-const UNDO_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutos
+const UNDO_TIMEOUT_MS = 1 * 60 * 1000; // 1 minuto (bajado de 2 min el 2026-08-30)
 
 export function useSolicitudes() {
   const [solicitudes, setSolicitudes] = useState<SolicitudLlave[]>(generarSolicitudesDemo);
