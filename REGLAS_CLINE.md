@@ -22,6 +22,31 @@ Los archivos más importantes que deben actualizarse SIEMPRE son:
 - Actualizar semilla
 **SOLO SON ESOS**
 
+## Regla de Oro del dist MAESTRO del pendrive (agregada 30/08/2026)
+Todo upgrade/fix que cambie el **frontend compilado (`dist`)** y que YA fue probado con
+éxito en producción DEBE, además de aplicarse en las 3 PC, **regrabar el `dist` MAESTRO
+del pendrive** en `D:\sistema-llaves-fcea\dist`. Ese `dist` es el que copian **Instalar
+Sistema** y **Recuperar Sistema** a cada PC. Si no se actualiza, una instalación o
+recuperación futura reinstalaría el **frontend VIEJO** (perdiendo el upgrade) aunque el
+commit y el paquete de upgrade estén perfectos.
+
+Comando obligatorio (preserva la semilla per-PC igual que los upgrades):
+```
+robocopy <repo>\dist D:\sistema-llaves-fcea\dist /MIR /XF config.json system_health.json /NFL /NDL /NJH /NJS /NP
+```
+**Por qué:** el `dist` de `D:\sistema-llaves-fcea\dist` es la "fuente maestra" del
+frontend en el pendrive-cable. Los scripts críticos (INSTALAR.bat / RECUPERAR) NO
+compilan en producción: copian ese `dist` tal cual. Pasó el 30/08/2026: tras aplicar un
+upgrade de `dist` en las 3 PC, el `dist` maestro del pendrive seguía con el JS viejo, por
+lo que reinstalar/recuperar habría revertido el cambio silenciosamente.
+
+**Checklist al cerrar un upgrade de `dist` que funcionó:**
+1. `npm run build` en el repo (deja el `dist` nuevo).
+2. Aplicar en las 3 PC (paquete de upgrade con su `APLICAR_UPGRADE.ps1`).
+3. **Regrabar el `dist` MAESTRO del pendrive** con el robocopy de arriba.
+4. Commit + push (el `dist` del repo está en .gitignore; lo que se versiona es el código
+   fuente y el paquete del upgrade).
+
 ## Regla de Oro
 Una mejora/upgrade o fix UNA VEZ QUE FUE PROBADA CON ÉXITO EN EL SISTEMA DE PRODUCCIÓN (3 pc sin internet) POR MI debe quedar grabada en todas partes, eso significa aquí en la laptop de desarrollo, en github, y en el pendrive también. Tiene que ser un proceso de mejora incremental y que vaya quedando comiteada y respaldada para que sirva de respaldo de rollback y **nunca olvidar hacer commit con timestamp y subir a github una vez que el arreglo o el upgrade funcionó bien** que fue útil porque muchas veces creas archivos que lo intentas pero fallan. 
 
