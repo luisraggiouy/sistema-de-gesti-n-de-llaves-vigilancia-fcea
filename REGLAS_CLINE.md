@@ -44,8 +44,23 @@ lo que reinstalar/recuperar habría revertido el cambio silenciosamente.
 1. `npm run build` en el repo (deja el `dist` nuevo).
 2. Aplicar en las 3 PC (paquete de upgrade con su `APLICAR_UPGRADE.ps1`).
 3. **Regrabar el `dist` MAESTRO del pendrive** con el robocopy de arriba.
-4. Commit + push (el `dist` del repo está en .gitignore; lo que se versiona es el código
+4. **VERIFICAR (OBLIGATORIO)** que el `dist` maestro quedó IDÉNTICO al `dist` del repo
+   (ver bloque de verificación abajo). Como el build compila todo el código fuente, ese
+   `dist` ya trae TODOS los upgrades históricos juntos; esta verificación garantiza que
+   ninguno quedó afuera y que el pendrive no arrastra JS viejo.
+5. Commit + push (el `dist` del repo está en .gitignore; lo que se versiona es el código
    fuente y el paquete del upgrade).
+
+### VERIFICACIÓN OBLIGATORIA (hacer SIEMPRE, no es opcional)
+```
+# 1) Debe dar rc=0 (idénticos). Si da 1, faltó copiar -> repetir el robocopy real.
+robocopy <repo>\dist D:\sistema-llaves-fcea\dist /L /MIR /XF config.json system_health.json /NFL /NDL /NJH /NJS /NP
+# 2) Los hashes de index.html y del bundle JS deben COINCIDIR entre repo y pendrive.
+(Get-FileHash <repo>\dist\index.html).Hash ; (Get-FileHash D:\sistema-llaves-fcea\dist\index.html).Hash
+```
+Verificado OK el 30/08/2026: `robocopy /L` dio rc=0 y los hashes de `index.html` y del
+bundle JS coincidieron exactamente entre repo y pendrive → el `dist` maestro contiene
+todos los upgrades históricos.
 
 ## Regla de Oro
 Una mejora/upgrade o fix UNA VEZ QUE FUE PROBADA CON ÉXITO EN EL SISTEMA DE PRODUCCIÓN (3 pc sin internet) POR MI debe quedar grabada en todas partes, eso significa aquí en la laptop de desarrollo, en github, y en el pendrive también. Tiene que ser un proceso de mejora incremental y que vaya quedando comiteada y respaldada para que sirva de respaldo de rollback y **nunca olvidar hacer commit con timestamp y subir a github una vez que el arreglo o el upgrade funcionó bien** que fue útil porque muchas veces creas archivos que lo intentas pero fallan. 

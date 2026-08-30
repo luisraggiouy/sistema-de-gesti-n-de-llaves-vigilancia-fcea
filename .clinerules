@@ -60,6 +60,19 @@ copian ese `dist` tal cual desde el pendrive. Pasó el 30/08/2026: tras aplicar 
 de `dist` en las 3 PC, el `dist` maestro del pendrive seguía con el JS viejo, por lo que
 reinstalar/recuperar habría revertido el cambio silenciosamente.
 
+### VERIFICACIÓN OBLIGATORIA (hacer SIEMPRE al cerrar un upgrade de `dist`)
+Después de regrabar, hay que **comprobar que el `dist` maestro del pendrive quedó IDÉNTICO
+al `dist` recién compilado del repo**. Como el build compila TODO el código fuente, ese
+`dist` ya trae todos los upgrades históricos juntos; la verificación asegura que ninguno
+quedó afuera y que el pendrive no arrastra JS viejo. Correr:
+```
+# 1) Debe dar rc=0 (idénticos). Si da 1, faltó copiar -> repetir el robocopy real.
+robocopy <repo>\dist D:\sistema-llaves-fcea\dist /L /MIR /XF config.json system_health.json /NFL /NDL /NJH /NJS /NP
+# 2) Los hashes de index.html y del bundle JS deben COINCIDIR entre repo y pendrive.
+(Get-FileHash <repo>\dist\index.html).Hash ; (Get-FileHash D:\sistema-llaves-fcea\dist\index.html).Hash
+```
+Verificado OK el 30/08/2026 (rc=0 + hashes idénticos de index.html y del JS).
+
 ## Regla de Oro
 Una mejora/upgrade o fix UNA VEZ QUE FUE PROBADA CON ÉXITO EN EL SISTEMA DE PRODUCCIÓN (3 pc sin internet) POR MI debe quedar grabada en todas partes, eso significa aquí en la laptop de desarrollo, en github, y en el pendrive también. Tiene que ser un proceso de mejora incremental y que vaya quedando comiteada y respaldada para que sirva de respaldo de rollback y **nunca olvidar hacer commit con timestamp y subir a github una vez que el arreglo o el upgrade funcionó bien** que fue útil porque muchas veces creas archivos que lo intentas pero fallan. 
 
