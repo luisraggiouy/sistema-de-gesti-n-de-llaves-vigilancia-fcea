@@ -827,7 +827,9 @@ function generarInformeHTML(data: any, options: any): string {
   }).join('');
 
   const detalleAutorizacionesRows = (data.autorizaciones || []).map((a: any) => {
-    const fecha = new Date(a.fechaAutorizacion).toLocaleDateString('es-UY');
+    const fecha = a.fechaAutorizacion
+      ? new Date(a.fechaAutorizacion.includes('T') ? a.fechaAutorizacion : a.fechaAutorizacion + 'T12:00:00').toLocaleDateString('es-UY')
+      : '-';
     return `<tr style="border-bottom:1px solid #f8fafc">
       <td style="padding:6px 8px">${fecha}</td>
       <td style="padding:6px 8px">${a.personaNombre || '-'}</td>
@@ -1047,7 +1049,7 @@ function generarInformeHTML(data: any, options: any): string {
             ts: o.fechaRegistro || '',
           })),
           ...(data.autorizaciones || []).map((a: any) => ({
-            fecha: a.fechaAutorizacion ? new Date(a.fechaAutorizacion).toLocaleDateString('es-UY') : '-',
+            fecha: a.fechaAutorizacion ? new Date(a.fechaAutorizacion.includes('T') ? a.fechaAutorizacion : a.fechaAutorizacion + 'T12:00:00').toLocaleDateString('es-UY') : '-',
             hora: a.fechaAutorizacion ? new Date(a.fechaAutorizacion).toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' }) : '-',
             tipo: '<span style="color:#0891b2">✅ Autorización</span>',
             lugar: a.lugarAutorizado || '-',

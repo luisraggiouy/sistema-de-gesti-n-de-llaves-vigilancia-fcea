@@ -421,6 +421,18 @@ export function AutorizacionesTab() {
   );
 }
 
+/**
+ * Formatea una fecha (YYYY-MM-DD o ISO completo) a DD/MM/AAAA local.
+ * Fix 2026-08-30: `new Date('2026-08-30')` se interpreta como UTC medianoche;
+ * al formatear en zona horaria de Uruguay (UTC-3) mostraba UN DÍA ANTES.
+ * Anclamos a las 12:00 para las fechas YYYY-MM-DD y así evitar el corrimiento.
+ */
+function fmtFecha(fecha: string): string {
+  if (!fecha) return '';
+  const d = fecha.includes('T') ? new Date(fecha) : new Date(fecha + 'T12:00:00');
+  return isNaN(d.getTime()) ? fecha : d.toLocaleDateString('es-UY');
+}
+
 function AutorizacionCard({ auth, onEdit, onDelete }: { auth: Autorizacion; onEdit: (a: Autorizacion) => void; onDelete: (a: Autorizacion) => void }) {
   const hoy = new Date().toISOString().split('T')[0];
   const proximaAVencer = auth.fechaHasta && auth.fechaHasta >= hoy && auth.fechaHasta <= new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
@@ -474,13 +486,13 @@ function AutorizacionCard({ auth, onEdit, onDelete }: { auth: Autorizacion; onEd
         </span>
         {auth.fechaAutorizacion && (
           <span className="flex items-center gap-1">
-            <CalendarDays className="w-3 h-3" />{new Date(auth.fechaAutorizacion).toLocaleDateString('es-UY')}
+            <CalendarDays className="w-3 h-3" />{fmtFecha(auth.fechaAutorizacion)}
           </span>
         )}
         {(auth.fechaDesde || auth.fechaHasta) && (
           <span className="flex items-center gap-1">
             <CalendarDays className="w-3 h-3" />
-            Vigencia: {auth.fechaDesde ? new Date(auth.fechaDesde).toLocaleDateString('es-UY') : '...'} — {auth.fechaHasta ? new Date(auth.fechaHasta).toLocaleDateString('es-UY') : '...'}
+            Vigencia: {auth.fechaDesde ? fmtFecha(auth.fechaDesde) : '...'} — {auth.fechaHasta ? fmtFecha(auth.fechaHasta) : '...'}
           </span>
         )}
         {auth.horario && (
