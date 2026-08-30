@@ -262,6 +262,27 @@ function Copiar-NodePortable {
 # ============================================================
 if ($Tipo -eq "actualizar-datos") {
 
+  # ============================================================
+  # [DEPRECADO 2026-08-20] Este modo copiaba pb_data "en frio"
+  # (con PocketBase potencialmente detenido), lo que puede producir
+  # una copia inconsistente del SQLite si el WAL esta abierto
+  # (ver docs/postmortem_wal_huerfano_26jul2026.md).
+  #
+  # El metodo SOPORTADO para refrescar los datos del pendrive es
+  # ahora "ACTUALIZAR DATOS (Luis).bat" -> ACTUALIZAR_DATOS_RESCATE.ps1,
+  # que usa el backup interno de PocketBase por HTTP:
+  #   * NO detiene el servidor (downtime = 0).
+  #   * Snapshot 100% consistente.
+  #   * No pisa config.json.
+  #
+  # Se mantiene esta rama solo por compatibilidad de scripts viejos,
+  # pero se recomienda NO usarla.
+  # ============================================================
+  Write-Host "[DEPRECADO] El modo -Tipo actualizar-datos ya no es el metodo recomendado." -ForegroundColor Yellow
+  Write-Host "            Use 'ACTUALIZAR DATOS (Luis).bat' del pendrive de RESCATE," -ForegroundColor Yellow
+  Write-Host "            que hace un snapshot consistente sin cortar el servicio." -ForegroundColor Yellow
+  Write-Host ""
+
   # Verificar que el pendrive ya sea un instalador valido
   $pendriveRepo = Join-Path $Drive "sistema-llaves-fcea"
   if (-not (Test-Path $pendriveRepo)) {
@@ -270,7 +291,7 @@ if ($Tipo -eq "actualizar-datos") {
     exit 1
   }
 
-  Write-Host "Modo ACTUALIZAR-DATOS: refrescando solo pb_data y pb_backups del pendrive..."
+  Write-Host "Modo ACTUALIZAR-DATOS (legacy): refrescando solo pb_data y pb_backups del pendrive..."
   Write-Host "(El codigo fuente, Node.js portable y demas archivos no se tocan)"
   Write-Host ""
 

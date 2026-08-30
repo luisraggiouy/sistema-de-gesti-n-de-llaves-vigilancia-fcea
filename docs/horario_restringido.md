@@ -18,6 +18,14 @@ Solo **Personal TAS** cuyo departamento sea:
 
 > Ejemplo: "Personal TAS (Mantenimiento)" **NO** está exento → si intenta antes de las 7:00 o después de las 23:00, queda bloqueado.
 
+## Excepción para Empresas (upgrade 2026-08-30)
+Los usuarios de **tipo "Empresa"** (por ejemplo cooperativas de limpieza que empiezan a trabajar antes de las 7) pueden **solicitar llaves desde las 06:00**, es decir en la franja **06:00 a 06:59**. El resto de los usuarios mantiene el corte de las 07:00.
+
+- El **bloqueo nocturno sigue vigente para las empresas**: no pueden solicitar **antes de las 06:00** ni **desde las 23:00**.
+- Solo se les abre esa hora extra (06:00–07:00); todo lo demás queda igual.
+
+Motivo: el 29/08/2026 una persona de una cooperativa de limpieza fue a las 6:10 y no pudo registrar el retiro (todavía no eran las 7:00), llevándose las llaves sin registrar.
+
 ## Qué ve el usuario cuando está fuera de horario
 - Aparece un **banner rojo**: *"Horario restringido — No se permite la entrega de llaves antes de las 7:00 AM ni después de las 23:00 PM."*
 - Al intentar enviar, la Terminal **no deja continuar** y muestra el aviso *"Horario no permitido"*.
@@ -25,7 +33,7 @@ Solo **Personal TAS** cuyo departamento sea:
 ## Dónde está en el código (referencia técnica)
 - Archivo: `src/pages/TerminalUsuario.tsx`
 - Función `esHorarioRestringido()`: `hora < 7 || hora >= 23`
-- Función `usuarioExentoHorario()`: `tipo === 'Personal TAS' && (departamento === 'Servicios Generales' || departamento === 'Vigilancia')`
+- Función `usuarioExentoHorario()`: exento total si `tipo === 'Personal TAS' && (departamento === 'Servicios Generales' || departamento === 'Vigilancia')`; además, exento en la franja 06:00–06:59 si `tipo === 'Empresa' && hora === 6` (upgrade 2026-08-30).
 
 ## Nota importante
 Esta restricción vive en la **Terminal de usuario** (donde se solicita). El **Monitor de Vigilancia** no tiene candado por horario: un vigilante puede registrar entregas/devoluciones a cualquier hora.

@@ -227,10 +227,15 @@ de los datos del pendrive se ve comprometida:
 ```
 
 ### Actualizar solo los datos (semanal)
-```powershell
-.\scripts\pendrive\crear_pendrive.ps1 -Drive D: -Tipo actualizar-datos
-```
-O simplemente doble click en `ACTUALIZAR_DATOS.bat` del pendrive.
+
+Método recomendado: en el **Monitor Vigilancia** (con el sistema prendido),
+doble click en `ACTUALIZAR DATOS (Luis).bat` del pendrive de rescate. Toma un
+snapshot consistente vía el backup interno de PocketBase, **sin cortar el
+servicio** y sin pisar `config.json`.
+
+> El modo `.\scripts\pendrive\crear_pendrive.ps1 -Drive D: -Tipo actualizar-datos`
+> quedó **deprecado** (copiaba `pb_data` en frío, con riesgo de copia
+> inconsistente del SQLite). No usarlo.
 
 ### Generar pendrive sin Node.js portable (ahorra ~30 MB)
 ```powershell

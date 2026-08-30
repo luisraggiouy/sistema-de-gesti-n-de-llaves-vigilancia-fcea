@@ -231,7 +231,9 @@ if ($sqlite) {
   }
 }
 
-# --- 8) Escribir _SEMILLA_INFO.txt en pendrive y en ProgramData ---
+# --- 8) Escribir el marcador de resguardo en pendrive y en ProgramData ---
+# Nombre nuevo desde 2026-08-20: _RESGUARDO_DATOS_INFO.txt (se escribe tambien
+# el viejo _SEMILLA_INFO.txt por compatibilidad con lectores antiguos).
 $now = Get-Date -Format "yyyy-MM-ddTHH:mm:ss"
 $hostname = $env:COMPUTERNAME
 
@@ -249,17 +251,22 @@ conteos:
 generado_por: actualizar_semilla.ps1
 "@
 
-$infoPendrive = Join-Path $pendrivePbData "_SEMILLA_INFO.txt"
-$infoProgData = Join-Path $pbDataProd "_SEMILLA_INFO.txt"
+$infoPendrive       = Join-Path $pendrivePbData "_RESGUARDO_DATOS_INFO.txt"
+$infoProgData       = Join-Path $pbDataProd     "_RESGUARDO_DATOS_INFO.txt"
+$infoPendriveLegacy = Join-Path $pendrivePbData "_SEMILLA_INFO.txt"
+$infoProgDataLegacy = Join-Path $pbDataProd     "_SEMILLA_INFO.txt"
 try {
-  Set-Content -Path $infoPendrive -Value $info -Encoding UTF8 -Force
-  Set-Content -Path $infoProgData -Value $info -Encoding UTF8 -Force
+  Set-Content -Path $infoPendrive       -Value $info -Encoding UTF8 -Force
+  Set-Content -Path $infoProgData       -Value $info -Encoding UTF8 -Force
+  # Compatibilidad: nombre viejo para lectores antiguos.
+  Set-Content -Path $infoPendriveLegacy -Value $info -Encoding UTF8 -Force
+  Set-Content -Path $infoProgDataLegacy -Value $info -Encoding UTF8 -Force
   Log ""
-  Log "  [OK] _SEMILLA_INFO.txt actualizado:"
+  Log "  [OK] Marcador de resguardo actualizado:"
   Log "    -> $infoPendrive"
   Log "    -> $infoProgData"
 } catch {
-  Log ("  [WARN] No se pudo escribir _SEMILLA_INFO.txt: " + $_.Exception.Message)
+  Log ("  [WARN] No se pudo escribir el marcador de resguardo: " + $_.Exception.Message)
 }
 
 # --- 9) Reanudar PocketBase si lo detuvimos ---

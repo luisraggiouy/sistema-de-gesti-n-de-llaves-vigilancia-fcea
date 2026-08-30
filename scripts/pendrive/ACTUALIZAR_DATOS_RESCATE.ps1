@@ -210,16 +210,19 @@ Set-Content -Path (Join-Path $PendriveRoot 'ULTIMO_REFRESCO_DE_DATOS.txt') -Valu
 # --- Marcador para el Monitor del Sistema (check_system_health.ps1) ---
 # El monitor de salud verifica cuando fue el ultimo resguardo portable leyendo
 # el campo "last_seed_written_at:" del archivo:
-#   C:\ProgramData\FCEA-Sistema-Llaves\pb_data\_SEMILLA_INFO.txt
-# Antes lo escribia el viejo actualizar_semilla.ps1. Ahora que el resguardo se
-# hace con ESTE script ("ACTUALIZAR DATOS"), tambien dejamos ese sello para que
-# la advertencia "Nunca se grabo la semilla del pendrive" desaparezca.
-# (El nombre interno del archivo se mantiene por compatibilidad de lectura.)
+#   C:\ProgramData\FCEA-Sistema-Llaves\pb_data\_RESGUARDO_DATOS_INFO.txt
+# (nombre nuevo desde 2026-08-20; antes se llamaba _SEMILLA_INFO.txt).
+# Ahora que el resguardo se hace con ESTE script ("ACTUALIZAR DATOS"), dejamos
+# ese sello para que la advertencia "Nunca se actualizaron los datos del
+# pendrive" desaparezca. Escribimos el nombre NUEVO y ademas mantenemos el
+# nombre viejo por compatibilidad con instalaciones que aun tengan el lector
+# antiguo.
 try {
   $progDataPbData = "C:\ProgramData\FCEA-Sistema-Llaves\pb_data"
   if (Test-Path $progDataPbData) {
     $nowIso   = Get-Date -Format "yyyy-MM-ddTHH:mm:ss"
-    $infoProg = Join-Path $progDataPbData "_SEMILLA_INFO.txt"
+    $infoProg = Join-Path $progDataPbData "_RESGUARDO_DATOS_INFO.txt"
+    $infoProgLegacy = Join-Path $progDataPbData "_SEMILLA_INFO.txt"
     $infoTxt  = @(
       "last_seed_written_at: $nowIso",
       "origen: $($env:COMPUTERNAME)",
@@ -227,6 +230,8 @@ try {
       "generado_por: ACTUALIZAR_DATOS_RESCATE.ps1"
     ) -join [Environment]::NewLine
     Set-Content -Path $infoProg -Value $infoTxt -Encoding UTF8 -Force
+    # Compatibilidad: dejar tambien el nombre viejo por si el lector es antiguo.
+    Set-Content -Path $infoProgLegacy -Value $infoTxt -Encoding UTF8 -Force
     Ok "      Marcador de resguardo actualizado para el Monitor del Sistema."
   } else {
     Warn "      (No existe $progDataPbData : no se escribio el marcador del Monitor. No es grave.)"

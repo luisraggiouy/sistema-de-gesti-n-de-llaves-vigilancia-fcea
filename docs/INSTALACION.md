@@ -45,7 +45,7 @@ desastres**:
 - `node-portable\`       → Node.js LTS portable (~30 MB, sin necesidad de internet)
 - `INSTALAR.bat`         → lanzador raíz (restaura datos automáticamente)
 - `DESINSTALAR.bat`      → desinstalador limpio
-- `ACTUALIZAR_DATOS.bat` → refresco semanal de datos
+- `ACTUALIZAR DATOS (Luis).bat` → refresco de datos (snapshot consistente vía backup interno de PocketBase, sin cortar el servicio)
 - `ULTIMO_BACKUP.txt`    → metadatos del backup incluido
 - `autorun.inf`, `LEEME.txt`
 

@@ -412,10 +412,11 @@ try {
 # ============================================================================
 # 5. VERIFICAR ACTUALIZACION DE SEMILLA DEL PENDRIVE (v5.1)
 # ============================================================================
-# Fuente principal: _SEMILLA_INFO.txt en C:\ProgramData\FCEA-Sistema-Llaves\pb_data\
-# Lo escribe actualizar_semilla.ps1 cada vez que se refresca la semilla del
-# pendrive (a mano desde ACTUALIZAR_SEMILLA_PENDRIVE.bat, o automaticamente
-# desde DESINSTALAR SISTEMA.bat antes de borrar).
+# Fuente principal: _RESGUARDO_DATOS_INFO.txt en C:\ProgramData\FCEA-Sistema-Llaves\pb_data\
+# (nombre nuevo desde 2026-08-20; antes _SEMILLA_INFO.txt, que se sigue leyendo
+# como fallback). Lo escribe ACTUALIZAR_DATOS_RESCATE.ps1 (el script detras de
+# "ACTUALIZAR DATOS (Luis).bat") cada vez que se refresca el resguardo portable
+# de datos en el pendrive de rescate.
 #
 # Umbrales (regla dorada de resguardo):
 #   > 45 dias  -> WARNING  (recordar actualizar semilla)
@@ -436,18 +437,28 @@ try {
         } catch { }
     }
 
+    # Fuente principal (nombre nuevo desde 2026-08-20) y fallback al nombre viejo.
+    $ResguardoInfoFile = "C:\ProgramData\FCEA-Sistema-Llaves\pb_data\_RESGUARDO_DATOS_INFO.txt"
     $SemillaInfoFile = "C:\ProgramData\FCEA-Sistema-Llaves\pb_data\_SEMILLA_INFO.txt"
     $SemillaLegacyMarker = $PendriveMarkerFile
 
     if ($RolActual -eq "monitor") {
         $LastSeedDate = $null
-        if (Test-Path $SemillaInfoFile) {
+        # 1) Nombre nuevo
+        if (Test-Path $ResguardoInfoFile) {
+            $contenido = Get-Content $ResguardoInfoFile -Raw -ErrorAction SilentlyContinue
+            if ($contenido -match 'last_seed_written_at:\s*(\S+)') {
+                try { $LastSeedDate = [DateTime]::Parse($Matches[1]) } catch { $LastSeedDate = $null }
+            }
+        }
+        # 2) Nombre viejo (compatibilidad con instalaciones previas)
+        if (-not $LastSeedDate -and (Test-Path $SemillaInfoFile)) {
             $contenido = Get-Content $SemillaInfoFile -Raw -ErrorAction SilentlyContinue
             if ($contenido -match 'last_seed_written_at:\s*(\S+)') {
                 try { $LastSeedDate = [DateTime]::Parse($Matches[1]) } catch { $LastSeedDate = $null }
             }
         }
-        # Fallback: si aun no existe _SEMILLA_INFO.txt pero si el marcador legacy
+        # 3) Fallback: si aun no existe ningun _*_INFO.txt pero si el marcador legacy
         if (-not $LastSeedDate -and (Test-Path $SemillaLegacyMarker)) {
             $raw = Get-Content $SemillaLegacyMarker -ErrorAction SilentlyContinue
             try { $LastSeedDate = [DateTime]::Parse($raw) } catch { $LastSeedDate = $null }

@@ -44,6 +44,14 @@ export default function TerminalUsuario() {
   // que cierra la sesion y limpia la Terminal para el proximo usuario.
   const [exchangeDone, setExchangeDone] = useState<{ lugar: Lugar; saliente: string; entrante: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Fix 2026-08-30: contador para forzar el remontaje de KeySearch al iniciar una
+  // nueva sesion. KeySearch guarda su propio estado interno (texto de busqueda y
+  // filtros de tipo/edificio). Al enviar una solicitud normal, la terminal volvia
+  // a 'main' pero KeySearch NO se desmontaba, por lo que quedaba el texto (ej.
+  // "rendi") y la lista de resultados desplegada para el proximo usuario. Al
+  // cambiar este key, React remonta KeySearch limpio (mismo efecto que el
+  // intercambio, que ya lo desmontaba al pasar por 'exchange-success').
+  const [terminalResetKey, setTerminalResetKey] = useState(0);
   // Fix 2026-08-28: usar TODAS las llaves (no solo las disponibles) como base de
   // las frecuentes, para que una llave frecuente que este en uso o ya solicitada
   // siga apareciendo (permite ofrecer intercambio y avisar 'ya solicitada').
@@ -95,8 +103,23 @@ export default function TerminalUsuario() {
 
   const usuarioExentoHorario = () => {
     if (!currentUser) return false;
-    return currentUser.tipo === 'Personal TAS' &&
-      (currentUser.departamento === 'Servicios Generales' || currentUser.departamento === 'Vigilancia');
+    // Exentos totales (cualquier hora): Personal TAS de Servicios Generales / Vigilancia.
+    if (
+      currentUser.tipo === 'Personal TAS' &&
+      (currentUser.departamento === 'Servicios Generales' || currentUser.departamento === 'Vigilancia')
+    ) {
+      return true;
+    }
+    // Upgrade 2026-08-30 (Opción B): las EMPRESAS (ej. cooperativas de limpieza)
+    // pueden solicitar llaves desde las 06:00, una hora antes que el resto, porque
+    // suelen empezar a trabajar antes de las 7:00. Solo se les exime la franja
+    // 06:00–06:59; el bloqueo nocturno (>= 23:00 y < 06:00) sigue vigente para
+    // ellas, y el resto de los usuarios mantiene el corte de las 07:00.
+    if (currentUser.tipo === 'Empresa') {
+      const hora = new Date().getHours();
+      if (hora === 6) return true;
+    }
+    return false;
   };
 
   const handleSubmit = async () => {
@@ -125,7 +148,7 @@ export default function TerminalUsuario() {
     handleNewRequest();
   };
 
-  const handleNewRequest = () => { setCurrentUser(null); setSelectedKeys([]); setStep('main'); };
+  const handleNewRequest = () => { setCurrentUser(null); setSelectedKeys([]); setStep('main'); setTerminalResetKey(k => k + 1); };
 
   const handleCancelConfirmation = () => setSelectedKeys([]);
 
@@ -181,6 +204,7 @@ export default function TerminalUsuario() {
     setCurrentUser(null);
     setSelectedKeys([]);
     setStep('main');
+    setTerminalResetKey(k => k + 1);
   };
 
   if (step === 'exchange-success' && exchangeDone) {
@@ -267,7 +291,7 @@ export default function TerminalUsuario() {
               </div>
             </div>
           )}
-          <KeySearch selectedKeys={selectedKeys} onToggleKey={handleToggleKey} onExchangeRequest={currentUser ? handleExchangeRequest : undefined} tipoUsuario={currentUser?.tipo} />
+          <KeySearch key={terminalResetKey} selectedKeys={selectedKeys} onToggleKey={handleToggleKey} onExchangeRequest={currentUser ? handleExchangeRequest : undefined} tipoUsuario={currentUser?.tipo} />
         </Card>
 
         {isFormValid && currentUser && (
