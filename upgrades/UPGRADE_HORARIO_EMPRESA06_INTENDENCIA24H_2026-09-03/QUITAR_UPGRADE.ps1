@@ -1,7 +1,7 @@
 # =============================================================
 # QUITAR_UPGRADE.ps1  (ROLLBACK)
-# UPGRADE: "Empresas pueden solicitar llaves desde las 06:00"
-# Fecha: 2026-08-30
+# UPGRADE: "Horario - Empresas desde 06:00 + Intendencia 24 hs"
+# Fecha: 2026-09-03
 #
 # QUE HACE:
 #   Restaura el ULTIMO backup del dist (dist_backup_<fecha_hora>)
@@ -10,7 +10,7 @@
 # NO toca PocketBase. NO borra datos.
 # =============================================================
 $ErrorActionPreference = 'Stop'
-$Host.UI.RawUI.WindowTitle = 'ROLLBACK Empresas retiro desde 06AM - Sistema FCEA'
+$Host.UI.RawUI.WindowTitle = 'ROLLBACK Horario Empresa06 + Intendencia24h - Sistema FCEA'
 
 $INSTALL   = 'C:\sistema-llaves-fcea'
 $DIST_DEST = Join-Path $INSTALL 'dist'
@@ -18,7 +18,7 @@ $DIST_DEST = Join-Path $INSTALL 'dist'
 function Line { Write-Host ('=' * 62) -ForegroundColor Yellow }
 
 Line
-Write-Host "  ROLLBACK: Empresas retiro desde 06:00" -ForegroundColor Yellow
+Write-Host "  ROLLBACK: Empresas desde 06:00 + Intendencia 24 hs" -ForegroundColor Yellow
 Write-Host "  PC: $env:COMPUTERNAME" -ForegroundColor Yellow
 Line
 

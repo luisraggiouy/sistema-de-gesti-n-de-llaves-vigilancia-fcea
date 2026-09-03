@@ -103,10 +103,16 @@ export default function TerminalUsuario() {
 
   const usuarioExentoHorario = () => {
     if (!currentUser) return false;
-    // Exentos totales (cualquier hora): Personal TAS de Servicios Generales / Vigilancia.
+    // Se normaliza tipo y departamento (trim) por si vienen con espacios de más.
+    const tipo = (currentUser.tipo || '').trim();
+    const depto = (currentUser.departamento || '').trim();
+    // Exentos totales (cualquier hora, 24 hs): Personal TAS de Servicios
+    // Generales, Vigilancia e Intendencia.
     if (
-      currentUser.tipo === 'Personal TAS' &&
-      (currentUser.departamento === 'Servicios Generales' || currentUser.departamento === 'Vigilancia')
+      tipo === 'Personal TAS' &&
+      (depto === 'Servicios Generales' ||
+        depto === 'Vigilancia' ||
+        depto === 'Intendencia')
     ) {
       return true;
     }
@@ -115,7 +121,7 @@ export default function TerminalUsuario() {
     // suelen empezar a trabajar antes de las 7:00. Solo se les exime la franja
     // 06:00–06:59; el bloqueo nocturno (>= 23:00 y < 06:00) sigue vigente para
     // ellas, y el resto de los usuarios mantiene el corte de las 07:00.
-    if (currentUser.tipo === 'Empresa') {
+    if (tipo === 'Empresa') {
       const hora = new Date().getHours();
       if (hora === 6) return true;
     }

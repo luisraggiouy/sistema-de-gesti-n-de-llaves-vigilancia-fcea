@@ -30,6 +30,7 @@ export type TipoUsuario = 'Docente' | 'Alumno' | 'Personal TAS' | 'Empresa';
 export type DepartamentoTAS =
   | 'Electrotecnia'
   | 'Servicios Generales'
+  | 'Intendencia'
   | 'Compras'
   | 'Gastos'
   | 'UPC'
@@ -60,7 +61,7 @@ export type DepartamentoTAS =
 export const departamentosTAS: DepartamentoTAS[] = [
   'Apoyo Docente', 'Asistencia académica', 'Bedelía', 'Biblioteca', 'CAVIDA',
   'Compras', 'Concursos', 'Contaduría', 'Convenios', 'Decanato',
-  'Electrotecnia', 'Gastos', 'Mantenimiento', 'Personal docente',
+  'Electrotecnia', 'Gastos', 'Intendencia', 'Mantenimiento', 'Personal docente',
   'Rendiciones', 'Reproducciones', 'Servicios Generales', 'Sistemas',
   'Sueldos', 'Suministros', 'UAE', 'UEAM', 'UGE', 'UPC', 'Vigilancia', 'Otro'
 ];
