@@ -8,7 +8,6 @@ import { FrequentKeys } from '@/components/terminal/FrequentKeys';
 import { RequestConfirmation } from '@/components/terminal/RequestConfirmation';
 import { RegistrationModal } from '@/components/terminal/RegistrationModal';
 import { ExchangeConfirmation } from '@/components/terminal/ExchangeConfirmation';
-import { ExchangeSuccess } from '@/components/terminal/ExchangeSuccess';
 import { TerminalScreensaver } from '@/components/terminal/TerminalScreensaver';
 
 import { Lugar, UsuarioRegistrado } from '@/data/fceaData';
@@ -18,7 +17,7 @@ import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
 import { useToast } from '@/hooks/use-toast';
 import { RefreshCw, WifiOff, Loader2, Star } from 'lucide-react';
 
-type TerminalStep = 'main' | 'exchange-success';
+type TerminalStep = 'main';
 
 export default function TerminalUsuario() {
   const { toast } = useToast();
@@ -40,9 +39,6 @@ export default function TerminalUsuario() {
   const [selectedKeys, setSelectedKeys] = useState<Lugar[]>([]);
   const [showRegistration, setShowRegistration] = useState(false);
   const [exchangeTarget, setExchangeTarget] = useState<{ lugar: Lugar; usuario: { nombre: string; celular: string; tipo: string } } | null>(null);
-  // Fix 2026-08-25: datos del intercambio confirmado para la pantalla de exito
-  // que cierra la sesion y limpia la Terminal para el proximo usuario.
-  const [exchangeDone, setExchangeDone] = useState<{ lugar: Lugar; saliente: string; entrante: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Fix 2026-08-30: contador para forzar el remontaje de KeySearch al iniciar una
   // nueva sesion. KeySearch guarda su propio estado interno (texto de busqueda y
@@ -188,46 +184,18 @@ export default function TerminalUsuario() {
     } as any);
     if (success) {
       toast({ title: "Intercambio confirmado", description: `${exchangeTarget.lugar.nombre}: ${exchangeTarget.usuario.nombre} → ${currentUser.nombre}.` });
-      // Fix 2026-08-25: pasar a la pantalla de exito del intercambio para
-      // cerrar luego la sesion del usuario y dejar la Terminal limpia.
-      setExchangeDone({
-        lugar: exchangeTarget.lugar,
-        saliente: exchangeTarget.usuario.nombre,
-        entrante: currentUser.nombre,
-      });
-      setStep('exchange-success');
+      // Cambio 2026-09-03: se eliminó la pantalla de éxito con cuenta regresiva
+      // de 5-6s del intercambio (mismo criterio que la solicitud normal el
+      // 2026-08-30: solo mostrar un aviso breve por toast). Ahora, tras
+      // confirmar el intercambio, la Terminal vuelve INMEDIATAMENTE al inicio
+      // limpio (cierra la sesión del usuario, limpia las llaves y remonta
+      // KeySearch), lista para el próximo usuario, sin necesidad de F5.
+      handleNewRequest();
     } else {
       toast({ title: "Error", description: "No se pudo realizar el intercambio", variant: "destructive" });
     }
     setExchangeTarget(null);
   };
-
-  // Fix 2026-08-25: al finalizar el intercambio, cerrar la sesion del usuario,
-  // limpiar las llaves seleccionadas y volver al inicio (esto tambien desmonta
-  // KeySearch, por lo que la lista de llaves queda replegada/limpia sin F5).
-  const handleExchangeFinish = () => {
-    setExchangeDone(null);
-    setCurrentUser(null);
-    setSelectedKeys([]);
-    setStep('main');
-    setTerminalResetKey(k => k + 1);
-  };
-
-  if (step === 'exchange-success' && exchangeDone) {
-    return (
-      <div className="min-h-screen bg-background">
-        <TerminalHeader />
-        <main className="container max-w-4xl mx-auto py-8 px-4">
-          <ExchangeSuccess
-            lugar={exchangeDone.lugar}
-            usuarioSaliente={exchangeDone.saliente}
-            usuarioEntrante={exchangeDone.entrante}
-            onFinish={handleExchangeFinish}
-          />
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
