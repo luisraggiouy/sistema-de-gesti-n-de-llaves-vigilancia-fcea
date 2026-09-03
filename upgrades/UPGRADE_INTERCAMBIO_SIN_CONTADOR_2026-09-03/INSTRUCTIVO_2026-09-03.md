@@ -22,6 +22,11 @@ había quedado con la pantalla vieja de cuenta regresiva.
   llaves seleccionadas y repliega la lista, lista para el próximo usuario, **sin
   necesidad de F5**.
 - Mismo criterio y comportamiento que la solicitud normal.
+- **Agregado 2026-09-03:** la llave intercambiada queda **registrada en las
+  "llaves frecuentes"** del usuario que se logueó y pidió el intercambio (que
+  ahora pasa a ser el responsable de la llave), igual que en una solicitud
+  normal. Antes el intercambio no la registraba y esa llave no aparecía luego
+  entre las frecuentes de ese usuario.
 
 ## IMPORTANTE — Aplicar en LAS 3 PC
 
@@ -47,6 +52,9 @@ aparece".
 4. **Verificá:** ya **no** aparece la cuenta regresiva de 5s. Sale un aviso breve
    y la Terminal vuelve **sola** al inicio limpio (pide identificarse de nuevo y
    la lista de llaves queda replegada), **sin apretar F5**.
+5. **Verificá (llaves frecuentes):** volvé a identificarte con el MISMO usuario
+   que hizo el intercambio. La llave que acaba de tomar por intercambio debe
+   aparecer ahora en su lista de **llaves frecuentes**.
 
 ## Rollback
 
@@ -60,6 +68,9 @@ borra datos.
   - `handleExchangeConfirm` ahora, tras un intercambio exitoso, muestra el toast y
     llama a `handleNewRequest()` (reset inmediato de la Terminal) en vez de
     `setStep('exchange-success')`.
+  - `handleExchangeConfirm` también llama a `registrarUso(exchangeTarget.lugar.id)`
+    para que la llave intercambiada quede en las llaves frecuentes del usuario
+    logueado (responsable de la llave).
   - Eliminados: el step `'exchange-success'`, el estado `exchangeDone`, la función
     `handleExchangeFinish`, el render de la pantalla de éxito y el import.
 - **Eliminado:** `src/components/terminal/ExchangeSuccess.tsx` (quedó sin uso).

@@ -183,6 +183,12 @@ export default function TerminalUsuario() {
       nombreEmpresa: currentUser.nombreEmpresa,
     } as any);
     if (success) {
+      // Cambio 2026-09-03: registrar la llave intercambiada en las "llaves
+      // frecuentes" del usuario que se logueó y pidió el intercambio (que ahora
+      // pasa a ser el responsable de la llave), igual que en una solicitud
+      // normal. Antes el intercambio NO llamaba a registrarUso, por lo que la
+      // llave no aparecía luego entre las frecuentes de ese usuario.
+      registrarUso(exchangeTarget.lugar.id);
       toast({ title: "Intercambio confirmado", description: `${exchangeTarget.lugar.nombre}: ${exchangeTarget.usuario.nombre} → ${currentUser.nombre}.` });
       // Cambio 2026-09-03: se eliminó la pantalla de éxito con cuenta regresiva
       // de 5-6s del intercambio (mismo criterio que la solicitud normal el
