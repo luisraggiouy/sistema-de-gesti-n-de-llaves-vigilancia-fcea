@@ -38,13 +38,21 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
     return buscarUsuarios(busqueda);
   }, [busqueda, buscarUsuarios]);
 
-  // Determinar si el texto ingresado es celular, email o ninguno (nombre)
+  // Determinar si el texto ingresado es celular o email.
+  //
+  // FIX 2026-09-03: antes, cualquier texto que no fuera dígitos puros ni
+  // contuviera "@" se clasificaba como 'nombre' y se BLOQUEABA con un cartel
+  // ("búsqueda por nombre no permitida"). Eso impedía identificarse a los
+  // usuarios registrados SOLO con email (sin celular) que tipeaban la parte
+  // local de su correo sin la "@" (ej. "katana941"). Ahora ese caso se trata
+  // como 'email' (búsqueda por la parte local del correo, ver
+  // useUsuariosRegistrados.buscarPorTexto). La seguridad se mantiene a nivel
+  // de datos: solo se matchea contra el email, nunca contra el nombre.
   const tipoBusqueda = useMemo(() => {
     const texto = busqueda.trim();
     if (!texto) return null;
     if (/^[\d\s\-\+\(\)]+$/.test(texto)) return 'celular';
-    if (texto.includes('@')) return 'email';
-    return 'nombre'; // no permitido
+    return 'email';
   }, [busqueda]);
 
   // Cierre "click fuera" del listado de sugerencias.
@@ -147,21 +155,9 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
           />
 
 
-          {/* Advertencia si intenta buscar por nombre */}
-          {tipoBusqueda === 'nombre' && busqueda.length >= 2 && (
-            <Card className="absolute z-50 w-full mt-1 p-4 shadow-lg border-amber-300 bg-amber-50">
-              <p className="text-center text-amber-800 text-sm font-medium">
-                Por seguridad, la busqueda por nombre no esta permitida.
-              </p>
-              <p className="text-center text-amber-700 text-xs mt-1">
-                Ingrese su numero de celular o su email para identificarse.
-              </p>
-            </Card>
-          )}
-
           {/* Sugerencias cuando hay resultados. Card absolute debajo del
               input, con scroll vertical interno si la lista es larga. */}
-          {showSuggestions && tipoBusqueda !== 'nombre' && sugerencias.length > 0 && (
+          {showSuggestions && sugerencias.length > 0 && (
             <Card
               ref={suggestionsRef}
               className="absolute z-50 w-full mt-1 py-2 shadow-lg overflow-y-auto max-h-60"
@@ -192,7 +188,7 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
 
 
           {/* Sin resultados */}
-          {showSuggestions && tipoBusqueda !== 'nombre' && busqueda.length >= 2 && sugerencias.length === 0 && (
+          {showSuggestions && busqueda.length >= 2 && sugerencias.length === 0 && (
             <Card className="absolute z-50 w-full mt-1 p-4 shadow-lg">
               <p className="text-center text-muted-foreground text-sm">No se encontro ningun usuario con ese celular o email</p>
               <Button variant="link" className="w-full mt-2" onClick={onRegisterClick}>

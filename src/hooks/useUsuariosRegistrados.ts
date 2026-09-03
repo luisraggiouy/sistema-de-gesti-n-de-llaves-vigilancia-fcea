@@ -195,15 +195,28 @@ export function UsuariosRegistradosProvider({ children }: { children: React.Reac
       );
     }
 
-    // Busqueda por email: si el texto contiene @
+    // Busqueda por email COMPLETO: si el texto contiene @
     if (texto.includes('@')) {
       return dedupeById(currentUsuarios.filter(u => u.email && norm(u.email).includes(textoNorm)));
     }
 
-
-    // Si el texto no es celular ni email, no devolver resultados
-    // (evita busqueda por nombre que permitiria suplantacion de identidad)
-    return [];
+    // FIX 2026-09-03 (email sin "@"): busqueda por la PARTE LOCAL del email
+    // (lo que va ANTES del @) por PREFIJO. Permite identificarse con el email
+    // sin tener que tipear la "@dominio.com" completa. Es imprescindible para
+    // usuarios registrados SOLO con email y sin celular (ej. personal TAS que
+    // escribe "katana941" en vez de "katana941@hotmail.com").
+    //
+    // SEGURIDAD: se compara EXCLUSIVAMENTE contra la parte local del email,
+    // NUNCA contra el nombre de la persona. Asi se sigue impidiendo la
+    // suplantacion de identidad por nombre (no se puede identificar a alguien
+    // tipeando su nombre y apellido), pero si por su propio email.
+    return dedupeById(
+      currentUsuarios.filter(u => {
+        if (!u.email) return false;
+        const local = norm(u.email.split('@')[0]);
+        return local.startsWith(textoNorm);
+      })
+    );
   }, []);
 
   const value = { usuarios, registrarUsuario, buscarPorCelular, buscarPorTexto };
