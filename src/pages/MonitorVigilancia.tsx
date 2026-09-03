@@ -138,6 +138,45 @@ export default function MonitorVigilancia() {
     setConfirmEliminarPendiente(null);
   };
 
+  // Upgrade 2026-09-03: auto-scroll de vuelta al encabezado tras 4 segundos de
+  // inactividad, para que las "Solicitudes pendientes" (que están arriba del
+  // todo) siempre queden a la vista sin que el vigilante tenga que subir a mano.
+  // Se posterga mientras haya algún modal abierto (el vigilante está trabajando
+  // dentro de un panel) o mientras esté sin conexión (para no tapar el botón de
+  // reconectar). La "inactividad" se mide por eventos de mouse, teclado, rueda,
+  // scroll y touch; cualquiera reinicia el temporizador de 4s.
+  const algunModalAbierto =
+    keyModalOpen || guardModalOpen || configModalOpen || historySearchOpen ||
+    agendaOpen || objetosOpen || registroObjetoOpen || diagnosticoOpen ||
+    !!confirmEliminarPendiente;
+
+  useEffect(() => {
+    // No auto-scrollear si hay un panel abierto o si estamos sin conexión.
+    if (algunModalAbierto || !isConnected) return;
+
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const volverAlEncabezado = () => {
+      if (window.scrollY > 0) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+    const reiniciarTemporizador = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(volverAlEncabezado, 4000);
+    };
+
+    const eventos: (keyof WindowEventMap)[] = [
+      'mousemove', 'mousedown', 'keydown', 'wheel', 'scroll', 'touchstart',
+    ];
+    eventos.forEach(ev => window.addEventListener(ev, reiniciarTemporizador, { passive: true }));
+    reiniciarTemporizador();
+
+    return () => {
+      clearTimeout(timeoutId);
+      eventos.forEach(ev => window.removeEventListener(ev, reiniciarTemporizador));
+    };
+  }, [algunModalAbierto, isConnected]);
+
   const handleUndo = (solicitudId: string) => {
     const undoAction = getUndoParaSolicitud(solicitudId);
     if (!undoAction) return;
