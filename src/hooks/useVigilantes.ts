@@ -154,11 +154,38 @@ export function useVigilantes() {
     const soloActivos = (lista: Vigilante[]) => lista.filter(v => !v.estadoLicencia || v.estadoLicencia === 'activo');
 
     const vigilantesTurnoActual = soloActivos(vigilantes.filter(v => v.turno === turnoActual));
+
+    // Combina dos listas de vigilantes evitando duplicados (por id).
+    const combinarSinDuplicados = (a: Vigilante[], b: Vigilante[]) => {
+      const idsA = new Set(a.map(v => v.id));
+      return [...a, ...b.filter(v => !idsA.has(v.id))];
+    };
+
+    // Excepción fija (upgrade 2026-09-03): entre las 05:50 y 05:59, aunque el
+    // turno vigente siga siendo el Nocturno, también se muestran los vigilantes
+    // del turno Matutino (turno entrante). Motivo: los del turno Matutino suelen
+    // llegar ~5 minutos antes de las 6:00, mientras los del Nocturno ya se
+    // retiraron o están en retirada, y hay que poder registrar entregas/devoluciones
+    // con quien esté físicamente en la cabina. Este período NO es configurable.
+    const enExcepcionMatutinoTemprano = turnoActual === 'Nocturno'
+      && ahora.getHours() === 5
+      && ahora.getMinutes() >= 50;
+
     if (minutosEnTurno < transicionMinutos) {
       const turnoAnterior = obtenerTurnoAnterior(turnoActual);
-      const vigilantesTurnoAnterior = soloActivos(vigilantes.filter(v => v.turno === turnoAnterior));
-      return { actuales: vigilantesTurnoActual, anteriores: vigilantesTurnoAnterior, enTransicion: true };
+      let vigilantesAdicionales = soloActivos(vigilantes.filter(v => v.turno === turnoAnterior));
+      if (enExcepcionMatutinoTemprano) {
+        const vigilantesMatutino = soloActivos(vigilantes.filter(v => v.turno === 'Matutino'));
+        vigilantesAdicionales = combinarSinDuplicados(vigilantesAdicionales, vigilantesMatutino);
+      }
+      return { actuales: vigilantesTurnoActual, anteriores: vigilantesAdicionales, enTransicion: true };
     }
+
+    if (enExcepcionMatutinoTemprano) {
+      const vigilantesMatutino = soloActivos(vigilantes.filter(v => v.turno === 'Matutino'));
+      return { actuales: vigilantesTurnoActual, anteriores: vigilantesMatutino, enTransicion: true };
+    }
+
     return { actuales: vigilantesTurnoActual, anteriores: [], enTransicion: false };
   }, [vigilantes]);
 
