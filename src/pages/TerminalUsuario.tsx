@@ -203,6 +203,41 @@ export default function TerminalUsuario() {
     setExchangeTarget(null);
   };
 
+  // Upgrade 2026-09-05: auto-scroll de vuelta al encabezado tras 4 segundos de
+  // inactividad, para que la identificación/búsqueda de usuario (que está arriba
+  // del todo) siempre quede a la vista sin que el próximo usuario tenga que subir
+  // a mano. Se posterga mientras haya un modal abierto (registro o intercambio,
+  // donde el usuario está trabajando) o mientras esté sin conexión. La
+  // "inactividad" se mide por eventos de mouse, teclado, rueda, scroll y touch;
+  // cualquiera reinicia el temporizador de 4s. Mismo criterio que el Monitor.
+  const algunModalAbierto = showRegistration || !!exchangeTarget;
+
+  useEffect(() => {
+    if (algunModalAbierto || !isConnected) return;
+
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const volverAlEncabezado = () => {
+      if (window.scrollY > 0) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+    const reiniciarTemporizador = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(volverAlEncabezado, 4000);
+    };
+
+    const eventos: (keyof WindowEventMap)[] = [
+      'mousemove', 'mousedown', 'keydown', 'wheel', 'scroll', 'touchstart',
+    ];
+    eventos.forEach(ev => window.addEventListener(ev, reiniciarTemporizador, { passive: true }));
+    reiniciarTemporizador();
+
+    return () => {
+      clearTimeout(timeoutId);
+      eventos.forEach(ev => window.removeEventListener(ev, reiniciarTemporizador));
+    };
+  }, [algunModalAbierto, isConnected]);
+
   return (
     <div className="min-h-screen bg-background">
       <TerminalHeader />

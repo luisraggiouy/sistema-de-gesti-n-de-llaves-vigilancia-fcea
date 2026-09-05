@@ -74,6 +74,9 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
   const [subcatDocente, setSubcatDocente] = useState<'IESTA' | 'IECON' | 'Otro' | ''>('');
   const [subcatDocenteOtro, setSubcatDocenteOtro] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Upgrade 2026-09-05: al intentar registrarse con campos obligatorios vacíos,
+  // además de dejar el botón inactivo, se resaltan en rojo los campos que faltan.
+  const [mostrarErrores, setMostrarErrores] = useState(false);
 
   const celularValido = !celular.trim() || esCelularValido(celular);
   const emailValido = !email.trim() || esEmailValido(email);
@@ -85,8 +88,20 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
       !!subcatDocente && (subcatDocente !== 'Otro' || !!subcatDocenteOtro.trim())
     ));
 
+  // Flags de "campo obligatorio faltante" (solo se resaltan tras pulsar Registrarse).
+  const errNombre = mostrarErrores && !nombre.trim();
+  const errContacto = mostrarErrores && !tieneContacto;
+  const errTipo = mostrarErrores && !tipoUsuario;
+  const errEmpresa = mostrarErrores && tipoUsuario === 'Empresa' && !nombreEmpresa.trim();
+  const errSubcatDocente = mostrarErrores && tipoUsuario === 'Docente' && !subcatDocente;
+  const errSubcatDocenteOtro = mostrarErrores && tipoUsuario === 'Docente' &&
+    subcatDocente === 'Otro' && !subcatDocenteOtro.trim();
+
   const handleSubmit = async () => {
-    if (!isFormValid || !tipoUsuario) return;
+    if (!isFormValid || !tipoUsuario) {
+      setMostrarErrores(true);
+      return;
+    }
 
     if (celular.trim()) {
       const existente = buscarPorCelular(celular);
@@ -172,6 +187,7 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
     setNombreEmpresa('');
     setSubcatDocente('');
     setSubcatDocenteOtro('');
+    setMostrarErrores(false);
   };
 
   return (
@@ -184,6 +200,8 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
           </DialogTitle>
           <DialogDescription>
             Complete sus datos una única vez. Luego podrá identificarse con su celular o email.
+            <br />
+            <span className="text-xs">Los campos marcados con <span className="text-destructive font-semibold">*</span> son obligatorios.</span>
           </DialogDescription>
         </DialogHeader>
 
@@ -192,16 +210,19 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
           <div className="space-y-2">
             <Label htmlFor="reg-nombre" className="flex items-center gap-2">
               <User className="w-4 h-4 text-muted-foreground" />
-              Nombre completo *
+              Nombre y apellido *
             </Label>
             <Input
               id="reg-nombre"
-              placeholder="Ingrese su nombre"
+              placeholder="Ingrese su nombre y apellido"
               value={nombre}
               onChange={(e) => setNombre(soloLetras(e.target.value))}
-              className="h-11"
+              className={`h-11 ${errNombre ? 'border-destructive' : ''}`}
               autoComplete="off"
             />
+            {errNombre && (
+              <p className="text-xs text-destructive">Complete su nombre y apellido</p>
+            )}
           </div>
 
           {/* Celular */}
@@ -217,7 +238,7 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
               placeholder="094 123 456"
               value={celular}
               onChange={(e) => setCelular(e.target.value)}
-              className={`h-11 ${celular && !celularValido ? 'border-destructive' : ''}`}
+              className={`h-11 ${(celular && !celularValido) || errContacto ? 'border-destructive' : ''}`}
               autoComplete="off"
             />
             {celular && !celularValido && (
@@ -233,7 +254,7 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
           <div className="space-y-2">
             <Label htmlFor="reg-email" className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-muted-foreground" />
-              Correo electrónico
+              Correo electrónico (si ya ingresó su celular este campo es OPCIONAL)
             </Label>
             <Input
               id="reg-email"
@@ -242,11 +263,14 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
               placeholder="usuario@ejemplo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`h-11 ${email && !emailValido ? 'border-destructive' : ''}`}
+              className={`h-11 ${(email && !emailValido) || errContacto ? 'border-destructive' : ''}`}
               autoComplete="off"
             />
             {email && !emailValido && (
               <p className="text-xs text-destructive">Ingrese un email válido (ej: nombre@dominio.com)</p>
+            )}
+            {errContacto && (
+              <p className="text-xs text-destructive">Ingrese un celular o un correo electrónico para poder identificarse</p>
             )}
             <p className="text-xs text-muted-foreground">
               Puede ingresar celular, email o ambos para identificarse
@@ -265,7 +289,7 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
               if (val !== 'Empresa') setNombreEmpresa('');
               if (val !== 'Docente') { setSubcatDocente(''); setSubcatDocenteOtro(''); }
             }}>
-              <SelectTrigger className="h-11">
+              <SelectTrigger className={`h-11 ${errTipo ? 'border-destructive' : ''}`}>
                 <SelectValue placeholder="Seleccione tipo" />
               </SelectTrigger>
               <SelectContent>
@@ -276,6 +300,9 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
                 ))}
               </SelectContent>
             </Select>
+            {errTipo && (
+              <p className="text-xs text-destructive">Seleccione el tipo de usuario</p>
+            )}
           </div>
 
           {/* Departamento (solo Personal TAS) */}
@@ -337,9 +364,12 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
                 placeholder="Ingrese el nombre de la empresa"
                 value={nombreEmpresa}
                 onChange={(e) => setNombreEmpresa(e.target.value)}
-                className="h-11"
+                className={`h-11 ${errEmpresa ? 'border-destructive' : ''}`}
                 autoComplete="off"
               />
+              {errEmpresa && (
+                <p className="text-xs text-destructive">Ingrese el nombre de la empresa</p>
+              )}
             </div>
           )}
 
@@ -358,7 +388,7 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
                     if (val !== 'Otro') setSubcatDocenteOtro('');
                   }}
                 >
-                  <SelectTrigger className="h-11">
+                  <SelectTrigger className={`h-11 ${errSubcatDocente ? 'border-destructive' : ''}`}>
                     <SelectValue placeholder="Seleccione unidad académica" />
                   </SelectTrigger>
                   <SelectContent>
@@ -367,6 +397,9 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
                     <SelectItem value="Otro" className="py-2">Otro</SelectItem>
                   </SelectContent>
                 </Select>
+                {errSubcatDocente && (
+                  <p className="text-xs text-destructive">Seleccione la unidad académica</p>
+                )}
               </div>
 
               {subcatDocente === 'Otro' && (
@@ -380,9 +413,12 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
                     placeholder="Ej: Instituto de Historia Económica"
                     value={subcatDocenteOtro}
                     onChange={(e) => setSubcatDocenteOtro(e.target.value)}
-                    className="h-11"
+                    className={`h-11 ${errSubcatDocenteOtro ? 'border-destructive' : ''}`}
                     autoComplete="off"
                   />
+                  {errSubcatDocenteOtro && (
+                    <p className="text-xs text-destructive">Especifique la unidad académica</p>
+                  )}
                 </div>
               )}
             </>
@@ -393,7 +429,15 @@ export function RegistrationModal({ open, onOpenChange, onRegistered }: Registra
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={!isFormValid || isSubmitting} className="gap-2">
+          {/* El botón se ve "inactivo" (atenuado) mientras faltan campos, pero sigue
+              siendo clickeable para poder resaltar en rojo los campos obligatorios
+              que faltan. Solo se bloquea de verdad durante el envío. */}
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            aria-disabled={!isFormValid}
+            className={`gap-2 ${!isFormValid ? 'opacity-50' : ''}`}
+          >
             {isSubmitting ? <>Registrando...</> : <><CheckCircle className="w-4 h-4" />Registrarse</>}
           </Button>
         </div>
