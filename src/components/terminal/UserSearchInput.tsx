@@ -13,6 +13,40 @@ interface UserSearchInputProps {
   buscarUsuarios: (texto: string) => UsuarioRegistrado[];
 }
 
+// UPGRADE SEGURIDAD 2026-09-05 — Mínimo de dígitos para desplegar la lista al
+// buscar por CELULAR.
+//
+// PROBLEMA: al tipear el primer "0" se desplegaban TODOS los celulares que
+// empiezan con 0 (o "09" -> todos los "09..."), exponiendo la lista completa de
+// usuarios y habilitando suplantación de identidad (cualquiera podía ver y
+// elegir a otra persona).
+//
+// SOLUCIÓN: la lista de coincidencias por celular recién se muestra a partir
+// del 5.º dígito tipeado. Así se conserva la rapidez (con 5 dígitos ya se acota
+// muchísimo) pero se evita exponer todos los números con solo 1-2 dígitos.
+//
+// La búsqueda por EMAIL mantiene el umbral histórico de 2 caracteres, porque
+// el email no expone la lista completa de la misma forma (es texto propio).
+const MIN_DIGITOS_CELULAR = 5;
+const MIN_CARACTERES_EMAIL = 2;
+
+/** ¿El texto tipeado es una búsqueda por celular (solo dígitos/separadores)? */
+const esBusquedaCelular = (texto: string) => /^[\d\s\-\+\(\)]+$/.test(texto.trim());
+
+/**
+ * ¿El texto alcanza el mínimo para desplegar la lista de coincidencias?
+ * - Celular: al menos MIN_DIGITOS_CELULAR dígitos reales.
+ * - Email / texto: al menos MIN_CARACTERES_EMAIL caracteres.
+ */
+const alcanzaUmbralBusqueda = (texto: string) => {
+  const t = texto.trim();
+  if (!t) return false;
+  if (esBusquedaCelular(t)) {
+    return t.replace(/\D/g, '').length >= MIN_DIGITOS_CELULAR;
+  }
+  return t.length >= MIN_CARACTERES_EMAIL;
+};
+
 /**
  * Buscador de usuarios por celular o email (sin autocompletar por nombre).
  *
@@ -34,7 +68,7 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
 
 
   const sugerencias = useMemo(() => {
-    if (busqueda.length < 2) return [];
+    if (!alcanzaUmbralBusqueda(busqueda)) return [];
     return buscarUsuarios(busqueda);
   }, [busqueda, buscarUsuarios]);
 
@@ -81,7 +115,7 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
 
   const handleInputChange = (value: string) => {
     setBusqueda(value);
-    setShowSuggestions(value.length >= 2);
+    setShowSuggestions(alcanzaUmbralBusqueda(value));
   };
 
   const getContactInfo = (usuario: UsuarioRegistrado) => {
@@ -150,7 +184,7 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
             placeholder="Ingrese su numero de celular o su email..."
             value={busqueda}
             onChange={(e) => handleInputChange(e.target.value)}
-            onFocus={() => busqueda.length >= 2 && setShowSuggestions(true)}
+            onFocus={() => alcanzaUmbralBusqueda(busqueda) && setShowSuggestions(true)}
             className="pl-10 h-12 text-lg"
           />
 
@@ -188,7 +222,7 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
 
 
           {/* Sin resultados */}
-          {showSuggestions && busqueda.length >= 2 && sugerencias.length === 0 && (
+          {showSuggestions && alcanzaUmbralBusqueda(busqueda) && sugerencias.length === 0 && (
             <Card className="absolute z-50 w-full mt-1 p-4 shadow-lg">
               <p className="text-center text-muted-foreground text-sm">No se encontro ningun usuario con ese celular o email</p>
               <Button variant="link" className="w-full mt-2" onClick={onRegisterClick}>
