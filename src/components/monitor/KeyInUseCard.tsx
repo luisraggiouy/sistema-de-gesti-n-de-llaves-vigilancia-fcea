@@ -318,22 +318,22 @@ export function KeyInUseCard({
         </div>
       </div>
 
-      {/* Notas */}
+      {/* Notas (en un solo renglón: label + campo en la misma línea) */}
       <div className="mt-3 pt-3 border-t border-rose-200">
-        <div className="flex items-center gap-2 mb-1">
-          <StickyNote className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="text-xs font-medium text-muted-foreground">Notas</span>
+        <div className="flex items-center gap-2">
+          <StickyNote className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+          <span className="text-xs font-medium text-muted-foreground flex-shrink-0">Notas</span>
+          <ClearableTextarea
+            placeholder="Anotar particularidades..."
+            value={notasLocal}
+            onChange={(e) => { setNotasFocused(true); setNotasLocal(e.target.value); }}
+            onFocus={() => setNotasFocused(true)}
+            onBlur={() => { setNotasFocused(false); onNotasChange(notasLocal); }}
+            onClear={() => { setNotasLocal(''); onNotasChange(''); }}
+            className="flex-1 min-h-[36px] h-9 text-sm resize-none bg-white/50 py-1.5"
+            rows={1}
+          />
         </div>
-        <ClearableTextarea
-          placeholder="Anotar particularidades..."
-          value={notasLocal}
-          onChange={(e) => { setNotasFocused(true); setNotasLocal(e.target.value); }}
-          onFocus={() => setNotasFocused(true)}
-          onBlur={() => { setNotasFocused(false); onNotasChange(notasLocal); }}
-          onClear={() => { setNotasLocal(''); onNotasChange(''); }}
-          className="min-h-[40px] h-10 text-sm resize-none bg-white/50"
-          rows={1}
-        />
       </div>
 
       <KeyExchangeModal

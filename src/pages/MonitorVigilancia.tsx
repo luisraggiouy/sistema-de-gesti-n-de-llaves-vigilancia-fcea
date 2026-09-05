@@ -206,7 +206,7 @@ export default function MonitorVigilancia() {
     };
     const reiniciarTemporizador = () => {
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(volverAlEncabezado, 4000);
+      timeoutId = setTimeout(volverAlEncabezado, 8000);
     };
 
     const eventos: (keyof WindowEventMap)[] = [
@@ -416,7 +416,7 @@ export default function MonitorVigilancia() {
                 uso para no ensuciar la vista cuando hay pocas). Filtra por
                 nombre de llave y de persona. */}
             {mostrarBuscadorEnUso && (
-              <div className="ml-auto relative w-full max-w-xs">
+              <div className="relative w-full max-w-xs">
                 <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <ClearableInput
                   value={busquedaEnUso}
