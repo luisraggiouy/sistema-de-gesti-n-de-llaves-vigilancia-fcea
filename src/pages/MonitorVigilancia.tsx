@@ -16,7 +16,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, Key, CheckCircle2, Settings2, Users, Settings, History, BookUser, Package, RefreshCw, WifiOff, Loader2, ActivitySquare } from 'lucide-react';
+import { ClipboardList, Key, CheckCircle2, Settings2, Users, Settings, History, BookUser, Package, RefreshCw, WifiOff, Loader2, ActivitySquare, Search } from 'lucide-react';
+import { ClearableInput } from '@/components/ui/clearable-input';
+import { normalizarTexto } from '@/data/fceaData';
 import { useSonidos } from '@/hooks/useSonidos';
 import { SoundControls } from '@/components/monitor/SoundControls';
 import { useObjetosOlvidados } from '@/hooks/useObjetosOlvidados';
@@ -129,6 +131,48 @@ export default function MonitorVigilancia() {
   // de pendientes). Ahora, si el pedido fue un error, el vigilante lo elimina y
   // la persona puede volver a solicitar la llave correcta desde la terminal.
   const [confirmEliminarPendiente, setConfirmEliminarPendiente] = useState<SolicitudLlave | null>(null);
+
+  // Upgrade 2026-09-05: buscador + orden explicito en "Llaves en Uso".
+  //  - ORDEN: hasta ahora "Llaves en Uso" salia en el orden crudo del array
+  //    (sin sort), por lo que el orden cronologico no estaba garantizado.
+  //    Ahora se ordena por hora de entrega DESCENDENTE (la ultima entregada
+  //    queda arriba), igual criterio que "Llaves Devueltas".
+  //  - BUSCADOR: siempre que haya al menos 1 llave en uso aparece un campo
+  //    a la derecha del titulo que filtra por NOMBRE de la llave Y por NOMBRE
+  //    de la persona, usando el mismo helper `normalizarTexto` (sin acentos,
+  //    minusculas) que el buscador de las Terminales, con ranking "empieza
+  //    con" primero. Evita tener que scrollear entre 20+ tarjetas.
+  const [busquedaEnUso, setBusquedaEnUso] = useState('');
+
+  const entregadasOrdenadas = [...solicitudesEntregadas].sort((a, b) => {
+    const fechaA = a.horaEntrega ? new Date(a.horaEntrega).getTime() : (a.horaSolicitud ? new Date(a.horaSolicitud).getTime() : 0);
+    const fechaB = b.horaEntrega ? new Date(b.horaEntrega).getTime() : (b.horaSolicitud ? new Date(b.horaSolicitud).getTime() : 0);
+    return fechaB - fechaA;
+  });
+
+  const mostrarBuscadorEnUso = solicitudesEntregadas.length > 0;
+  const busquedaEnUsoNorm = normalizarTexto(busquedaEnUso);
+
+  const entregadasFiltradas = busquedaEnUsoNorm.length === 0
+    ? entregadasOrdenadas
+    : entregadasOrdenadas
+        .filter(s =>
+          normalizarTexto(s.lugar?.nombre || '').includes(busquedaEnUsoNorm) ||
+          normalizarTexto(s.usuario?.nombre || '').includes(busquedaEnUsoNorm)
+        )
+        .sort((a, b) => {
+          // Ranking: primero los que EMPIEZAN con el texto (por llave o persona),
+          // igual criterio que el buscador de las Terminales.
+          const aLugar = normalizarTexto(a.lugar?.nombre || '');
+          const bLugar = normalizarTexto(b.lugar?.nombre || '');
+          const aPersona = normalizarTexto(a.usuario?.nombre || '');
+          const bPersona = normalizarTexto(b.usuario?.nombre || '');
+          const aStarts = aLugar.startsWith(busquedaEnUsoNorm) || aPersona.startsWith(busquedaEnUsoNorm);
+          const bStarts = bLugar.startsWith(busquedaEnUsoNorm) || bPersona.startsWith(busquedaEnUsoNorm);
+          if (aStarts && !bStarts) return -1;
+          if (!aStarts && bStarts) return 1;
+          return 0; // mantiene el orden por hora de entrega (mas reciente arriba)
+        });
 
   const handleEliminarPendiente = () => {
     if (!confirmEliminarPendiente) return;
@@ -362,7 +406,26 @@ export default function MonitorVigilancia() {
             <Key className="w-6 h-6 text-success" />
             <h2 className="text-xl font-semibold">Llaves en Uso</h2>
             {solicitudesEntregadas.length > 0 && (
-              <Badge className="bg-success/20 text-success border-success/30">{solicitudesEntregadas.length} en uso</Badge>
+              <Badge className="bg-success/20 text-success border-success/30">
+                {busquedaEnUsoNorm.length > 0
+                  ? `${entregadasFiltradas.length} de ${solicitudesEntregadas.length} en uso`
+                  : `${solicitudesEntregadas.length} en uso`}
+              </Badge>
+            )}
+            {/* Upgrade 2026-09-05: buscador (aparece solo con muchas llaves en
+                uso para no ensuciar la vista cuando hay pocas). Filtra por
+                nombre de llave y de persona. */}
+            {mostrarBuscadorEnUso && (
+              <div className="ml-auto relative w-full max-w-xs">
+                <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ClearableInput
+                  value={busquedaEnUso}
+                  onChange={(e) => setBusquedaEnUso(e.target.value)}
+                  onClear={() => setBusquedaEnUso('')}
+                  placeholder="Buscar llave o persona..."
+                  className="h-11 pl-9 text-base"
+                />
+              </div>
             )}
           </div>
           {isLoading ? (
@@ -377,9 +440,16 @@ export default function MonitorVigilancia() {
               <h3 className="text-lg font-semibold mb-1">No hay llaves en uso</h3>
               <p className="text-muted-foreground text-sm">Las llaves entregadas aparecerán aquí</p>
             </Card>
+          ) : entregadasFiltradas.length === 0 ? (
+            <Card className="p-8 text-center">
+              <Search className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
+              <h3 className="text-lg font-semibold mb-1">Sin resultados</h3>
+              <p className="text-muted-foreground text-sm mb-4">Ninguna llave en uso coincide con «{busquedaEnUso}»</p>
+              <Button variant="outline" size="sm" onClick={() => setBusquedaEnUso('')}>Limpiar búsqueda</Button>
+            </Card>
           ) : (
             <div className="space-y-4">
-              {solicitudesEntregadas.map(solicitud => {
+              {entregadasFiltradas.map(solicitud => {
                 const undoAction = getUndoParaSolicitud(solicitud.id);
                 return (
                   <KeyInUseCard
