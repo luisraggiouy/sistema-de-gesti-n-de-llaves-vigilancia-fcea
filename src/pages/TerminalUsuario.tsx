@@ -51,7 +51,7 @@ export default function TerminalUsuario() {
   // Fix 2026-08-28: usar TODAS las llaves (no solo las disponibles) como base de
   // las frecuentes, para que una llave frecuente que este en uso o ya solicitada
   // siga apareciendo (permite ofrecer intercambio y avisar 'ya solicitada').
-  const { llavesFrecuentes, registrarUso } = useHistorialLlaves(currentUser?.id ?? null, lugares);
+  const { llavesFrecuentes, registrarUso, registrarUsos } = useHistorialLlaves(currentUser?.id ?? null, lugares);
   const isFormValid = currentUser && selectedKeys.length > 0;
   
   // La carga inicial ya se hace en SolicitudesContext (polling cada 3s)
@@ -131,7 +131,12 @@ export default function TerminalUsuario() {
       return;
     }
     setIsSubmitting(true);
-    selectedKeys.forEach(key => registrarUso(key.id));
+    // Fix 2026-09-05: registrar TODAS las llaves del pedido en UNA sola
+    // operacion. Antes se hacia selectedKeys.forEach(k => registrarUso(k.id)),
+    // lo que disparaba N escrituras casi simultaneas en historial_llaves y creaba
+    // registros DUPLICADOS por condicion de carrera (caso Milton de Souza: pidio
+    // 11 llaves y luego solo veia 3 frecuentes).
+    registrarUsos(selectedKeys.map(key => key.id));
     await agregarSolicitudes(selectedKeys, {
       nombre: currentUser.nombre,
       celular: currentUser.celular,
