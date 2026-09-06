@@ -127,14 +127,19 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
 
   return (
     <div ref={containerRef} className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-foreground flex items-baseline gap-2">
-          <User className="w-5 h-5 text-primary self-center" />
-          <span>Identificarse</span>
-          <span className="text-base font-normal text-muted-foreground">
-            con su número de celular o e-mail
-          </span>
-        </h3>
+      <div className="flex items-start justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-foreground flex items-baseline gap-2">
+            <User className="w-5 h-5 text-primary self-center" />
+            <span>Identificarse</span>
+            <span className="text-base font-normal text-muted-foreground">
+              con su número de celular o e-mail
+            </span>
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Haga click sobre su nombre una vez que lo vea en la pantalla, para solicitar la/s llaves
+          </p>
+        </div>
 
         <Button variant="outline" size="sm" onClick={onRegisterClick} className="gap-2">
           <UserPlus className="w-4 h-4" />
@@ -181,7 +186,7 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
           )}
           <Input
             ref={inputRef}
-            placeholder="Ingrese su numero de celular o su email..."
+            placeholder="Ingrese aquí su número de celular o email..."
             value={busqueda}
             onChange={(e) => handleInputChange(e.target.value)}
             onFocus={() => alcanzaUmbralBusqueda(busqueda) && setShowSuggestions(true)}
