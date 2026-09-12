@@ -103,13 +103,14 @@ export default function TerminalUsuario() {
     const tipo = (currentUser.tipo || '').trim();
     const depto = (currentUser.departamento || '').trim();
     // Exentos totales (cualquier hora, 24 hs): Personal TAS de Servicios
-    // Generales, Vigilancia, Intendencia y Electrotecnia.
+    // Generales, Vigilancia, Intendencia, Electrotecnia y Mantenimiento.
     if (
       tipo === 'Personal TAS' &&
       (depto === 'Servicios Generales' ||
         depto === 'Vigilancia' ||
         depto === 'Intendencia' ||
-        depto === 'Electrotecnia')
+        depto === 'Electrotecnia' ||
+        depto === 'Mantenimiento')
     ) {
       return true;
     }
