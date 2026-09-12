@@ -133,7 +133,7 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
             <User className="w-5 h-5 text-primary self-center" />
             <span>Identificarse</span>
             <span className="text-base font-normal text-muted-foreground">
-              con su número de celular o e-mail
+              con su número de <span className="font-bold">celular</span> o e-mail
             </span>
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
@@ -241,7 +241,7 @@ export function UserSearchInput({ onUserSelect, onRegisterClick, selectedUser, b
 
       {/* Texto de instruccion con link de registro en azul */}
       <p className="text-sm text-muted-foreground text-center leading-relaxed">
-        Identifiquese con su numero de celular o con su email.{' '}
+        Identifiquese con su numero de <span className="font-bold">celular</span> o con su email.{' '}
         De lo contrario{' '}
         <button
           onClick={onRegisterClick}

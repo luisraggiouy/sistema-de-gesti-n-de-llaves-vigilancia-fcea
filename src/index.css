@@ -51,8 +51,8 @@ All colors MUST be HSL.
     --biblioteca: 270 50% 55%;
     --area-comun: 30 70% 55%;
 
-    --border: 210 25% 88%;
-    --input: 210 25% 92%;
+    --border: 210 25% 82%;
+    --input: 210 30% 72%;
     --ring: 210 85% 45%;
 
     --radius: 0.75rem;
@@ -165,6 +165,21 @@ All colors MUST be HSL.
 
 .animate-screensaver-pulse {
   animation: screensaver-pulse 2s ease-in-out infinite;
+}
+
+/* ============================================================
+   UPGRADE CONTRASTE + TEXTO +15% EN TERMINALES (2026-09-12)
+   ============================================================
+   Una de las Terminales de usuario tiene un monitor de mayor
+   resolución y el texto se ve chico. Con `.terminal-zoom` se
+   agranda proporcionalmente TODO el contenido de la Terminal de
+   usuario un 15% (usando `zoom`, que soportan Edge/Chrome). Queda
+   scoped SOLO a la Terminal de usuario: el Monitor de Vigilancia
+   corre el mismo `dist` pero NO usa esta clase, así que se ve
+   igual que siempre.
+   ============================================================ */
+.terminal-zoom {
+  zoom: 1.15;
 }
 
 

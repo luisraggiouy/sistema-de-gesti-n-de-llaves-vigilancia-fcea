@@ -245,7 +245,7 @@ export default function TerminalUsuario() {
   }, [algunModalAbierto, isConnected]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background terminal-zoom">
       <TerminalHeader />
       {/* Banner de bienvenida */}
       <div className="bg-primary/5 border-b border-primary/10 py-3 px-4">
