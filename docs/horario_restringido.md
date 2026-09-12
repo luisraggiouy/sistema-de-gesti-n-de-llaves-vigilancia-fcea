@@ -16,6 +16,7 @@ Solo **Personal TAS** cuyo departamento/sección sea:
 - **Servicios Generales**
 - **Vigilancia**
 - **Intendencia** (upgrade 2026-09-03 — son 4 personas)
+- **Electrotecnia** (upgrade 2026-09-12)
 
 > Ejemplo: "Personal TAS (Mantenimiento)" **NO** está exento → si intenta antes de las 7:00 o después de las 23:00, queda bloqueado.
 
@@ -34,7 +35,7 @@ Motivo: el 29/08/2026 una persona de una cooperativa de limpieza fue a las 6:10 
 ## Dónde está en el código (referencia técnica)
 - Archivo: `src/pages/TerminalUsuario.tsx`
 - Función `esHorarioRestringido()`: `hora < 7 || hora >= 23`
-- Función `usuarioExentoHorario()`: normaliza `tipo` y `departamento` con `.trim()`. Exento total (24 hs) si `tipo === 'Personal TAS' && (departamento === 'Servicios Generales' || departamento === 'Vigilancia' || departamento === 'Intendencia')`; además, exento en la franja 06:00–06:59 si `tipo === 'Empresa' && hora === 6` (upgrade 2026-08-30, re-desplegado 2026-09-03).
+- Función `usuarioExentoHorario()`: normaliza `tipo` y `departamento` con `.trim()`. Exento total (24 hs) si `tipo === 'Personal TAS' && (departamento === 'Servicios Generales' || departamento === 'Vigilancia' || departamento === 'Intendencia' || departamento === 'Electrotecnia')`; además, exento en la franja 06:00–06:59 si `tipo === 'Empresa' && hora === 6` (upgrade 2026-08-30, re-desplegado 2026-09-03).
 - El departamento/sección `'Intendencia'` está en el catálogo `departamentosTAS` de `src/data/fceaData.ts`. Para que la exención 24 hs aplique, cada usuario de Intendencia debe estar registrado como `Personal TAS` con ese departamento exacto.
 
 ## Nota importante
