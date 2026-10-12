@@ -109,6 +109,34 @@ function mismaListaLugares(a: Lugar[], b: Lugar[]): boolean {
   return true;
 }
 
+// Compara dos listas de solicitudes (ya en el mismo orden que devuelve el
+// servidor: `-created`) para decidir si vale la pena hacer setSolicitudes.
+// Fix 2026-10-03: el polling corre cada 3s; sin esta guarda, cada poll hacia un
+// setSolicitudes con un array nuevo aunque los datos fueran identicos, lo que
+// re-renderiza las tarjetas del Monitor (sueltan su candado anti-doble-click y
+// parpadean). Comparamos solo los campos que cambian al operar una llave.
+function mismaListaSolicitudes(a: SolicitudLlave[], b: SolicitudLlave[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const x = a[i];
+    const y = b[i];
+    if (
+      x.id !== y.id ||
+      x.estado !== y.estado ||
+      x.entregadoPor !== y.entregadoPor ||
+      x.recibidoPor !== y.recibidoPor ||
+      x.notas !== y.notas ||
+      x.esIntercambio !== y.esIntercambio ||
+      x.usuario?.nombre !== y.usuario?.nombre ||
+      (x.horaEntrega?.getTime?.() ?? 0) !== (y.horaEntrega?.getTime?.() ?? 0) ||
+      (x.horaDevolucion?.getTime?.() ?? 0) !== (y.horaDevolucion?.getTime?.() ?? 0)
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function SolicitudesProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
   const [solicitudes, setSolicitudes] = useState<SolicitudLlave[]>([]);
@@ -118,8 +146,28 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const accionesUndoRef = useRef<AccionUndo[]>([]);
   const notasPendientesRef = useRef<Record<string, string>>({});
+  // Fix 2026-10-03 (reflote por polling): cambios optimistas EN VUELO.
+  // El sistema NO usa realtime para 'solicitudes', usa polling cada 3s
+  // (cargarSolicitudes). En la LAN de facultad la escritura a PocketBase tarda
+  // 1-2s; en esa ventana el servidor TODAVIA devuelve la solicitud con el estado
+  // viejo. Como cargarSolicitudes hace setSolicitudes(lista) con TODO lo que vino
+  // del server, un poll disparado en esa ventana PISA el cambio optimista y la
+  // tarjeta REAPARECE ("reflota"). El vigilante vuelve a clickear y el 2do click
+  // cae en otra llave. Para evitarlo guardamos aca, por id de solicitud, el estado
+  // que esperamos que tenga el server. Mientras el server no refleje ese estado
+  // (y no venza el timeout), cargarSolicitudes MANTIENE la version local y no deja
+  // que el poll reflote la tarjeta. Clave: id -> { estado, expiraEn }.
+  const cambiosEnVueloRef = useRef<Record<string, { estado: string; expiraEn: number }>>({});
+  // Timeout de seguridad: si el server nunca confirma (p.ej. se perdio el update),
+  // a los 15s dejamos de proteger el cambio para no congelar la UI con un estado
+  // que quizas nunca se guardo.
+  const EN_VUELO_TTL_MS = 15000;
   const isBackgroundRefreshRef = useRef(false);
   const lugaresRef = useRef<Lugar[]>([]);
+  // Espejo del estado `solicitudes` para leerlo sin dependencias en callbacks
+  // (igual criterio que lugaresRef). Lo usa cargarSolicitudes para: (a) conservar
+  // la version local de un cambio en vuelo, y (b) comparar si la lista cambio.
+  const solicitudesRef = useRef<SolicitudLlave[]>([]);
   
   // Get connection status from the store
   const isConnected = useConnectionStore(state => state.isConnected);
@@ -128,6 +176,14 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
   useEffect(() => {
     accionesUndoRef.current = accionesUndo;
   }, [accionesUndo]);
+
+  // Mantener el espejo de solicitudes siempre al dia. Asi los cambios optimistas
+  // y los rollbacks hechos con setSolicitudes (en actualizarSolicitud, etc.)
+  // quedan reflejados en el ref sin tener que actualizarlo manualmente en cada
+  // punto, y cargarSolicitudes siempre compara/mergea contra lo ultimo.
+  useEffect(() => {
+    solicitudesRef.current = solicitudes;
+  }, [solicitudes]);
   
   // Monitor connection status - reconnect silently without spamming toasts
   const wasConnectedRef = useRef(true);
@@ -271,7 +327,47 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
           nombreEmpresa: r.usuario_anterior_empresa || undefined
         } : undefined,
       }});
-      setSolicitudes(lista);
+
+      // Fix 2026-10-03 (reflote por polling): antes de volcar la lista del
+      // servidor, respetamos los cambios optimistas EN VUELO. Si una solicitud
+      // tiene un cambio local reciente (ej. recien la entregamos -> 'entregada')
+      // pero el servidor TODAVIA la devuelve con el estado viejo (ej.
+      // 'pendiente') porque aun no termino de escribir, mantenemos la version
+      // local (buscandola en el estado actual) para que el poll no la refloten.
+      // Cuando el servidor ya refleja el estado esperado, limpiamos el registro
+      // en vuelo (el server ya es la verdad). Tambien limpiamos por timeout.
+      const ahora = Date.now();
+      const enVuelo = cambiosEnVueloRef.current;
+      let hayEnVuelo = false;
+      for (const k in enVuelo) {
+        if (enVuelo[k].expiraEn <= ahora) { delete enVuelo[k]; } else { hayEnVuelo = true; }
+      }
+      let listaFinal = lista;
+      if (hayEnVuelo) {
+        listaFinal = lista.map(sServidor => {
+          const pend = enVuelo[sServidor.id];
+          if (!pend) return sServidor;
+          if (sServidor.estado === pend.estado) {
+            // El servidor YA confirmo el estado esperado -> ya no hace falta
+            // proteger: dejamos la version del servidor y limpiamos el registro.
+            delete enVuelo[sServidor.id];
+            return sServidor;
+          }
+          // El servidor todavia no refleja el cambio: conservamos la version
+          // LOCAL (la que ya movimos optimistamente) para no reflotar la tarjeta.
+          const local = solicitudesRef.current.find(x => x.id === sServidor.id);
+          return local ?? sServidor;
+        });
+      }
+
+      // No reemplazar la lista si quedo identica (mismos ids/estados en el mismo
+      // orden). Evita re-renders inutiles del Monitor cada 3s que, entre otras
+      // cosas, sueltan el candado anti-doble-click de las tarjetas y provocan
+      // parpadeo. Comparacion barata por id+estado+campos que cambian al operar.
+      if (!mismaListaSolicitudes(solicitudesRef.current, listaFinal)) {
+        setSolicitudes(listaFinal);
+        solicitudesRef.current = listaFinal;
+      }
       setLastUpdated(new Date());
     } catch (e) {
       console.error('Error cargando solicitudes:', e);
@@ -539,12 +635,51 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
         update.departamento = (datos.usuario as any).departamento || '';
         update.nombre_empresa = (datos.usuario as any).nombreEmpresa || '';
       }
-      await pb.collection('solicitudes').update(id, update);
-      setSolicitudes(prev => prev.map(s => s.id === id ? { ...s, ...datos } : s));
+      // Fix 2026-09-26 (lag de clicks en Monitor): ACTUALIZACION OPTIMISTA.
+      // ANTES: primero se hacia `await pb...update()` (1-2s en la red local del
+      // Monitor) y RECIEN despues se actualizaba el estado local, por lo que la
+      // tarjeta no se movia hasta que respondia el servidor. El vigilante veia
+      // que "no pasaba nada", volvia a clickear, y para cuando llegaba la
+      // respuesta la lista ya se habia reordenado -> el 2do click caia sobre
+      // OTRA llave y la marcaba por error.
+      // AHORA: movemos la tarjeta de inmediato (estado local primero) y luego
+      // confirmamos con el servidor. Si el servidor falla, revertimos (rollback)
+      // al estado previo y avisamos. Guardamos el snapshot previo para el rollback.
+      let snapshotPrevio: SolicitudLlave[] | null = null;
+      setSolicitudes(prev => {
+        snapshotPrevio = prev;
+        return prev.map(s => s.id === id ? { ...s, ...datos } : s);
+      });
+      // Fix 2026-10-03 (reflote por polling): si este cambio mueve el ESTADO de la
+      // solicitud (entregar/devolver/intercambiar), lo registramos como "en vuelo"
+      // para que el poll de 3s NO la refloten mientras el servidor termina de
+      // escribir. Ver cargarSolicitudes y cambiosEnVueloRef. Solo aplica a cambios
+      // de estado (los de notas no reordenan la lista, no hace falta protegerlos).
+      if (datos.estado !== undefined) {
+        cambiosEnVueloRef.current[id] = {
+          estado: datos.estado as string,
+          expiraEn: Date.now() + EN_VUELO_TTL_MS,
+        };
+      }
+      try {
+        await pb.collection('solicitudes').update(id, update);
+      } catch (eServidor) {
+        // Rollback: restaurar el estado que habia antes del cambio optimista y
+        // soltar la proteccion en vuelo (el cambio no se guardo, no hay que
+        // protegerlo). Asi el proximo poll vuelve a mostrar el estado real.
+        delete cambiosEnVueloRef.current[id];
+        if (snapshotPrevio) setSolicitudes(snapshotPrevio);
+        console.error('Error actualizando solicitud (rollback aplicado):', eServidor);
+        toast({
+          title: 'No se pudo guardar el cambio',
+          description: 'Revise la conexion con el servidor e intente de nuevo.',
+          variant: 'destructive',
+        });
+      }
     } catch (e) {
       console.error('Error actualizando solicitud:', e);
     }
-  }, []);
+  }, [toast]);
 
   const eliminarSolicitud = useCallback(async (id: string) => {
     try {

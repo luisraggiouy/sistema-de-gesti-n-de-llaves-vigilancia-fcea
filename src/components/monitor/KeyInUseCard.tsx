@@ -39,6 +39,17 @@ export function KeyInUseCard({
   const [mensajeCopiado, setMensajeCopiado] = useState(false);
   const inicializadoRef = useRef(false);
 
+  // Fix 2026-09-26 (doble-marcado por lag): al tocar un boton de devolucion,
+  // bloqueamos todos los botones de esta tarjeta para que un segundo click
+  // (por duda ante el lag) no marque otra llave. Complementa la actualizacion
+  // optimista de SolicitudesContext (la tarjeta se mueve casi al instante).
+  const [devolviendo, setDevolviendo] = useState(false);
+  const handleDevolverClick = (nombre: string) => {
+    if (devolviendo) return;
+    setDevolviendo(true);
+    onDevolver(nombre);
+  };
+
   useEffect(() => {
     if (!inicializadoRef.current && solicitud.notas !== undefined) {
       setNotasLocal(solicitud.notas || '');
@@ -300,7 +311,7 @@ export function KeyInUseCard({
         <p className="text-sm font-medium text-muted-foreground mb-2">Registrar devolución:</p>
         <div className="flex flex-wrap gap-2">
           {vigilantes.map(v => (
-            <Button key={v.id} variant="outline" size="sm" className="gap-2 border-success/30 hover:bg-success/10 h-10 px-4" onClick={() => onDevolver(v.nombre)}>
+            <Button key={v.id} variant="outline" size="sm" className="gap-2 border-success/30 hover:bg-success/10 h-10 px-4" disabled={devolviendo} onClick={() => handleDevolverClick(v.nombre)}>
               {v.esJefe && <span className="w-2 h-2 rounded-full bg-primary" />}
               {v.nombre}
             </Button>
@@ -309,7 +320,7 @@ export function KeyInUseCard({
             <>
               <div className="w-px h-6 bg-border mx-1" />
               {vigilantesAnteriores.map(v => (
-                <Button key={v.id} variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:bg-muted/50 h-10 px-4" onClick={() => onDevolver(v.nombre)}>
+                <Button key={v.id} variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:bg-muted/50 h-10 px-4" disabled={devolviendo} onClick={() => handleDevolverClick(v.nombre)}>
                   {v.nombre}<span className="text-xs">(turno ant.)</span>
                 </Button>
               ))}

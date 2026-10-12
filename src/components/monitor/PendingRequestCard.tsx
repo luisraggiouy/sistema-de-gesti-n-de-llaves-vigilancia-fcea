@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -65,6 +66,18 @@ interface PendingRequestCardProps {
 
 export function PendingRequestCard({ solicitud, vigilantes, vigilantesAnteriores = [], onEntregar, onEliminar }: PendingRequestCardProps) {
   const colorTipo = getColorTipoLugar(solicitud.lugar.tipo);
+
+  // Fix 2026-09-26 (doble-marcado por lag): una vez que el vigilante toca un
+  // boton de entrega, bloqueamos TODOS los botones de esta tarjeta para que un
+  // segundo click (por duda ante el lag) no dispare otra entrega. Con el fix de
+  // actualizacion optimista la tarjeta desaparece casi al instante, pero este
+  // candado es una salvaguarda extra para el brevisimo intervalo intermedio.
+  const [entregando, setEntregando] = useState(false);
+  const handleEntregarClick = (nombre: string) => {
+    if (entregando) return;
+    setEntregando(true);
+    onEntregar(nombre);
+  };
 
   // Ancla del contador: preferimos `horaCreacionServidor` (campo `created` de
   // PocketBase, generado por el server que corre EN el Monitor) para que la
@@ -162,7 +175,7 @@ export function PendingRequestCard({ solicitud, vigilantes, vigilantesAnteriores
         </div>
         <div className="flex flex-wrap gap-2">
           {vigilantes.map(v => (
-            <Button key={v.id} variant={v.esJefe ? 'default' : 'outline'} size="sm" className="gap-2" onClick={() => onEntregar(v.nombre)}>
+            <Button key={v.id} variant={v.esJefe ? 'default' : 'outline'} size="sm" className="gap-2" disabled={entregando} onClick={() => handleEntregarClick(v.nombre)}>
               {v.esJefe && <CheckCircle className="w-3 h-3" />}
               {v.nombre}
             </Button>
@@ -171,7 +184,7 @@ export function PendingRequestCard({ solicitud, vigilantes, vigilantesAnteriores
             <>
               <div className="w-px h-6 bg-border mx-1" />
               {vigilantesAnteriores.map(v => (
-                <Button key={v.id} variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:bg-muted/50" onClick={() => onEntregar(v.nombre)}>
+                <Button key={v.id} variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:bg-muted/50" disabled={entregando} onClick={() => handleEntregarClick(v.nombre)}>
                   {v.nombre}<span className="text-xs">(turno ant.)</span>
                 </Button>
               ))}
