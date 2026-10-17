@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef } from 'react';
 import { Search, Calendar, X, Clock, User, Key, CheckCircle2, AlertCircle, StickyNote } from 'lucide-react';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -20,13 +21,59 @@ interface KeyHistorySearchProps {
 export function KeyHistorySearch({ open, onOpenChange }: KeyHistorySearchProps) {
   const {
     historial,
+    totalFiltrado,
     totalRegistros,
+    hayMas,
+    cargarMas,
     filtros,
     setBusqueda,
     setFechaInicio,
     setFechaFin,
     limpiarFiltros,
   } = useBusquedaHistorial();
+
+  // Scroll infinito: un "sentinel" invisible al final de la lista. Cuando entra
+  // en viewport del CONTENEDOR scrolleable, se carga la siguiente tanda. Asi el
+  // dialogo abre/cierra al instante (pinta ~40 tarjetas, no miles) y el resto se
+  // va sumando a medida que el usuario baja. Fix latencia historial 2026-10-03.
+  //
+  // Fix 2026-10-05: antes quedaba clavado en "Cargando mas registros" al llegar
+  // al final. Dos causas: (1) el observer usaba el viewport por defecto como
+  // root en vez del div con overflow-y-auto, asi que la interseccion no se
+  // detectaba bien; (2) si la ultima tanda entraba y el sentinel seguia dentro
+  // del viewport, el observer no volvia a disparar cargarMas. Solucion: usar el
+  // contenedor scrolleable como root y, ademas, escuchar el scroll del propio
+  // contenedor como respaldo (si estamos cerca del fondo, cargar mas). El
+  // sentinel ya solo se muestra cuando hayMas === true, asi que al llegar al
+  // final desaparece solo.
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open || !hayMas) return;
+    const root = scrollContainerRef.current;
+    const nodo = sentinelRef.current;
+    if (!root || !nodo) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some(e => e.isIntersecting)) cargarMas();
+      },
+      { root, rootMargin: '300px' },
+    );
+    observer.observe(nodo);
+    return () => observer.disconnect();
+  }, [open, hayMas, cargarMas, historial.length]);
+
+  // Respaldo por scroll: si el IntersectionObserver no llega a disparar (p. ej.
+  // cuando la ultima tanda queda visible sin generar un nuevo evento), al
+  // acercarse al fondo del contenedor se carga la siguiente tanda igual.
+  const handleScroll = useCallback(() => {
+    const root = scrollContainerRef.current;
+    if (!root || !hayMas) return;
+    const cercaDelFondo =
+      root.scrollTop + root.clientHeight >= root.scrollHeight - 300;
+    if (cercaDelFondo) cargarMas();
+  }, [hayMas, cargarMas]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -88,13 +135,17 @@ export function KeyHistorySearch({ open, onOpenChange }: KeyHistorySearchProps) 
             )}
 
             <div className="ml-auto text-sm text-muted-foreground">
-              {historial.length} de {totalRegistros} registros
+              {totalFiltrado} de {totalRegistros} registros
             </div>
           </div>
         </div>
 
         {/* Resultados con scroll */}
-        <div className="flex-1 overflow-y-auto min-h-0 pr-1">
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto min-h-0 pr-1"
+        >
           {historial.length === 0 ? (
             <div className="text-center py-12">
               <Key className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
@@ -110,6 +161,12 @@ export function KeyHistorySearch({ open, onOpenChange }: KeyHistorySearchProps) 
               {historial.map((item, index) => (
                 <HistorialCard key={index} item={item} />
               ))}
+              {/* Sentinel del scroll infinito: al entrar en viewport carga mas. */}
+              {hayMas && (
+                <div ref={sentinelRef} className="py-4 text-center text-sm text-muted-foreground">
+                  Cargando más registros...
+                </div>
+              )}
             </div>
           )}
         </div>

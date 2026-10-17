@@ -1,5 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
+
+// Cuantos registros se PINTAN en pantalla por tanda (scroll infinito).
+// El historial completo puede tener miles de registros (crece con el uso):
+// renderizar TODAS las tarjetas de golpe hacia que el dialogo tardara varios
+// segundos en abrir y cerrar. Se limita SOLO el render (no la busqueda ni los
+// filtros, que siguen operando sobre el total) y se van sumando tandas a medida
+// que el usuario baja el scroll. Fix latencia historial 2026-10-03.
+const TANDA_HISTORIAL = 40;
 
 export interface HistorialLlaveItem {
   lugarNombre: string;
@@ -102,9 +110,37 @@ export function useBusquedaHistorial() {
     });
   }, [historial, filtros]);
 
+  // Cantidad de registros efectivamente renderizados (scroll infinito).
+  // Arranca en una tanda y crece al bajar el scroll. Se reinicia cada vez que
+  // cambian los filtros para no quedar "mostrando mas" sobre una lista nueva.
+  const [visibles, setVisibles] = useState(TANDA_HISTORIAL);
+
+  useEffect(() => {
+    setVisibles(TANDA_HISTORIAL);
+  }, [filtros.busqueda, filtros.fechaInicio, filtros.fechaFin]);
+
+  const historialVisible = useMemo(
+    () => historialFiltrado.slice(0, visibles),
+    [historialFiltrado, visibles],
+  );
+
+  const hayMas = visibles < historialFiltrado.length;
+
+  const cargarMas = useCallback(() => {
+    setVisibles(v => Math.min(v + TANDA_HISTORIAL, historialFiltrado.length));
+  }, [historialFiltrado.length]);
+
   return {
-    historial: historialFiltrado,
+    // Lista YA recortada para pintar (scroll infinito).
+    historial: historialVisible,
+    // Total que matchea los filtros (todo lo buscado, no solo lo pintado).
+    totalFiltrado: historialFiltrado.length,
+    // Total absoluto de registros del historial (sin filtrar).
     totalRegistros: historial.length,
+    // Hay mas tandas para cargar al seguir bajando.
+    hayMas,
+    // Suma la siguiente tanda al render.
+    cargarMas,
     filtros,
     setFiltros,
     setBusqueda: (busqueda: string) => setFiltros(f => ({ ...f, busqueda })),
