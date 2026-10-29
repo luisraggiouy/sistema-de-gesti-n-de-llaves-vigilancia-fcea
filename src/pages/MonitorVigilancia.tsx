@@ -102,6 +102,20 @@ export default function MonitorVigilancia() {
   const { actuales: vigilantesActuales, anteriores: vigilantesAnteriores } =
     obtenerVigilantesConTransicion(configuracion.transicionTurnoMinutos);
 
+  // Upgrade 2026-09-26: en el registro/devolucion de OBJETOS OLVIDADOS los
+  // desplegables de vigilante mostraban SOLO el turno actual. Ahora usan la
+  // MISMA logica de transicion de turno que la entrega/devolucion de llaves:
+  // durante la ventana de transicion (30 min configurable + la ventana fija de
+  // las 05:50) aparecen tambien los vigilantes del turno anterior. Se combinan
+  // ambas listas por NOMBRE y se deduplica por si algun nombre estuviera en las
+  // dos (no deberia, pero es defensivo). Se dejan primero los del turno actual.
+  const vigilantesObjetos = Array.from(
+    new Set([
+      ...vigilantesActuales.map(v => v.nombre),
+      ...vigilantesAnteriores.map(v => v.nombre),
+    ])
+  );
+
   const handleEntregar = (solicitudId: string, vigilante: string) => {
     const solicitud = solicitudesPendientes.find(s => s.id === solicitudId);
     if (!solicitud) return;
@@ -349,7 +363,7 @@ export default function MonitorVigilancia() {
         objetos={objetos}
         objetosEnCustodia={objetosEnCustodia}
         objetosDevueltos={objetosDevueltos}
-        vigilantes={vigilantesActuales.map(v => v.nombre)}
+        vigilantes={vigilantesObjetos}
         onRegistrarClick={() => { setObjetosOpen(false); setRegistroObjetoOpen(true); }}
         onDevolver={devolverObjeto}
         buscarObjetos={buscarObjetos}
@@ -358,7 +372,7 @@ export default function MonitorVigilancia() {
       <RegistroObjetoModal
         open={registroObjetoOpen}
         onOpenChange={(v) => { setRegistroObjetoOpen(v); if (!v) setObjetosOpen(true); }}
-        vigilantes={vigilantesActuales.map(v => v.nombre)}
+        vigilantes={vigilantesObjetos}
         onRegistrar={registrarObjeto}
       />
 
