@@ -2,6 +2,7 @@
 import { Vigilante, Turno, EstadoLicencia, DiaSemana, obtenerTurnoActual } from '@/data/fceaData';
 import pb from '@/lib/pocketbase';
 import { registrarError } from '@/lib/errorLog';
+import { getVisorSnapshot } from '@/lib/visorSnapshot';
 
 function obtenerTurnoAnterior(turnoActual: Turno): Turno {
   switch (turnoActual) {
@@ -24,7 +25,11 @@ export function useVigilantes() {
 
   const cargarVigilantes = useCallback(async () => {
     try {
-      const records = await pb.collection('vigilante').getFullList({ sort: 'nombre' });
+      // Modo VISOR OFFLINE: si hay snapshot embebido, usarlo y no tocar PocketBase.
+      const snap = getVisorSnapshot();
+      const records = snap
+        ? snap.vigilantes
+        : await pb.collection('vigilante').getFullList({ sort: 'nombre' });
       const lista: Vigilante[] = records.map((r: any) => ({
         id: r.id,
         nombre: r.nombre,

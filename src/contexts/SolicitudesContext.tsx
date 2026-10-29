@@ -3,6 +3,7 @@ import { SolicitudLlave, Lugar, ordenNatural } from '@/data/fceaData';
 import pb, { useConnectionStore, startReconnectionAttempts } from '@/lib/pocketbase';
 import { useToast } from '@/hooks/use-toast';
 import { registrarError } from '@/lib/errorLog';
+import { getVisorSnapshot } from '@/lib/visorSnapshot';
 
 interface AccionUndo {
   id: string;
@@ -222,7 +223,7 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
   const cargarLugares = useCallback(async () => {
     if (!isConnected) {
       await checkConnection();
-      if (!isConnected) return;
+      if (!getVisorSnapshot() && !isConnected) return;
     }
     
     // Only show loading indicator if this is not a background refresh
@@ -231,7 +232,9 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
     }
     
     try {
-      const records = await pb.collection('lugares').getFullList();
+      // Modo VISOR OFFLINE: no hay coleccion de lugares embebida (el historial
+      // usa lugar_nombre del propio registro). Devolvemos lista vacia.
+      const records = getVisorSnapshot() ? [] : await pb.collection('lugares').getFullList();
 
       const lista: Lugar[] = records.map(mapLugarRecord);
       lista.sort((a, b) => ordenNatural(a.nombre, b.nombre));
@@ -255,7 +258,8 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
   }, [isConnected, checkConnection, toast]);
 
   const cargarSolicitudes = useCallback(async () => {
-    if (!isConnected) {
+    const snap = getVisorSnapshot();
+    if (!snap && !isConnected) {
       await checkConnection();
       if (!isConnected) return;
     }
@@ -266,7 +270,10 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
     }
     
     try {
-      const records = await pb.collection('solicitudes').getFullList({ sort: '-created' });
+      // Modo VISOR OFFLINE: usar el snapshot embebido y no tocar PocketBase.
+      const records = snap
+        ? snap.solicitudes
+        : await pb.collection('solicitudes').getFullList({ sort: '-created' });
 
       const lista: SolicitudLlave[] = records.map((r: any) => {
 
@@ -412,6 +419,10 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
     // Initial load
     cargarLugares();
     cargarSolicitudes();
+
+    // Modo VISOR OFFLINE: datos congelados del snapshot. Se cargan una sola vez
+    // y NO se monta el polling de 3s (no hay servidor al que consultar).
+    if (getVisorSnapshot()) return;
     
     // Track last successful poll time to detect sleep/wake
     let lastPollTime = Date.now();
@@ -468,6 +479,9 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
   // Usa upsert/borrado deduplicado por id para que el "eco" del propio evento
   // no duplique filas.
   useEffect(() => {
+    // Modo VISOR OFFLINE: sin servidor, no hay realtime que suscribir.
+    if (getVisorSnapshot()) return;
+
     let unsub: (() => void) | undefined;
 
     (async () => {

@@ -9,7 +9,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Download, Calendar, FileSpreadsheet, Usb, Info, Check, X, Eye, EyeOff } from 'lucide-react';
 import { DateInput } from '@/components/ui/date-input';
 import { useToast } from '@/hooks/use-toast';
-import { exportToExcel, hayUSBConectado, obtenerUSBsConectados } from '@/utils/exportUtils';
+import { exportToExcel, exportarVisorOffline, hayUSBConectado, obtenerUSBsConectados } from '@/utils/exportUtils';
+import pb from '@/lib/pocketbase';
 import { useSolicitudesContext } from '@/contexts/SolicitudesContext';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useObjetosOlvidados } from '@/hooks/useObjetosOlvidados';
@@ -30,7 +31,13 @@ interface ExportOptions {
   includeKeys: boolean;
   includeObjetos: boolean;
   includeAutorizaciones: boolean;
+  includeHistorial: boolean;
 }
+
+// Tope temporal del Historial exportado: como la autoridad NO elige rango al
+// grabar, se incluye SIEMPRE hasta 2 anios (24 meses) hacia atras desde hoy,
+// para que el archivo no crezca sin control cuando el sistema tenga anios.
+const HISTORIAL_MAX_ANIOS = 2;
 
 export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalProps) {
   const [startDate, setStartDate] = useState(() => {
@@ -51,7 +58,8 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
     includeUsers: false,
     includeKeys: false,
     includeObjetos: true,
-    includeAutorizaciones: true
+    includeAutorizaciones: true,
+    includeHistorial: true
   });
 
   const [isExporting, setIsExporting] = useState(false);
@@ -164,6 +172,43 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
           }) : []
       };
 
+      // ── Historial de Llaves (igual que el buscador del Monitor, con notas) ──
+      // La autoridad NO elige rango: se incluye SIEMPRE hasta 2 anios hacia
+      // atras desde hoy (tope duro) para que el archivo no sea pesado. Mismo
+      // mapeo y orden que useBusquedaHistorial (mas reciente primero).
+      let historial: any[] = [];
+      if (exportOptions.includeHistorial) {
+        const limiteHistorial = new Date();
+        limiteHistorial.setFullYear(limiteHistorial.getFullYear() - HISTORIAL_MAX_ANIOS);
+        historial = [...solicitudesEntregadas, ...solicitudesDevueltas]
+          .filter(s => s.horaEntrega && new Date(s.horaEntrega) >= limiteHistorial)
+          .map((s: any) => {
+            let tiempoUso: string | undefined;
+            if (s.horaEntrega && s.horaDevolucion) {
+              const mins = Math.floor((new Date(s.horaDevolucion).getTime() - new Date(s.horaEntrega).getTime()) / 60000);
+              const horas = Math.floor(mins / 60);
+              const resto = mins % 60;
+              tiempoUso = horas > 0 ? `${horas}h ${resto}m` : `${resto}m`;
+            }
+            return {
+              lugarNombre: s.lugar?.nombre ?? '',
+              usuarioNombre: s.usuario?.nombre ?? '',
+              tipoUsuario: s.usuario?.tipo ?? '',
+              departamento: s.usuario?.departamento,
+              nombreEmpresa: s.usuario?.nombreEmpresa,
+              vigilanteEntrega: s.entregadoPor ?? '',
+              vigilanteDevolucion: s.recibidoPor,
+              horaEntrega: s.horaEntrega,
+              horaDevolucion: s.horaDevolucion,
+              tiempoUso,
+              turno: s.turno ?? '',
+              notas: s.notas?.trim() ? s.notas.trim() : undefined,
+            };
+          })
+          .sort((a, b) => new Date(b.horaEntrega).getTime() - new Date(a.horaEntrega).getTime());
+      }
+      (filteredData as any).historial = historial;
+
       // Preparar datos para exportación
       const exportData = {
         ...filteredData,
@@ -198,15 +243,25 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
       const minGen = String(now.getMinutes()).padStart(2, '0');
       const fileName = `Datos Dashboard Vigilancia, desde ${fmtFechaLegible(startDate)} hasta ${fmtFechaLegible(endDate)}, generado ${diaGen}-${mesGen}-${anioGen} hora ${horaGen}.${minGen}`;
 
-      // Exportar a Excel - TODOS exportan directo a USB
-      await exportToExcel(exportData, fileName, {
-        includeStats: exportOptions.includeStats,
-        includeUsers: exportOptions.includeUsers,
-        includeKeys: exportOptions.includeKeys,
-        dateRange: { start: startDate, end: endDate },
-        directToUsb: usbStatus.connected, // TODOS exportan directo a USB si está conectado
-        usbPath: usbStatus.connected ? usbStatus.drives[0].mountPoint : undefined
-      });
+      // ── VISOR OFFLINE ──────────────────────────────────────────────────────
+      // Se genera UN archivo .html autocontenido que, al abrirlo en la PC de la
+      // autoridad (sin servidor), muestra el MISMO Dashboard + Buscador
+      // Historico del Monitor con los datos CONGELADOS. La autoridad NO elige
+      // rango al grabar; filtra despues en su PC. Leemos los registros CRUDOS de
+      // PocketBase para que el visor los mapee con el mismo codigo que el Monitor.
+      const [solRaw, vigRaw, objRaw] = await Promise.all([
+        pb.collection('solicitudes').getFullList({ sort: '-created' }),
+        pb.collection('vigilante').getFullList({ sort: 'nombre' }),
+        pb.collection('objetos_olvidados').getFullList({ sort: '-created' }),
+      ]);
+      const snapshot = {
+        generadoEn: new Date().toISOString(),
+        solicitudes: solRaw,
+        vigilantes: vigRaw,
+        objetos: objRaw,
+        autorizaciones: getAutorizaciones(),
+      };
+      await exportarVisorOffline(snapshot, fileName);
 
       // TODOS exportan a USB - Mensaje unificado
       toast({
@@ -490,6 +545,17 @@ export function AdvancedExportModal({ open, onOpenChange }: AdvancedExportModalP
                   />
                   <Label htmlFor="includeAutorizaciones" className="text-sm font-medium">
                     Autorizaciones Ingresadas
+                  </Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="includeHistorial"
+                    checked={exportOptions.includeHistorial}
+                    onCheckedChange={(checked) => handleOptionChange('includeHistorial', checked as boolean)}
+                  />
+                  <Label htmlFor="includeHistorial" className="text-sm font-medium">
+                    Historial de Llaves (últimos 2 años — entregas, devoluciones y notas)
                   </Label>
                 </div>
               </div>

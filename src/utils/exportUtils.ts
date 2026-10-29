@@ -814,6 +814,40 @@ function generarInformeHTML(data: any, options: any): string {
       </tr>`;
     }).join('');
 
+  // ── Historial de Llaves (igual que el buscador del Monitor, con NOTAS) ──────
+  // Upgrade 2026: la autoridad que exporta a pendrive se lleva el historial
+  // completo de entregas/devoluciones (y notas) para consultarlo en su PC tal
+  // cual lo ve el Monitor. El tope temporal (max. 2 anios) se aplica en el
+  // modal que arma data.historial; aqui solo se renderiza lo que llega.
+  const escapar = (t: any) => String(t ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const fmtFechaHora = (iso: any) => {
+    if (!iso) return '-';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('es-UY') + ' ' +
+      d.toLocaleTimeString('es-UY', { hour: '2-digit', minute: '2-digit' });
+  };
+  const historialRows = (data.historial || []).map((h: any) => {
+    const estado = h.horaDevolucion
+      ? '<span style="color:#16a34a">Devuelta</span>'
+      : '<span style="color:#dc2626">En uso</span>';
+    let detalleUsuario = escapar(h.tipoUsuario || '');
+    if (h.tipoUsuario === 'Personal TAS' && h.departamento) detalleUsuario += ' - Depto: ' + escapar(h.departamento);
+    if (h.tipoUsuario === 'Empresa' && h.nombreEmpresa) detalleUsuario += ' - ' + escapar(h.nombreEmpresa);
+    return `<tr style="border-bottom:1px solid #f8fafc">
+      <td style="padding:6px 8px">${escapar(h.lugarNombre)}</td>
+      <td style="padding:6px 8px">${escapar(h.usuarioNombre)}<br><span style="color:#64748b;font-size:11px">${detalleUsuario}</span></td>
+      <td style="padding:6px 8px">${escapar(h.turno)}</td>
+      <td style="padding:6px 8px">${fmtFechaHora(h.horaEntrega)}<br><span style="color:#64748b;font-size:11px">por ${escapar(h.vigilanteEntrega)}</span></td>
+      <td style="padding:6px 8px">${h.horaDevolucion ? fmtFechaHora(h.horaDevolucion) + '<br><span style="color:#64748b;font-size:11px">por ' + escapar(h.vigilanteDevolucion) + '</span>' : '-'}</td>
+      <td style="padding:6px 8px">${escapar(h.tiempoUso || '-')}</td>
+      <td style="padding:6px 8px">${estado}</td>
+      <td style="padding:6px 8px">${h.notas ? escapar(h.notas) : '-'}</td>
+    </tr>`;
+  }).join('');
+  const totalHistorial = (data.historial || []).length;
+
   const detalleObjetosRows = (data.objetosOlvidados || []).map((o: any) => {
     const fecha = new Date(o.fechaRegistro).toLocaleDateString('es-UY');
     const estado = o.estado === 'devuelto' ? '<span style="color:#16a34a">Devuelto</span>' : '<span style="color:#f59e0b">En custodia</span>';
@@ -930,6 +964,17 @@ function generarInformeHTML(data: any, options: any): string {
       <tbody>${turnoRows}</tbody>
     </table>
   </div>
+
+  <!-- SECCIÓN HISTORIAL DE LLAVES (igual que el buscador del Monitor, con notas) -->
+  ${historialRows ? `
+  <h2>Historial de Llaves (${totalHistorial} registros)</h2>
+  <p style="color:#64748b;font-size:13px;margin:-6px 0 10px">Entregas, devoluciones y notas. Para buscar o filtrar por fecha, usá el buscador de tu visor (Ctrl+F) o abrí este informe en el navegador.</p>
+  <div class="card">
+    <table>
+      <thead><tr><th>Llave / Lugar</th><th>Usuario</th><th>Turno</th><th>Entrega</th><th>Devolución</th><th>Tiempo</th><th>Estado</th><th>Notas</th></tr></thead>
+      <tbody>${historialRows}</tbody>
+    </table>
+  </div>` : ''}
 
   <!-- SECCIÓN 3 (SECUNDARIA): DETALLE DE SOLICITUDES -->
   ${detalleSolicitudesRows ? `
@@ -1086,4 +1131,80 @@ function generarInformeHTML(data: any, options: any): string {
 export async function exportToExcel(data: any, filename: string, options: any = {}) {
   const htmlContent = generarInformeHTML(data, options);
   return await guardarArchivo(htmlContent, `${filename}_Informe.html`, 'text/html');
+}
+
+// =============================================================
+// VISOR OFFLINE: genera un unico archivo HTML autocontenido que, al
+// abrirlo con doble clic en cualquier PC (sin internet ni PocketBase),
+// muestra el MISMO Dashboard + Buscador Historico del Monitor, con los
+// datos congelados al momento de exportar.
+//
+// Como lo logra: lee el bundle JS/CSS que YA esta corriendo (mismos
+// assets del dist), los embebe inline junto con el snapshot de datos
+// (window.__FCEA_SNAPSHOT__) y un <div id="root">. La app, al detectar
+// el snapshot, arranca en modo visor (ver main.tsx) y va a /visor.
+// =============================================================
+export async function exportarVisorOffline(snapshot: any, filename: string): Promise<boolean> {
+  // 1) Ubicar los assets (js y css) que cargo el index.html actual.
+  const scripts = Array.from(document.querySelectorAll('script[src]'))
+    .map(s => (s as HTMLScriptElement).src)
+    .filter(src => /\/assets\/.*\.js(\?|$)/.test(src));
+  const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"][href]'))
+    .map(l => (l as HTMLLinkElement).href)
+    .filter(href => /\/assets\/.*\.css(\?|$)/.test(href));
+
+  // 2) Descargar su contenido (estan en el mismo origen, fetch local).
+  const jsContents: string[] = [];
+  for (const src of scripts) {
+    try { jsContents.push(await (await fetch(src)).text()); } catch { /* skip */ }
+  }
+  const cssContents: string[] = [];
+  for (const href of styles) {
+    try { cssContents.push(await (await fetch(href)).text()); } catch { /* skip */ }
+  }
+
+  if (jsContents.length === 0) {
+    throw new Error('No se pudo leer el bundle de la aplicacion para el visor.');
+  }
+
+  // 3) Serializar el snapshot y el bundle de forma segura para incrustar.
+  //    Se cierran los </script> para que no corten el <script> contenedor.
+  const snapJson = JSON.stringify(snapshot).replace(/<\/script>/gi, '<\\/script>');
+  const jsAll = jsContents.join('\n');
+  // Guardamos el JS como string JSON para meterlo en un <script> clasico y de
+  // ahi crear un Blob module. CLAVE: abrir el bundle con `<script type=module>`
+  // inline NO funciona al abrir el HTML con doble clic (file://): Chrome bloquea
+  // los ES modules por CORS en file://. En cambio, cargar el module desde un
+  // blob: URL SI funciona bajo file://. Por eso embebemos el JS como texto y lo
+  // ejecutamos via un <script type="module" src="blob:...">.
+  const jsAsJson = JSON.stringify(jsAll);
+
+  // 4) Armar el HTML autocontenido.
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Informe de desempeño y trazabilidad de llaves - FCEA</title>
+<style>${cssContents.join('\n')}</style>
+</head>
+<body>
+<div id="root"></div>
+<script>window.__FCEA_SNAPSHOT__ = ${snapJson};</script>
+<script>
+  // Cargar el bundle como ES module desde un blob URL (funciona con file://).
+  (function () {
+    var codigo = ${jsAsJson};
+    var blob = new Blob([codigo], { type: 'text/javascript' });
+    var url = URL.createObjectURL(blob);
+    var s = document.createElement('script');
+    s.type = 'module';
+    s.src = url;
+    document.body.appendChild(s);
+  })();
+</script>
+</body>
+</html>`;
+
+  return await guardarArchivo(html, `${filename}.html`, 'text/html');
 }

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { ObjetoOlvidado } from '@/types/objetoOlvidado';
 import pb from '@/lib/pocketbase';
+import { getVisorSnapshot } from '@/lib/visorSnapshot';
 
 const normalizar = (texto: string): string =>
   texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -32,7 +33,11 @@ export function useObjetosOlvidados() {
 
   const cargar = useCallback(async () => {
     try {
-      const records = await pb.collection('objetos_olvidados').getFullList({ sort: '-created' });
+      // Modo VISOR OFFLINE: si hay snapshot embebido, usarlo y no tocar PocketBase.
+      const snap = getVisorSnapshot();
+      const records = snap
+        ? snap.objetos
+        : await pb.collection('objetos_olvidados').getFullList({ sort: '-created' });
       setObjetos(records.map(mapRecord));
     } catch (e) {
       console.error('Error cargando objetos olvidados:', e);
