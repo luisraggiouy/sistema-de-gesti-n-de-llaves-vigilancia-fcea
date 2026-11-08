@@ -169,7 +169,63 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
   // (igual criterio que lugaresRef). Lo usa cargarSolicitudes para: (a) conservar
   // la version local de un cambio en vuelo, y (b) comparar si la lista cambio.
   const solicitudesRef = useRef<SolicitudLlave[]>([]);
-  
+
+  // Mapeo record (PocketBase) -> SolicitudLlave. UNICA fuente de verdad del
+  // mapeo, usada tanto por cargarSolicitudes (polling / getFullList) como por
+  // la suscripcion realtime (fix latencia instantanea 2026-11-05): asi el
+  // evento SSE puede pintar la fila YA con exactamente el mismo formato, sin
+  // duplicar logica fragil (fechas UTC, lugarReal, usuario, notas en vuelo...).
+  // Es estable (useCallback []): lee lugaresRef/notasPendientesRef, no estado.
+  const mapSolicitudRecord = useCallback((r: any): SolicitudLlave => {
+    // Look up the actual lugar from loaded lugares to get full location data
+    // Try by ID first, then by name as fallback (IDs may change after re-sync)
+    const lugarReal = lugaresRef.current.find(l => l.id === r.lugar_id)
+      || lugaresRef.current.find(l => l.nombre === r.lugar_nombre);
+    return {
+      id: r.id,
+      lugar: lugarReal ? { ...lugarReal, disponible: false } : {
+        id: r.lugar_id ?? r.id,
+        nombre: r.lugar_nombre ?? '',
+        tipo: r.tipo_lugar ?? 'Salón',
+        disponible: false,
+        edificio: r.edificio ?? '',
+        tablero: 'Tablero Principal' as const,
+        ubicacion: { zona: 'Fondo' as const },
+        esHibrido: false,
+      },
+      usuario: {
+        nombre: r.usuario_nombre ?? '',
+        celular: r.usuario_celular ?? '',
+        tipo: r.tipo_usuario ?? 'Docente',
+        departamento: r.departamento || undefined,
+        nombreEmpresa: r.nombre_empresa || undefined,
+      },
+      terminal: r.terminal ?? 'terminal',
+      // Fix 2026-08-28: normalizar el espacio a "T" (igual que `created`) para
+      // que new Date() parsee la fecha como UTC en todos los navegadores.
+      horaSolicitud: r.hora_solicitud ? new Date(String(r.hora_solicitud).replace(' ', 'T')) : new Date(),
+      horaCreacionServidor: r.created
+        ? new Date(String(r.created).replace(' ', 'T'))
+        : undefined,
+      horaEntrega: r.hora_entrega ? new Date(String(r.hora_entrega).replace(' ', 'T')) : undefined,
+      horaDevolucion: r.hora_devolucion ? new Date(String(r.hora_devolucion).replace(' ', 'T')) : undefined,
+      entregadoPor: r.entregado_por || undefined,
+      recibidoPor: r.recibido_por || undefined,
+      estado: r.estado ?? 'pendiente',
+      turno: r.turno,
+      notas: notasPendientesRef.current[r.id] ?? r.notas ?? undefined,
+      esIntercambio: r.es_intercambio ?? false,
+      lugarId: r.lugar_id ?? '',
+      usuarioAnterior: r.usuario_anterior_nombre ? {
+        nombre: r.usuario_anterior_nombre,
+        celular: r.usuario_anterior_celular || '',
+        tipo: r.usuario_anterior_tipo || 'Empresa',
+        departamento: r.usuario_anterior_departamento || undefined,
+        nombreEmpresa: r.usuario_anterior_empresa || undefined
+      } : undefined,
+    };
+  }, []);
+
   // Get connection status from the store
   const isConnected = useConnectionStore(state => state.isConnected);
   const checkConnection = useConnectionStore(state => state.checkConnection);
@@ -275,65 +331,8 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
         ? snap.solicitudes
         : await pb.collection('solicitudes').getFullList({ sort: '-created' });
 
-      const lista: SolicitudLlave[] = records.map((r: any) => {
-
-        // Look up the actual lugar from loaded lugares to get full location data
-        // Try by ID first, then by name as fallback (IDs may change after re-sync)
-        const lugarReal = lugaresRef.current.find(l => l.id === r.lugar_id) 
-          || lugaresRef.current.find(l => l.nombre === r.lugar_nombre);
-        return {
-        id: r.id,
-        lugar: lugarReal ? { ...lugarReal, disponible: false } : {
-          id: r.lugar_id ?? r.id,
-          nombre: r.lugar_nombre ?? '',
-          tipo: r.tipo_lugar ?? 'Salón',
-          disponible: false,
-          edificio: r.edificio ?? '',
-          tablero: 'Tablero Principal' as const,
-          ubicacion: { zona: 'Fondo' as const },
-          esHibrido: false,
-        },
-        usuario: {
-          nombre: r.usuario_nombre ?? '',
-          celular: r.usuario_celular ?? '',
-          tipo: r.tipo_usuario ?? 'Docente',
-          departamento: r.departamento || undefined,
-          nombreEmpresa: r.nombre_empresa || undefined,
-        },
-        terminal: r.terminal ?? 'terminal',
-        // Fix 2026-08-28: normalizar el espacio a "T" (igual que `created`) para
-        // que new Date() parsee la fecha como UTC en todos los navegadores. Sin
-        // esto, Edge/Chromium interpretaba "YYYY-MM-DD HH:MM:SSZ" como hora LOCAL
-        // y aparecia un desfase de zona horaria (ej. "5 horas" en un intercambio).
-        horaSolicitud: r.hora_solicitud ? new Date(String(r.hora_solicitud).replace(' ', 'T')) : new Date(),
-        // `created` lo genera PocketBase (server = Monitor) al insertar. Es el
-        // ancla confiable para el contador "cuanto hace que llego el pedido"
-        // porque comparte reloj con el Date.now() del Monitor. PocketBase lo
-        // devuelve como "YYYY-MM-DD HH:MM:SS.mmmZ" (con espacio): normalizamos
-        // el espacio a "T" para que new Date() lo parsee como UTC en todos los
-        // navegadores.
-        horaCreacionServidor: r.created
-          ? new Date(String(r.created).replace(' ', 'T'))
-          : undefined,
-
-        horaEntrega: r.hora_entrega ? new Date(String(r.hora_entrega).replace(' ', 'T')) : undefined,
-        horaDevolucion: r.hora_devolucion ? new Date(String(r.hora_devolucion).replace(' ', 'T')) : undefined,
-        entregadoPor: r.entregado_por || undefined,
-        recibidoPor: r.recibido_por || undefined,
-        estado: r.estado ?? 'pendiente',
-        turno: r.turno,
-        notas: notasPendientesRef.current[r.id] ?? r.notas ?? undefined,
-        esIntercambio: r.es_intercambio ?? false,
-        lugarId: r.lugar_id ?? '',
-        // Load previous user information for exchanges
-        usuarioAnterior: r.usuario_anterior_nombre ? {
-          nombre: r.usuario_anterior_nombre,
-          celular: r.usuario_anterior_celular || '',
-          tipo: r.usuario_anterior_tipo || 'Empresa',
-          departamento: r.usuario_anterior_departamento || undefined,
-          nombreEmpresa: r.usuario_anterior_empresa || undefined
-        } : undefined,
-      }});
+      // Mapeo centralizado (misma fuente de verdad que usa el realtime).
+      const lista: SolicitudLlave[] = records.map((r: any) => mapSolicitudRecord(r));
 
       // Fix 2026-10-03 (reflote por polling): antes de volcar la lista del
       // servidor, respetamos los cambios optimistas EN VUELO. Si una solicitud
@@ -385,7 +384,7 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
         setIsLoading(false);
       }
     }
-  }, [isConnected, checkConnection, toast]);
+  }, [isConnected, checkConnection, toast, mapSolicitudRecord]);
 
   
   // Function to refresh all data (manual refresh)
@@ -478,6 +477,121 @@ export function SolicitudesProvider({ children }: { children: React.ReactNode })
   // por eso una llave nueva creada en el Monitor no aparecia en las terminales.
   // Usa upsert/borrado deduplicado por id para que el "eco" del propio evento
   // no duplique filas.
+
+  // Refs estables a cargarSolicitudes / mapSolicitudRecord para el realtime.
+  // CLAVE del fix: estas funciones son useCallback cuya identidad CAMBIA
+  // (cargarSolicitudes depende de isConnected). Si el useEffect de la
+  // suscripcion dependiera de ellas, React desmontaria/remontaria la
+  // suscripcion cada vez -> ventanas muertas donde se PIERDEN eventos SSE
+  // (lo que daba "a veces 1s, a veces 2s, a veces instantaneo"). Usando refs,
+  // el useEffect monta la suscripcion UNA sola vez ([]) y siempre llama a la
+  // version mas reciente de las funciones.
+  const cargarSolicitudesRef = useRef(cargarSolicitudes);
+  const mapSolicitudRecordRef = useRef(mapSolicitudRecord);
+  useEffect(() => { cargarSolicitudesRef.current = cargarSolicitudes; }, [cargarSolicitudes]);
+  useEffect(() => { mapSolicitudRecordRef.current = mapSolicitudRecord; }, [mapSolicitudRecord]);
+
+  // Suscripcion realtime a 'solicitudes' — LATENCIA INSTANTANEA (2026-11-05 v2).
+  //
+  // POR QUE el intento anterior no funciono: el useEffect dependia de
+  // [cargarSolicitudes], que cambia de identidad al cambiar isConnected. Eso
+  // re-suscribia constantemente (con unsubscribe('*') global, muy agresivo) y
+  // perdia eventos: por eso la mejora era erratica. Ademas el callback solo
+  // disparaba OTRO getFullList por HTTP (ida y vuelta extra a la red).
+  //
+  // AHORA (instantaneo + respaldo):
+  //   1) La fila se pinta YA desde e.record (sin tocar la red), via
+  //      mapSolicitudRecord (misma fuente de verdad que el polling):
+  //        - create -> insertar al tope (dedup por id)
+  //        - update -> fusionar en su fila (respetando cambios EN VUELO)
+  //        - delete -> quitar la fila
+  //   2) Un re-fetch DEBOUNCED (300ms) corrige por si el record viniera
+  //      incompleto, sin martillar la red ante rafagas.
+  //   3) El useEffect monta la suscripcion UNA sola vez ([]) usando refs.
+  // El polling de 3s queda intacto como red de seguridad (cinturon+tirantes).
+  useEffect(() => {
+    // Modo VISOR OFFLINE: sin servidor, no hay realtime que suscribir.
+    if (getVisorSnapshot()) return;
+
+    let unsubSolicitudes: (() => void) | undefined;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    // Re-fetch de respaldo, agrupando rafagas en una sola llamada (300ms).
+    const refetchDebounced = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        debounceTimer = null;
+        isBackgroundRefreshRef.current = true;
+        Promise.resolve(cargarSolicitudesRef.current()).finally(() => {
+          isBackgroundRefreshRef.current = false;
+        });
+      }, 300);
+    };
+
+    (async () => {
+      try {
+        unsubSolicitudes = await pb.collection('solicitudes').subscribe('*', (e: any) => {
+          const rec = e?.record;
+          try {
+            if (rec && e.action === 'delete') {
+              // Quitar la fila al instante.
+              setSolicitudes(prev => {
+                const next = prev.filter(s => s.id !== rec.id);
+                solicitudesRef.current = next;
+                return next;
+              });
+            } else if (rec && (e.action === 'create' || e.action === 'update')) {
+              const mapped = mapSolicitudRecordRef.current(rec);
+              setSolicitudes(prev => {
+                const idx = prev.findIndex(s => s.id === mapped.id);
+                let next: SolicitudLlave[];
+                if (idx === -1) {
+                  // create (o update de algo que aun no teniamos): al tope,
+                  // mismo orden que el server (-created).
+                  next = [mapped, ...prev];
+                } else {
+                  // update: fusionar respetando un cambio optimista EN VUELO
+                  // (si el server todavia no refleja el estado esperado,
+                  // conservamos el estado local para no "reflotar" la tarjeta).
+                  const enVuelo = cambiosEnVueloRef.current[mapped.id];
+                  const actual = prev[idx];
+                  const fusion = (enVuelo && actual.estado === enVuelo.estado && mapped.estado !== enVuelo.estado)
+                    ? actual
+                    : { ...actual, ...mapped };
+                  next = prev.slice();
+                  next[idx] = fusion;
+                }
+                solicitudesRef.current = next;
+                return next;
+              });
+            }
+          } catch {
+            /* si algo del record viniera raro, el refetch de respaldo corrige */
+          }
+          setLastUpdated(new Date());
+          // Respaldo: corrige cualquier dato incompleto del evento.
+          refetchDebounced();
+        });
+      } catch (err) {
+        console.error(
+          'Error suscribiendo a solicitudes (se usara el polling de respaldo de 3s):',
+          err,
+        );
+      }
+    })();
+
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      try {
+        // Solo cancelar NUESTRA suscripcion (no unsubscribe('*') global, que
+        // mataria otras suscripciones de la misma coleccion).
+        if (unsubSolicitudes) unsubSolicitudes();
+      } catch {
+        /* noop */
+      }
+    };
+  }, []);
+
   useEffect(() => {
     // Modo VISOR OFFLINE: sin servidor, no hay realtime que suscribir.
     if (getVisorSnapshot()) return;
